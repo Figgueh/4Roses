@@ -32,9 +32,10 @@ import footerRoutes from "footer.routes";
 //Images
 import bgImage from "assets/images/property/exterior/frontGroundFloor.JPG";
 
-// About Us page sections
+// Home page sections
 import Rooms from "pages/LandingPages/Home/sections/Rooms";
 import MainFeatures from "pages/LandingPages/Home/sections/MainFeatures";
+import Amenities from "pages/LandingPages/Home/sections/Amenities";
 
 function Home() {
   return (
@@ -105,6 +106,7 @@ function Home() {
       >
         <MainFeatures />
         <Rooms />
+        <Amenities />
       </Card>
       <MKBox pt={6} px={1} mt={6}>
         <DefaultFooter content={footerRoutes} />
