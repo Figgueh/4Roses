@@ -9,8 +9,8 @@ import MKBox from "components/MKBox";
 import CenteredBlogCard from "examples/Cards/BlogCards/CenteredBlogCard";
 
 // Images
-import Aireal from "assets/images/property/exterior/aireal.jpg";
-import LivingRoomUpstairs from "assets/images/property/interior/livingRoomUpstairs.jpg";
+import Exterior from "assets/images/property/exterior/backViewBright.JPG";
+import Interior from "assets/images/property/interior/livingRoomUpstairs.jpg";
 
 function Rooms() {
   return (
@@ -19,7 +19,7 @@ function Rooms() {
         <Grid container spacing={3} alignItems="center">
           <Grid item xs={12} lg={6} sx={{ ml: "auto", mt: { xs: 3, lg: 0 } }}>
             <CenteredBlogCard
-              image={LivingRoomUpstairs}
+              image={Interior}
               title="Interior"
               description="The interior of this spacious home boasts two modern kitchens, four elegant bathrooms, and five generously sized bedrooms for ultimate comfort."
               action={{
@@ -32,7 +32,7 @@ function Rooms() {
           </Grid>
           <Grid item xs={12} lg={6} sx={{ ml: "auto", mt: { xs: 3, lg: 0 } }}>
             <CenteredBlogCard
-              image={Aireal}
+              image={Exterior}
               title="Exterior"
               description="The exterior of this stunning rental property features lush fruit trees, a sparkling heated pool, and multiple balconies offering breathtaking views."
               action={{
