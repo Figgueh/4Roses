@@ -13,18 +13,20 @@ Coded by www.creative-tim.com
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 */
 // Amenities images
-import Wifi from "assets/images/DesignBlocks/wifi.png";
-import Kitchen from "assets/images/property/interior/kitchenUpstairs.jpg";
-import TV from "assets/images/property/interior/dinningRoomUpstairs.jpg";
-import Bathroom from "assets/images/DesignBlocks/washroomViewMain.jpg";
-import Fireplace from "assets/images/property/interior/dinningRoomUpstairs.jpg";
-import PoolTable from "assets/images/property/interior/poolTable.jpg";
-import BabyFoot from "assets/images/DesignBlocks/babyFoot.jpg";
+// Modified images
 import Pool from "assets/images/DesignBlocks/poolView.jpg";
 import OutDoorOven from "assets/images/DesignBlocks/outDoorOven.jpg";
-import Laundry from "assets/images/DesignBlocks/laundryRoom.jpg";
 import Parking from "assets/images/DesignBlocks/parking.jpg";
+import Bathroom from "assets/images/DesignBlocks/washroomViewMain.jpg";
+import Laundry from "assets/images/DesignBlocks/laundryRoom.jpg";
 import AC from "assets/images/DesignBlocks/ac.png";
+import Wifi from "assets/images/DesignBlocks/wifi.png";
+import Fireplace from "assets/images/DesignBlocks/fireplace.png";
+import BabyFoot from "assets/images/DesignBlocks/babyFoot.jpg";
+// Unedited
+import Kitchen from "assets/images/property/interior/kitchenUpstairs.jpg";
+import TV from "assets/images/property/interior/dinningRoomUpstairs.jpg";
+import PoolTable from "assets/images/property/interior/poolTable.jpg";
 
 // Activities images
 import JetSki from "assets/images/DesignBlocks/jetSki.jpg";
@@ -38,14 +40,19 @@ export default [
     description: "All these amenities are included",
     items: [
       {
-        image: `${TV}`,
-        name: "Smart televisions with cable service",
-        sub: "5 Smart Television",
-      },
-      {
         image: `${Pool}`,
         name: "Private heated pool",
         sub: "Heated pool included from June to August. Rest of year 30 euros per day. Paid upon arrival.",
+      },
+      {
+        image: `${OutDoorOven}`,
+        name: "Outdoor & Indoor grill",
+        sub: "Includes a pizza oven",
+      },
+      {
+        image: `${Parking}`,
+        name: "Private parking",
+        sub: "Space for 2 cars",
       },
       {
         image: `${Bathroom}`,
@@ -58,29 +65,24 @@ export default [
         sub: "Microwave, Dishwasher, Grill, Coffee maker",
       },
       {
-        image: `${OutDoorOven}`,
-        name: "Outdoor & Indoor grill",
-        sub: "Includes a pizza oven",
-      },
-      {
         image: `${Laundry}`,
         name: "Laundry mateirals",
         sub: "Washer, Dryer, Iron & Board",
       },
       {
-        image: `${Parking}`,
-        name: "Private parking",
-        sub: "Space for 2 cars",
-      },
-      {
-        image: `${Wifi}`,
-        name: "Highspeed wifi",
-        sub: "500+ Mbps, serivce provided by MIO",
+        image: `${TV}`,
+        name: "Smart televisions with cable service",
+        sub: "5 Smart Television",
       },
       {
         image: `${AC}`,
         name: "Air conditioning in all bed rooms",
         sub: "6 total",
+      },
+      {
+        image: `${Wifi}`,
+        name: "Highspeed wifi",
+        sub: "500+ Mbps, serivce provided by MIO",
       },
       {
         image: `${Fireplace}`,
