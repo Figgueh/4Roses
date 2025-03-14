@@ -24,9 +24,9 @@ import Wifi from "assets/images/DesignBlocks/wifi.png";
 import Fireplace from "assets/images/DesignBlocks/fireplace.png";
 import BabyFoot from "assets/images/DesignBlocks/babyFoot.jpg";
 // Unedited
-import Kitchen from "assets/images/property/interior/kitchenUpstairs.jpg";
-import TV from "assets/images/property/interior/dinningRoomUpstairs.jpg";
-import PoolTable from "assets/images/property/interior/poolTable.jpg";
+import Kitchen from "assets/images/property/interior/kitchen1A.jpg";
+import TV from "assets/images/property/interior/livingroom1A.jpg";
+import PoolTable from "assets/images/property/interior/garagePoolTable.jpg";
 
 // Activities images
 import JetSki from "assets/images/DesignBlocks/jetSki.jpg";

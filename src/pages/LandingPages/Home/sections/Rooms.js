@@ -10,7 +10,7 @@ import CenteredBlogCard from "examples/Cards/BlogCards/CenteredBlogCard";
 
 // Images
 import Exterior from "assets/images/property/exterior/backViewBright.JPG";
-import Interior from "assets/images/property/interior/livingRoomUpstairs.jpg";
+import Interior from "assets/images/property/interior/livingRoom1B.jpg";
 
 function Rooms() {
   return (
