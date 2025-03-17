@@ -13,7 +13,7 @@ def generateDescription(val):
     if roomName == "":
         roomName = val
 
-    if(val[location] == 1 and roomName == "bedroom"):
+    if((val[location] == "1") and ((roomName == "Bedroom") or (roomName == "Washroom"))):
         return "Master " + roomName
     if(location != 0):
         return roomName + " " + val[location]

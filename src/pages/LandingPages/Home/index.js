@@ -33,24 +33,23 @@ import footerRoutes from "footer.routes";
 import bgImage from "assets/images/property/exterior/frontGroundFloor.JPG";
 
 // Home page sections
-import Rooms from "pages/LandingPages/Home/sections/Rooms";
 import MainFeatures from "pages/LandingPages/Home/sections/MainFeatures";
 import Amenities from "pages/LandingPages/Home/sections/Amenities";
+import MediaCard from "examples/Cards/BlogCards/CenteredBlogCard/MediaCard";
 
 function Home() {
   return (
     <>
-      <MKBox position="fixed" top="0.5rem" width="100%">
-        <DefaultNavbar
-          routes={routes}
-          action={{
-            type: "external",
-            route: "https://www.vrbo.com/en-ca/cottage-rental/p2905236vb",
-            label: "book now",
-            color: "default",
-          }}
-        />
-      </MKBox>
+      <DefaultNavbar
+        routes={routes}
+        action={{
+          type: "external",
+          route: "https://www.vrbo.com/en-ca/cottage-rental/p2905236vb",
+          label: "book now",
+          color: "default",
+        }}
+        sticky
+      />
 
       <MKBox
         minHeight="75vh"
@@ -105,7 +104,8 @@ function Home() {
         }}
       >
         <MainFeatures />
-        <Rooms />
+        {/* <Rooms /> */}
+        <MediaCard toDisplay={["exterior", "interior"]} containsHeader={false} />
         <Amenities />
       </Card>
       <MKBox pt={6} px={1} mt={6}>
