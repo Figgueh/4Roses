@@ -21,9 +21,7 @@ import "yet-another-react-lightbox/plugins/captions.css";
 // Sections components
 import BaseLayout from "layouts/sections/components/BaseLayout";
 import MKBox from "components/MKBox";
-import Grid from "@mui/material/Grid";
-import CenteredBlogCard from "examples/Cards/BlogCards/CenteredBlogCard";
-import Exterior from "assets/images/property/exterior/backViewBright.JPG";
+import MediaCard from "examples/Cards/BlogCards/CenteredBlogCard/MediaCard";
 
 import photos from "./photos";
 
@@ -53,20 +51,8 @@ function InteriorPhotos() {
           plugins={[Fullscreen, Slideshow, Thumbnails, Zoom, Captions]}
         />
       </MKBox>
-      <MKBox container spacing={3} alignItems="center">
-        <Grid itemxs={12} lg={6} sx={{ mx: "auto", mt: { xs: 4, lg: 5 } }}>
-          <CenteredBlogCard
-            image={Exterior}
-            title="Exterior"
-            description="The exterior of this stunning rental property features lush fruit trees, a sparkling heated pool, and multiple balconies offering breathtaking views."
-            action={{
-              type: "internal",
-              route: "/pages/albums/exterior",
-              color: "info",
-              label: "view more exterior pictures",
-            }}
-          />
-        </Grid>
+      <MKBox>
+        <MediaCard toDisplay={["exterior"]} containsHeader={true} />
       </MKBox>
     </BaseLayout>
   );

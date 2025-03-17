@@ -81,7 +81,7 @@ import WorkstationThumb from "assets/images/property/interior/256/workStation.jp
 const photos = [
   {
     src: Bedroom1a,
-    description: "bedroom 1",
+    description: "Master Bedroom",
     width: 1008,
     height: 756,
     srcSet: [
@@ -91,7 +91,7 @@ const photos = [
   },
   {
     src: Bedroom1b,
-    description: "bedroom 1",
+    description: "Master Bedroom",
     width: 1008,
     height: 756,
     srcSet: [
@@ -101,7 +101,7 @@ const photos = [
   },
   {
     src: Bedroom1c,
-    description: "bedroom 1",
+    description: "Master Bedroom",
     width: 1008,
     height: 756,
     srcSet: [
@@ -111,7 +111,7 @@ const photos = [
   },
   {
     src: Bedroom2a,
-    description: "bedroom 2",
+    description: "Bedroom 2",
     width: 1008,
     height: 756,
     srcSet: [
@@ -121,7 +121,7 @@ const photos = [
   },
   {
     src: Bedroom2b,
-    description: "bedroom 2",
+    description: "Bedroom 2",
     width: 1008,
     height: 756,
     srcSet: [
@@ -131,7 +131,7 @@ const photos = [
   },
   {
     src: Bedroom2c,
-    description: "bedroom 2",
+    description: "Bedroom 2",
     width: 1008,
     height: 756,
     srcSet: [
@@ -141,7 +141,7 @@ const photos = [
   },
   {
     src: Bedroom3a,
-    description: "bedroom 3",
+    description: "Bedroom 3",
     width: 1008,
     height: 756,
     srcSet: [
@@ -151,7 +151,7 @@ const photos = [
   },
   {
     src: Bedroom3b,
-    description: "bedroom 3",
+    description: "Bedroom 3",
     width: 1008,
     height: 756,
     srcSet: [
@@ -161,7 +161,7 @@ const photos = [
   },
   {
     src: Bedroom3c,
-    description: "bedroom 3",
+    description: "Bedroom 3",
     width: 1008,
     height: 756,
     srcSet: [
@@ -171,7 +171,7 @@ const photos = [
   },
   {
     src: Bedroom4a,
-    description: "bedroom 4",
+    description: "Bedroom 4",
     width: 756,
     height: 1008,
     srcSet: [
@@ -181,7 +181,7 @@ const photos = [
   },
   {
     src: Bedroom4b,
-    description: "bedroom 4",
+    description: "Bedroom 4",
     width: 756,
     height: 1008,
     srcSet: [
@@ -191,7 +191,7 @@ const photos = [
   },
   {
     src: Bedroom4c,
-    description: "bedroom 4",
+    description: "Bedroom 4",
     width: 756,
     height: 1008,
     srcSet: [
@@ -201,7 +201,7 @@ const photos = [
   },
   {
     src: Bedroom5a,
-    description: "bedroom 5",
+    description: "Bedroom 5",
     width: 756,
     height: 1008,
     srcSet: [
@@ -211,7 +211,7 @@ const photos = [
   },
   {
     src: Common,
-    description: "common",
+    description: "Common",
     width: 756,
     height: 1008,
     srcSet: [
@@ -221,7 +221,7 @@ const photos = [
   },
   {
     src: Corridor,
-    description: "corridor",
+    description: "Corridor",
     width: 1008,
     height: 756,
     srcSet: [
@@ -231,7 +231,7 @@ const photos = [
   },
   {
     src: Garagebabyfoot,
-    description: "garageBabyFoot",
+    description: "Garagebabyfoot",
     width: 756,
     height: 1008,
     srcSet: [
@@ -241,7 +241,7 @@ const photos = [
   },
   {
     src: Garagepooltable,
-    description: "garagePoolTable",
+    description: "Garagepooltable",
     width: 1008,
     height: 756,
     srcSet: [
@@ -251,7 +251,7 @@ const photos = [
   },
   {
     src: Kitchen1a,
-    description: "kitchen 1",
+    description: "Kitchen 1",
     width: 1008,
     height: 756,
     srcSet: [
@@ -261,7 +261,7 @@ const photos = [
   },
   {
     src: Kitchen2a,
-    description: "kitchen 2",
+    description: "Kitchen 2",
     width: 1008,
     height: 756,
     srcSet: [
@@ -271,7 +271,7 @@ const photos = [
   },
   {
     src: Kitchen2b,
-    description: "kitchen 2",
+    description: "Kitchen 2",
     width: 756,
     height: 1008,
     srcSet: [
@@ -281,7 +281,7 @@ const photos = [
   },
   {
     src: Kitchen2c,
-    description: "kitchen 2",
+    description: "Kitchen 2",
     width: 756,
     height: 1008,
     srcSet: [
@@ -291,7 +291,7 @@ const photos = [
   },
   {
     src: Kitchen2d,
-    description: "kitchen 2",
+    description: "Kitchen 2",
     width: 756,
     height: 1008,
     srcSet: [
@@ -301,7 +301,7 @@ const photos = [
   },
   {
     src: Landryroom,
-    description: "landryRoom",
+    description: "Landryroom",
     width: 756,
     height: 1008,
     srcSet: [
@@ -311,7 +311,7 @@ const photos = [
   },
   {
     src: Livingroom1a,
-    description: "livingroom 1",
+    description: "Livingroom 1",
     width: 1008,
     height: 756,
     srcSet: [
@@ -321,7 +321,7 @@ const photos = [
   },
   {
     src: Livingroom1b,
-    description: "livingRoom 1",
+    description: "Livingroom 1",
     width: 1008,
     height: 756,
     srcSet: [
@@ -331,7 +331,7 @@ const photos = [
   },
   {
     src: Livingroom2a,
-    description: "livingRoom 2",
+    description: "Livingroom 2",
     width: 1008,
     height: 756,
     srcSet: [
@@ -341,7 +341,7 @@ const photos = [
   },
   {
     src: Washroom1a,
-    description: "washroom 1",
+    description: "Master Washroom",
     width: 1008,
     height: 756,
     srcSet: [
@@ -351,7 +351,7 @@ const photos = [
   },
   {
     src: Washroom1b,
-    description: "washroom 1",
+    description: "Master Washroom",
     width: 1008,
     height: 756,
     srcSet: [
@@ -361,7 +361,7 @@ const photos = [
   },
   {
     src: Washroom2a,
-    description: "washroom 2",
+    description: "Washroom 2",
     width: 756,
     height: 1008,
     srcSet: [
@@ -371,7 +371,7 @@ const photos = [
   },
   {
     src: Washroom2b,
-    description: "washroom 2",
+    description: "Washroom 2",
     width: 756,
     height: 1008,
     srcSet: [
@@ -381,7 +381,7 @@ const photos = [
   },
   {
     src: Washroom2c,
-    description: "washroom 2",
+    description: "Washroom 2",
     width: 1008,
     height: 756,
     srcSet: [
@@ -391,7 +391,7 @@ const photos = [
   },
   {
     src: Washroom2d,
-    description: "washroom 2",
+    description: "Washroom 2",
     width: 1008,
     height: 756,
     srcSet: [
@@ -401,7 +401,7 @@ const photos = [
   },
   {
     src: Washroom3a,
-    description: "washroom 3",
+    description: "Washroom 3",
     width: 1008,
     height: 756,
     srcSet: [
@@ -411,7 +411,7 @@ const photos = [
   },
   {
     src: Washroom3b,
-    description: "washroom 3",
+    description: "Washroom 3",
     width: 756,
     height: 1008,
     srcSet: [
@@ -421,7 +421,7 @@ const photos = [
   },
   {
     src: Washroom3c,
-    description: "washroom 3",
+    description: "Washroom 3",
     width: 1008,
     height: 756,
     srcSet: [
@@ -431,7 +431,7 @@ const photos = [
   },
   {
     src: Washroom3d,
-    description: "washroom 3",
+    description: "Washroom 3",
     width: 1008,
     height: 756,
     srcSet: [
@@ -441,7 +441,7 @@ const photos = [
   },
   {
     src: Washroom4a,
-    description: "washroom 4",
+    description: "Washroom 4",
     width: 756,
     height: 1008,
     srcSet: [
@@ -451,7 +451,7 @@ const photos = [
   },
   {
     src: Washroom4b,
-    description: "washroom 4",
+    description: "Washroom 4",
     width: 756,
     height: 1008,
     srcSet: [
@@ -461,7 +461,7 @@ const photos = [
   },
   {
     src: Washroom4c,
-    description: "washroom 4",
+    description: "Washroom 4",
     width: 756,
     height: 1008,
     srcSet: [
@@ -471,7 +471,7 @@ const photos = [
   },
   {
     src: Workstation,
-    description: "workStation",
+    description: "Workstation",
     width: 756,
     height: 1008,
     srcSet: [

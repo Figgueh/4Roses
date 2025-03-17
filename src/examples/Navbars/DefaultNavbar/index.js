@@ -44,7 +44,7 @@ import DefaultNavbarMobile from "examples/Navbars/DefaultNavbar/DefaultNavbarMob
 import breakpoints from "assets/theme/base/breakpoints";
 
 //Images
-import MainLogo from "assets/images/icons/4Roses32.png";
+import MainLogo from "assets/images/small-logos/4RosesHeader.png";
 
 function DefaultNavbar({ brand, routes, transparent, light, action, sticky, relative, center }) {
   const [dropdown, setDropdown] = useState("");
@@ -455,9 +455,10 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
   return (
     <Container sx={sticky ? { position: "sticky", top: 0, zIndex: 10 } : null}>
       <MKBox
+        opacity={0.7}
         py={1}
         px={{ xs: 4, sm: transparent ? 2 : 3, lg: transparent ? 0 : 2 }}
-        my={relative ? 0 : 2}
+        my={relative ? 0 : 0}
         mx={relative ? 0 : 3}
         width={relative ? "100%" : "calc(100% - 48px)"}
         borderRadius="xl"
@@ -480,7 +481,7 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
             pl={relative || transparent ? 0 : { xs: 0, lg: 1 }}
           >
             <Grid container justify="center" alignItems="center">
-              <img src={MainLogo} />
+              <MKBox component="img" src={MainLogo} maxWidth="250px" ml={2} />
               <MKTypography variant="button" fontWeight="bold" color={light ? "white" : "dark"}>
                 {brand}
               </MKTypography>
@@ -557,7 +558,7 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
 
 // Setting default values for the props of DefaultNavbar
 DefaultNavbar.defaultProps = {
-  brand: " 4 roses alvor",
+  // brand: " 4 roses alvor",
   transparent: false,
   light: false,
   action: false,
