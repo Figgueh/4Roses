@@ -118,8 +118,8 @@ const photos = [
   {
     src: Alvorbeach,
     description: "Alvorbeach",
-    width: 750,
-    height: 932,
+    width: 188,
+    height: 233,
     srcSet: [
       { src: Alvorbeach, width: 750, height: 932 },
       { src: AlvorbeachThumb, width: 256, height: 256 },
@@ -198,8 +198,8 @@ const photos = [
   {
     src: Beachalvor,
     description: "Beachalvor",
-    width: 750,
-    height: 1624,
+    width: 188,
+    height: 406,
     srcSet: [
       { src: Beachalvor, width: 750, height: 1624 },
       { src: BeachalvorThumb, width: 256, height: 256 },
