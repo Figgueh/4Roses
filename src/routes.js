@@ -43,6 +43,8 @@ import Icon from "@mui/material/Icon";
 import Home from "layouts/pages/landing-pages/home";
 import AboutUs from "layouts/pages/landing-pages/aboutUs";
 import SignIn from "layouts/pages/authentication/sign-in";
+import Interior from "layouts/pages/albums/interior";
+import Exterior from "layouts/pages/albums/exterior";
 
 // Sections
 import PageHeaders from "layouts/sections/page-sections/page-headers";
@@ -102,6 +104,23 @@ const routes = [
     name: "sections",
     icon: <Icon>view_day</Icon>,
     collapse: [
+      {
+        name: "Album sections",
+        description: "See all sections",
+        dropdown: true,
+        collapse: [
+          {
+            name: "Interior",
+            route: "/pages/albums/interior",
+            component: <Interior />,
+          },
+          {
+            name: "Exterior",
+            route: "/pages/albums/exterior",
+            component: <Exterior />,
+          },
+        ],
+      },
       {
         name: "page sections",
         description: "See all sections",
