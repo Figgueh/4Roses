@@ -113,9 +113,18 @@ CenteredFooter.defaultProps = {
     { href: "https://www.creative-tim.com/license", name: "License" },
   ],
   socials: [
-    { icon: <FacebookIcon fontSize="small" />, link: "https://www.facebook.com/CreativeTim/" },
-    { icon: <YoutubeIcon fontSize="small" />, link: "https://www.facebook.com/CreativeTim/" },
-    { icon: <BookIcon fontSize="small" />, link: "https://www.vrbo.com/2905236?dateless=true" },
+    {
+      icon: <FacebookIcon fontSize="small" />,
+      link: "https://www.facebook.com/groups/1226682227365251/",
+    },
+    {
+      icon: <YoutubeIcon fontSize="small" />,
+      link: "https://www.youtube.com/@joaquimfigueiras8377",
+    },
+    {
+      icon: <BookIcon fontSize="small" />,
+      link: "https://www.vrbo.com/2905236?dateless=true",
+    },
   ],
   light: false,
 };

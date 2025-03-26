@@ -104,7 +104,6 @@ function Home() {
         }}
       >
         <MainFeatures />
-        {/* <Rooms /> */}
         <MediaCard toDisplay={["exterior", "interior"]} containsHeader={false} />
         <Amenities />
       </Card>
