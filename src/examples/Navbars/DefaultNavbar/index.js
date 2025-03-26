@@ -558,7 +558,7 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
 
 // Setting default values for the props of DefaultNavbar
 DefaultNavbar.defaultProps = {
-  // brand: " 4 roses alvor",
+  brand: "",
   transparent: false,
   light: false,
   action: false,
