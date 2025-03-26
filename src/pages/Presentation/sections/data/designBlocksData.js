@@ -16,20 +16,24 @@ Coded by www.creative-tim.com
 // Modified images
 import Pool from "assets/images/DesignBlocks/poolView.jpg";
 import OutDoorOven from "assets/images/DesignBlocks/outDoorOven.jpg";
-import Parking from "assets/images/DesignBlocks/parking.jpg";
 import Bathroom from "assets/images/DesignBlocks/washroomViewMain.jpg";
 import Laundry from "assets/images/DesignBlocks/laundryRoom.jpg";
-import AC from "assets/images/DesignBlocks/ac.png";
-import Wifi from "assets/images/DesignBlocks/wifi.png";
 import Fireplace from "assets/images/DesignBlocks/fireplace.png";
 import BabyFoot from "assets/images/DesignBlocks/babyFoot.jpg";
 // Unedited
 import Kitchen from "assets/images/property/interior/kitchen1A.jpg";
-import TV from "assets/images/property/interior/livingroom1A.jpg";
 import PoolTable from "assets/images/property/interior/garagePoolTable.jpg";
+import WaterPark from "assets/images/DesignBlocks/waterPark.jpg";
+import SkyDiving from "assets/images/DesignBlocks/skyDive.jpg";
 
 // Activities images
 import JetSki from "assets/images/DesignBlocks/jetSki.jpg";
+
+//Small icons
+import WifiImage from "@mui/icons-material/WifiRounded";
+import AC from "@mui/icons-material/AcUnitTwoTone";
+import TV from "@mui/icons-material/ConnectedTv";
+import Parking from "@mui/icons-material/LocalParking";
 
 const imagesPrefix =
   "https://raw.githubusercontent.com/creativetimofficial/public-assets/master/material-design-system/presentation/sections";
@@ -50,11 +54,6 @@ export default [
         sub: "Includes a pizza oven",
       },
       {
-        image: `${Parking}`,
-        name: "Private parking",
-        sub: "Space for 2 cars",
-      },
-      {
         image: `${Bathroom}`,
         name: "Bathroom supplies",
         sub: "Soaps, Shampoo, Toilet paper, Towels, Linens",
@@ -70,21 +69,6 @@ export default [
         sub: "Washer, Dryer, Iron & Board",
       },
       {
-        image: `${TV}`,
-        name: "Smart televisions with cable service",
-        sub: "5 Smart Television",
-      },
-      {
-        image: `${AC}`,
-        name: "Air conditioning in all bed rooms",
-        sub: "6 total",
-      },
-      {
-        image: `${Wifi}`,
-        name: "Highspeed wifi",
-        sub: "500+ Mbps, serivce provided by MIO",
-      },
-      {
         image: `${Fireplace}`,
         name: "Fireplace",
       },
@@ -97,15 +81,42 @@ export default [
         name: "Baby foot table",
       },
     ],
+    smallItems: [
+      {
+        image: <WifiImage />,
+        name: "wifi",
+        sub: "500+ Mbps, serivce provided by MIO",
+      },
+      {
+        image: <AC />,
+        name: "Air conditioning in all bed rooms",
+        sub: "6 total",
+      },
+      {
+        image: <TV />,
+        name: "Smart televisions with cable service",
+        sub: "5 Smart Television",
+      },
+      {
+        image: <Parking />,
+        name: "Private parking",
+        sub: "Space for 2 cars",
+      },
+    ],
   },
   {
     title: "Nearby activities",
     description: "All of these activities are offered",
     items: [
       {
-        image: `${imagesPrefix}/navbars.jpg`,
+        image: `${WaterPark}`,
         name: "Water parks",
-        route: "/sections/navigation/navbars",
+        route: "/pages/activites/waterParks",
+      },
+      {
+        image: `${SkyDiving}`,
+        name: "Sky Diving",
+        route: "/pages/activites/SkyDiving",
       },
       {
         image: `${imagesPrefix}/nav-tabs.jpg`,
@@ -203,5 +214,6 @@ export default [
         route: "/sections/navigation/pagination",
       },
     ],
+    smallItems: [],
   },
 ];
