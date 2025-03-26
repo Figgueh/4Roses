@@ -70,7 +70,7 @@ function BaseLayout({ breadcrumb, title, children }) {
 BaseLayout.propTypes = {
   breadcrumb: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.object])).isRequired,
   title: PropTypes.string.isRequired,
-  children: PropTypes.node.isRequired,
+  children: PropTypes.node,
 };
 
 export default BaseLayout;
