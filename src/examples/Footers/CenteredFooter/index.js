@@ -23,10 +23,8 @@ import Stack from "@mui/material/Stack";
 
 // @mui icons
 import FacebookIcon from "@mui/icons-material/Facebook";
-import TwitterIcon from "@mui/icons-material/Twitter";
-import InstagramIcon from "@mui/icons-material/Instagram";
-import PinterestIcon from "@mui/icons-material/Pinterest";
-import GitHubIcon from "@mui/icons-material/GitHub";
+import YoutubeIcon from "@mui/icons-material/YouTube";
+import BookIcon from "@mui/icons-material/Hotel";
 
 // Material Kit 2 React components
 import MKBox from "components/MKBox";
@@ -105,7 +103,7 @@ function CenteredFooter({ company, links, socials, light }) {
 
 // Setting default values for the props of CenteredFooter
 CenteredFooter.defaultProps = {
-  company: { href: "https://www.creative-tim.com/", name: "Creative Tim" },
+  company: { href: "https://www.creative-tim.com/", name: "Joaquim & Aurora" },
   links: [
     { href: "https://www.creative-tim.com/", name: "Company" },
     { href: "https://www.creative-tim.com/presentation", name: "About Us" },
@@ -115,20 +113,18 @@ CenteredFooter.defaultProps = {
     { href: "https://www.creative-tim.com/license", name: "License" },
   ],
   socials: [
-    { icon: <FacebookIcon fontSize="small" />, link: "https://www.facebook.com/CreativeTim/" },
     {
-      icon: <TwitterIcon fontSize="small" />,
-      link: "https://twitter.com/creativetim",
+      icon: <FacebookIcon fontSize="small" />,
+      link: "https://www.facebook.com/groups/1226682227365251/",
     },
     {
-      icon: <InstagramIcon fontSize="small" />,
-      link: "https://www.instagram.com/creativetimofficial/",
+      icon: <YoutubeIcon fontSize="small" />,
+      link: "https://www.youtube.com/@joaquimfigueiras8377",
     },
     {
-      icon: <PinterestIcon fontSize="small" />,
-      link: "https://ro.pinterest.com/thecreativetim/",
+      icon: <BookIcon fontSize="small" />,
+      link: "https://www.vrbo.com/2905236?dateless=true",
     },
-    { icon: <GitHubIcon fontSize="small" />, link: "https://github.com/creativetimofficial" },
   ],
   light: false,
 };

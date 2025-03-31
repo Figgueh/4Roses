@@ -1,18 +1,19 @@
 // @mui icons
 import FacebookIcon from "@mui/icons-material/Facebook";
 import YouTubeIcon from "@mui/icons-material/YouTube";
+import BookIcon from "@mui/icons-material/Hotel";
 
 // Material Kit 2 React components
 import MKTypography from "components/MKTypography";
 
 // Images
-import logo from "assets/images/icons/4Roses32.png";
+import logo from "assets/images/small-logos/4RosesHeader.png";
 
 const date = new Date().getFullYear();
 
 export default {
   brand: {
-    name: "4 Roses Alvor",
+    name: "",
     image: logo,
     route: "/",
   },
@@ -24,6 +25,10 @@ export default {
     {
       icon: <YouTubeIcon />,
       link: "https://www.youtube.com/channel/UCVyTG4sCw-rOvB9oHkzZD1w",
+    },
+    {
+      icon: <BookIcon fontSize="small" />,
+      link: "https://www.vrbo.com/2905236?dateless=true",
     },
   ],
   menus: [
@@ -67,7 +72,7 @@ export default {
       All rights reserved. Copyright &copy; {date} 4 Roses by{" "}
       <MKTypography
         component="a"
-        href="https://www.creative-tim.com"
+        href="https://www.facebook.com/joaquim.figueiras.58"
         target="_blank"
         rel="noreferrer"
         variant="button"
@@ -78,7 +83,7 @@ export default {
       and
       <MKTypography
         component="a"
-        href="https://www.creative-tim.com"
+        href="https://www.facebook.com/profile.php?id=100010645982057"
         target="_blank"
         rel="noreferrer"
         variant="button"
@@ -92,7 +97,7 @@ export default {
         Built by{" "}
         <MKTypography
           component="a"
-          href="https://www.creative-tim.com"
+          href="https://www.linkedin.com/in/alexanderfigueiras/"
           target="_blank"
           rel="noreferrer"
           variant="button"
