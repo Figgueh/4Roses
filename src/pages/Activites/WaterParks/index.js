@@ -1,8 +1,40 @@
 // Sections components
 import ActivityLayout from "layouts/sections/components/BaseLayout/ActivityLayout";
-import WaterPark from "assets/images/DesignBlocks/waterPark.jpg";
+// import WaterPark from "assets/images/DesignBlocks/waterPark.jpg";
+
+import { useState, useEffect } from "react";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  process.env.REACT_APP_SUPABASE_URL,
+  process.env.REACT_APP_SUPABASE_ANON_KEY
+);
+
+const ACTIVITY_ID = 1;
 
 function WaterParks() {
+  const [data, setData] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const { data, error } = await supabase
+        .from("articles")
+        .select("*, activities(photo)")
+        .eq("activity_id", ACTIVITY_ID);
+      if (error) console.error("Error fetching data:", error);
+      else setData(data);
+    };
+
+    fetchData();
+  }, []);
+
+  const structuredData = data.map((item) => ({
+    name: item.name,
+    url: item.url,
+    photo: item.activities.photo,
+    article: item.article,
+  }));
+
   return (
     <ActivityLayout
       title="Water Parks"
@@ -10,47 +42,7 @@ function WaterParks() {
         { label: "Home page", route: "/pages/landing-pages/home#Water parks" },
         { label: "Water parks" },
       ]}
-      items={[
-        {
-          name: "Slide & Splash - The Ultimate Water Park Experience in Algarve",
-          url: "https://www.slidesplash.com/",
-          photo: WaterPark,
-          content: [
-            {
-              title: "",
-              content:
-                "Slide & Splash is one of the top water parks in Portugal, located in Lagoa, Algarve. It offers a variety of attractions and services designed to provide an unforgettable experience for visitors of all ages. Whether you're looking for adrenaline-pumping slides or a relaxing day in the sun, this park has something for everyone.",
-            },
-            {
-              title: "Attractions",
-              content:
-                "The park features an exciting range of attractions, including thrilling slides, a large swimming pool, and designated children's play areas. It's the perfect destination for both families and thrill-seekers looking to cool off and have fun.",
-            },
-            {
-              title: "Visitor Information",
-              content:
-                "Slide & Splash is set to reopen on April 7, 2025. For reservations or inquiries, visitors can contact the park via phone or email. It is conveniently located in Lagoa, making it a great destination for a fun-filled day in the Algarve. Whether you're looking for high-speed slides or a laid-back poolside experience, Slide & Splash is the ultimate water park destination for families, friends, and adventure lovers alike!",
-            },
-            {
-              title: "Services",
-              content:
-                "To enhance your visit, Slide & Splash provides several convenient services:",
-              detail: [
-                "Lockers: Secure your belongings with lockers available in two sizes (L and XL).",
-                "Sun Loungers & Sun Hats: Rent sun loungers and straw sun hats for added comfort during your visit.",
-                "Private Cabanas: Enjoy an exclusive experience with private cabanas available for groups of 4, 6, or 10 people.",
-                "Restaurants: Choose from a variety of dining options, including burgers, sandwiches, hot dogs, roast chicken, pizzas, salads, and ice creams.",
-                "On-Site Store: Purchase essentials, regional souvenirs, and park merchandise.",
-                "Accessibility: The park is designed to accommodate visitors with reduced mobility, offering accessible walkways and attractions with ramps.",
-                "First Aid & Defibrillator: A dedicated nurse is available at the infirmary, with a defibrillator on-site for emergencies.",
-                "Aquafeeling Fish Spa & Massages: Relax and rejuvenate with Fish Spa treatments and massage services near the Big Wave attraction.",
-                "Photo Services: Capture fun memories with professional photography services within the park.",
-                "Free Parking: A spacious, free parking lot is available for visitors.",
-              ],
-            },
-          ],
-        },
-      ]}
+      items={structuredData}
     ></ActivityLayout>
   );
 }

@@ -43,15 +43,13 @@ function ActivityLayout({ breadcrumb, title, children, items }) {
                 marginTop: { md: 2 },
               }}
             />
-            {item.content.map((section) => (
+            {Object.values(item.article).map((section) => (
               <MKBox key={section.title} sx={{ m: 2 }}>
-                <MKTypography variant="h3" pb={1.5} sx={{ textDecoration: "bold" }}>
-                  {section.title}
-                </MKTypography>
+                <MKTypography variant="h3" pb={1.5} sx={{ textDecoration: "bold" }}></MKTypography>
                 <MKTypography variant="body1"> {section.content} </MKTypography>
                 {section.detail && (
                   <MKTypography component="ul">
-                    {section.detail.map((val) => (
+                    {Object.values(section.detail).map((val) => (
                       <MKTypography key={val} component="li" ml={3}>
                         {val}
                       </MKTypography> //Close for the list item

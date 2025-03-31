@@ -1,6 +1,8 @@
 // Sections components
 import ActivityLayout from "layouts/sections/components/BaseLayout/ActivityLayout";
-import SkyDive from "assets/images/DesignBlocks/skyDive.jpg";
+// import SkyDiving from "public/assets/image/skyDive.jpg";
+
+const imagesPrefix = "public/assets/image";
 
 function SkyDiving() {
   return (
@@ -14,7 +16,7 @@ function SkyDiving() {
         {
           name: "Skydive Algarve – Experience the Ultimate Freefall Adventure",
           url: "https://www.skydivealgarve.com/",
-          photo: SkyDive,
+          photo: `${imagesPrefix}/skyDive.jpg`,
           content: [
             {
               title: "",
