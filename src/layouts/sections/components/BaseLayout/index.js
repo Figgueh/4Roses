@@ -40,8 +40,8 @@ function BaseLayout({ breadcrumb, title, children }) {
           routes={routes}
           action={{
             type: "external",
-            route: "https://www.creative-tim.com/product/material-kit-react",
-            label: "free download",
+            route: "https://www.vrbo.com/en-ca/cottage-rental/p2905236vb",
+            label: "book today!",
             color: "info",
           }}
           transparent
@@ -70,7 +70,7 @@ function BaseLayout({ breadcrumb, title, children }) {
 BaseLayout.propTypes = {
   breadcrumb: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.object])).isRequired,
   title: PropTypes.string.isRequired,
-  children: PropTypes.node.isRequired,
+  children: PropTypes.node,
 };
 
 export default BaseLayout;

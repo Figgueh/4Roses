@@ -17,7 +17,7 @@ Coded by www.creative-tim.com
 import PropTypes from "prop-types";
 
 // react-router-dom components
-import { Link } from "react-router-dom";
+import { HashLink } from "react-router-hash-link";
 
 // @mui material components
 import MuiBreadcrumbs from "@mui/material/Breadcrumbs";
@@ -32,22 +32,14 @@ function Breadcrumbs({ routes, ...rest }) {
       <MuiBreadcrumbs {...rest}>
         {routes.map(({ label, route }) =>
           route ? (
-            <MKTypography
+            <HashLink
+              className="MuiTypography-root MuiTypography-button css-t3za5n-MuiTypography-root"
               key={label}
-              component={Link}
               to={route}
-              variant="button"
-              color="text"
-              fontWeight="regular"
-              opacity={0.8}
-              sx={{
-                "&:hover, &:focus": {
-                  color: ({ palette: { info } }) => info.main,
-                },
-              }}
+              smooth
             >
               {label}
-            </MKTypography>
+            </HashLink>
           ) : (
             <MKTypography key={label} variant="button" fontWeight="regular">
               {label}

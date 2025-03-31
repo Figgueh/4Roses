@@ -48,7 +48,7 @@ function MainFeatures() {
           </Grid>
           <Grid item xs={12} md={4}>
             <DefaultCounterCard
-              count={80}
+              count={12}
               suffix="+"
               title="Amenities"
               description="From a washer and dryer to wifi, it's included."

@@ -23,7 +23,7 @@ import Tooltip from "@mui/material/Tooltip";
 import MKBox from "components/MKBox";
 import MKTypography from "components/MKTypography";
 
-function ExampleCard({ image, name, count, pro, ...rest }) {
+function ExampleCard({ image, name, sub, pro, ...rest }) {
   const imageTemplate = (
     <MKBox
       bgColor="white"
@@ -88,16 +88,16 @@ function ExampleCard({ image, name, count, pro, ...rest }) {
       ) : (
         imageTemplate
       )}
-      {name || count > 0 ? (
+      {name || sub ? (
         <MKBox mt={1} ml={1} lineHeight={1}>
           {name && (
             <MKTypography variant="h6" fontWeight="bold">
               {name}
             </MKTypography>
           )}
-          {count > 0 && (
+          {sub && (
             <MKTypography variant="button" fontWeight="regular" color="secondary">
-              {count} {count === 1 ? "Example" : "Examples"}
+              {sub}
             </MKTypography>
           )}
         </MKBox>
@@ -109,7 +109,7 @@ function ExampleCard({ image, name, count, pro, ...rest }) {
 // Setting default props for the ExampleCard
 ExampleCard.defaultProps = {
   name: "",
-  count: 0,
+  sub: "",
   pro: false,
 };
 
@@ -117,7 +117,7 @@ ExampleCard.defaultProps = {
 ExampleCard.propTypes = {
   image: PropTypes.string.isRequired,
   name: PropTypes.string,
-  count: PropTypes.number,
+  sub: PropTypes.string,
   pro: PropTypes.bool,
 };
 
