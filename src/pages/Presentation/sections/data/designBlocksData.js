@@ -23,8 +23,8 @@ import BabyFoot from "assets/images/DesignBlocks/babyFoot.jpg";
 // Unedited
 import Kitchen from "assets/images/property/interior/kitchen1A.jpg";
 import PoolTable from "assets/images/property/interior/garagePoolTable.jpg";
-import WaterPark from "assets/images/DesignBlocks/waterPark.jpg";
-import SkyDiving from "assets/images/DesignBlocks/skyDive.jpg";
+// import WaterPark from "public/assets/images/waterPark.jpg";
+// import SkyDiving from "public/assets/images/skyDive.jpg";
 
 // Activities images
 import JetSki from "assets/images/DesignBlocks/jetSki.jpg";
@@ -35,14 +35,44 @@ import AC from "@mui/icons-material/AcUnitTwoTone";
 import TV from "@mui/icons-material/ConnectedTv";
 import Parking from "@mui/icons-material/LocalParking";
 
-const imagesPrefix =
-  "https://raw.githubusercontent.com/creativetimofficial/public-assets/master/material-design-system/presentation/sections";
+//Imports for database
+import { useState, useEffect } from "react";
+import { createClient } from "@supabase/supabase-js";
+
+const imagesPrefix = process.env.PUBLIC_URL + "/assets/images";
+const supabase = createClient(
+  process.env.REACT_APP_SUPABASE_URL,
+  process.env.REACT_APP_SUPABASE_ANON_KEY
+);
+
+const getActivities = async () => {
+  const [data, setData] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const { data, error } = await supabase.from("activities").select("*");
+      if (error) console.error("Error fetching data:", error);
+      else setData(data);
+    };
+
+    console.log("HELLO");
+    fetchData();
+  }, []);
+
+  const structuredData = data.map((item) => ({
+    image: item.photo,
+    name: item.name,
+    route: item.route,
+  }));
+  return structuredData;
+};
 
 export default [
   {
     title: "Included Amenities",
     description: "All these amenities are included",
     items: [
+      [getActivities],
       {
         image: `${Pool}`,
         name: "Private heated pool",
@@ -109,12 +139,12 @@ export default [
     description: "All of these activities are offered",
     items: [
       {
-        image: `${WaterPark}`,
+        image: `${imagesPrefix}/waterPark.jpg`,
         name: "Water parks",
         route: "/pages/activites/waterParks",
       },
       {
-        image: `${SkyDiving}`,
+        image: `${imagesPrefix}/skyDive.jpg`,
         name: "Sky Diving",
         route: "/pages/activites/SkyDiving",
       },
