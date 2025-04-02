@@ -1,4 +1,5 @@
 // react-router-dom components
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
 // @mui material components
@@ -10,12 +11,40 @@ import MKBox from "components/MKBox";
 import MKTypography from "components/MKTypography";
 
 // Presentation page components
-import ExampleCard from "pages/Presentation/components/ExampleCard";
+import ExampleCard from "examples/Cards/ExampleCard";
 
-// Data
-import data from "pages/Presentation/sections/data/designBlocksData";
+// Database connection imports
+import { fetchAmenities } from "connection/amenities/fetchAmenities";
+import { fetchActivities } from "connection/activities/fetchActivities";
 
 function Amenities() {
+  const [amenities, setAmenities] = useState([]);
+  const [activities, setActivities] = useState([]);
+
+  useEffect(() => {
+    const loadData = async () => {
+      setAmenities(await fetchAmenities());
+      setActivities(await fetchActivities());
+    };
+
+    loadData();
+  }, []);
+
+  const data = [
+    {
+      title: "Included Amenities",
+      description: "All these amenities are included",
+      items: amenities,
+      smallItems: [],
+    },
+    {
+      title: "Nearby activities",
+      description: "All of these activities are offered",
+      items: activities,
+      smallItems: [],
+    },
+  ];
+
   const renderData = data.map(({ title, description, items, smallItems }) => (
     <Grid container spacing={3} sx={{ mb: 10 }} key={title}>
       <Grid item xs={12} lg={3}>

@@ -19,7 +19,7 @@ function WaterParks() {
     const fetchData = async () => {
       const { data, error } = await supabase
         .from("articles")
-        .select("*, activities(photo)")
+        .select("*, activities(image)")
         .eq("activity_id", ACTIVITY_ID);
       if (error) console.error("Error fetching data:", error);
       else setData(data);
@@ -31,7 +31,7 @@ function WaterParks() {
   const structuredData = data.map((item) => ({
     name: item.name,
     url: item.url,
-    photo: item.activities.photo,
+    photo: item.activities.image,
     article: item.article,
   }));
 
