@@ -10,7 +10,7 @@ export const fetchArticlesForActivity = async (activityId) => {
     return data.map((item) => ({
       name: item.name,
       url: item.url,
-      photo: item.activities.image,
+      photo: process.env.REACT_APP_SUPABASE_IMAGE + item.activities.image,
       article: item.article,
     }));
 };

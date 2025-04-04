@@ -5,7 +5,7 @@ export const fetchActivities = async () => {
   if (error) console.error("Error fetching data:", error);
   else
     return data.map((item) => ({
-      image: item.image,
+      image: process.env.REACT_APP_SUPABASE_IMAGE + item.image,
       name: item.name,
       route: item.route,
     }));
