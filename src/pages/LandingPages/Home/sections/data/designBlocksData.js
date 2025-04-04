@@ -55,7 +55,6 @@ const getActivities = async () => {
       else setData(data);
     };
 
-    console.log("HELLO");
     fetchData();
   }, []);
 
