@@ -47,6 +47,8 @@ import Interior from "layouts/pages/albums/interior";
 import Exterior from "layouts/pages/albums/exterior";
 import WaterParks from "layouts/pages/activites/waterParks";
 import SkyDiving from "layouts/pages/activites/skydiving";
+import Register from "layouts/pages/authentication/register";
+import Dashboard from "layouts/pages/authentication/dashboard";
 
 const routes = [
   {
@@ -75,8 +77,19 @@ const routes = [
         collapse: [
           {
             name: "sign in",
-            route: "/pages/authentication/sign-in",
+            route: "/sign-in",
             component: <SignIn />,
+          },
+          {
+            name: "register",
+            route: "/register",
+            component: <Register />,
+          },
+          {
+            name: "dashboard",
+            route: "/dashboard",
+            component: <Dashboard />,
+            isPrivate: true,
           },
         ],
       },
