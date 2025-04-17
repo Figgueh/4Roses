@@ -1,33 +1,10 @@
-/**
-=========================================================
-* Material Kit 2 React - v2.1.0
-=========================================================
-
-* Product Page: https://www.creative-tim.com/product/material-kit-react
-* Copyright 2023 Creative Tim (https://www.creative-tim.com)
-
-Coded by www.creative-tim.com
-
- =========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-*/
-
-import { useState } from "react";
-
 // react-router-dom components
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 // @mui material components
 import Card from "@mui/material/Card";
-import Switch from "@mui/material/Switch";
 import Grid from "@mui/material/Grid";
-import MuiLink from "@mui/material/Link";
-
-// @mui icons
-import FacebookIcon from "@mui/icons-material/Facebook";
-import GitHubIcon from "@mui/icons-material/GitHub";
-import GoogleIcon from "@mui/icons-material/Google";
 
 // Material Kit 2 React components
 import MKBox from "components/MKBox";
@@ -46,28 +23,28 @@ import routes from "routes";
 import bgImage from "assets/images/bg-sign-in-basic.jpeg";
 import { UserAuth } from "connection/auth/authContext";
 
-function SignInBasic() {
+function Register() {
   const navigate = useNavigate();
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
-  const { signInUser } = UserAuth();
+  const { session, signUpUser } = UserAuth();
+  console.log(session);
 
-  const handleSignInUser = async (event) => {
+  const handleSignUpUser = async (event) => {
     event.preventDefault();
     setMessage("");
 
-    let result = await signInUser(username, password);
+    const result = await signUpUser(email, password);
 
     if (result.success) {
+      setMessage("User account created!");
       navigate("/dashboard");
-    } else {
+    }
+    if (!result.success) {
       setMessage(result.error.message);
     }
   };
-
-  const [rememberMe, setRememberMe] = useState(false);
-  const handleSetRememberMe = () => setRememberMe(!rememberMe);
 
   return (
     <>
@@ -116,34 +93,20 @@ function SignInBasic() {
                 textAlign="center"
               >
                 <MKTypography variant="h4" fontWeight="medium" color="white" mt={1}>
-                  Sign in
+                  Account creation
                 </MKTypography>
                 <Grid container spacing={2} justifyContent="center" sx={{ mt: 1, mb: 2 }}>
-                  <Grid item xs={2}>
-                    <MKTypography component={MuiLink} href="#" variant="body1" color="white">
-                      <FacebookIcon color="inherit" />
-                    </MKTypography>
-                  </Grid>
-                  <Grid item xs={2}>
-                    <MKTypography component={MuiLink} href="#" variant="body1" color="white">
-                      <GitHubIcon color="inherit" />
-                    </MKTypography>
-                  </Grid>
-                  <Grid item xs={2}>
-                    <MKTypography component={MuiLink} href="#" variant="body1" color="white">
-                      <GoogleIcon color="inherit" />
-                    </MKTypography>
-                  </Grid>
                   {message && <>{message}</>}
                 </Grid>
               </MKBox>
               <MKBox pt={4} pb={3} px={3}>
-                <MKBox component="form" role="form" onSubmit={handleSignInUser}>
+                <MKBox component="form" role="form" onSubmit={handleSignUpUser}>
                   <MKBox mb={2}>
                     <MKInput
                       type="email"
                       label="Email"
-                      onChange={(e) => setUsername(e.target.value)}
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                       fullWidth
                     />
                   </MKBox>
@@ -151,39 +114,28 @@ function SignInBasic() {
                     <MKInput
                       type="password"
                       label="Password"
+                      value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       fullWidth
                     />
                   </MKBox>
-                  <MKBox display="flex" alignItems="center" ml={-1}>
-                    <Switch checked={rememberMe} onChange={handleSetRememberMe} />
-                    <MKTypography
-                      variant="button"
-                      fontWeight="regular"
-                      color="text"
-                      onClick={handleSetRememberMe}
-                      sx={{ cursor: "pointer", userSelect: "none", ml: -1 }}
-                    >
-                      &nbsp;&nbsp;Remember me
-                    </MKTypography>
-                  </MKBox>
                   <MKBox mt={4} mb={1}>
                     <MKButton type="submit" variant="gradient" color="info" fullWidth>
-                      sign in
+                      Create account
                     </MKButton>
                   </MKBox>
                   <MKBox mt={3} mb={1} textAlign="center">
                     <MKTypography variant="button" color="text">
-                      Don&apos;t have an account?{" "}
+                      already have an account?{" "}
                       <MKTypography
                         component={Link}
-                        to="/register"
+                        to="/sign-in"
                         variant="button"
                         color="info"
                         fontWeight="medium"
                         textGradient
                       >
-                        Sign up
+                        Login
                       </MKTypography>
                     </MKTypography>
                   </MKBox>
@@ -200,4 +152,4 @@ function SignInBasic() {
   );
 }
 
-export default SignInBasic;
+export default Register;
