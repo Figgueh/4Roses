@@ -27,9 +27,9 @@ import theme from "assets/theme";
 
 // Material Kit 2 React routes
 import routes from "routes";
-import Home from "pages/LandingPages/Home";
+import Home from "pages/Home";
 import { AuthContextProvider } from "connection/auth/authContext";
-import PrivateRoute from "connection/users/privateRoute";
+import ActivityBuilder from "pages/ActivityBuilder";
 
 export default function App() {
   const { pathname } = useLocation();
@@ -47,16 +47,6 @@ export default function App() {
       }
 
       if (route.route) {
-        if (route.isPrivate) {
-          return (
-            <Route
-              exact
-              path={route.route}
-              element={<PrivateRoute>{route.component}</PrivateRoute>}
-              key={route.key}
-            />
-          );
-        }
         return <Route exact path={route.route} element={route.component} key={route.key} />;
       }
 
@@ -70,6 +60,8 @@ export default function App() {
         <Routes>
           {getRoutes(routes)}
           <Route path="/" element={<Home />} />
+          <Route path="activities/:section/:slug" element={<ActivityBuilder />} />
+          <Route path="activities/:section" element={<ActivityBuilder />} />
           {/* <Route path="*" element={<Navigate to="/pages/landing-pages/home" />} /> */}
         </Routes>
       </AuthContextProvider>
