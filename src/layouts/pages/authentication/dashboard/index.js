@@ -1,4 +1,4 @@
-import Dashboard from "pages/LandingPages/Dashboard";
+import Dashboard from "pages/Dashboard";
 
 export default function DashboardPage() {
   return <Dashboard />;

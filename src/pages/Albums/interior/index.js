@@ -20,9 +20,9 @@ import "yet-another-react-lightbox/plugins/thumbnails.css";
 import "yet-another-react-lightbox/plugins/captions.css";
 
 // Sections components
-import BaseLayout from "layouts/sections/components/BaseLayout";
+import BaseLayout from "components/BaseLayout";
 import MKBox from "components/MKBox";
-import MediaCard from "examples/Cards/BlogCards/CenteredBlogCard/MediaCard";
+import MediaCard from "components/Cards/BlogCards/CenteredBlogCard/MediaCard";
 
 import photos from "./photos";
 

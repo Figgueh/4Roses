@@ -40,15 +40,15 @@ Coded by www.creative-tim.com
 import Icon from "@mui/material/Icon";
 
 // Pages
-import Home from "layouts/pages/landing-pages/home";
-import AboutUs from "layouts/pages/landing-pages/aboutUs";
+import Home from "layouts/pages/home";
+import AboutUs from "layouts/pages/aboutUs";
 import SignIn from "layouts/pages/authentication/sign-in";
 import Interior from "layouts/pages/albums/interior";
 import Exterior from "layouts/pages/albums/exterior";
-import WaterParks from "layouts/pages/activites/waterParks";
-import SkyDiving from "layouts/pages/activites/skydiving";
 import Register from "layouts/pages/authentication/register";
 import Dashboard from "layouts/pages/authentication/dashboard";
+
+import PrivateRoute from "connection/users/PrivateRoute";
 
 const routes = [
   {
@@ -88,8 +88,11 @@ const routes = [
           {
             name: "dashboard",
             route: "/dashboard",
-            component: <Dashboard />,
-            isPrivate: true,
+            component: (
+              <PrivateRoute>
+                <Dashboard />
+              </PrivateRoute>
+            ),
           },
         ],
       },
@@ -113,23 +116,6 @@ const routes = [
             name: "Exterior",
             route: "/pages/albums/exterior",
             component: <Exterior />,
-          },
-        ],
-      },
-      {
-        name: "Nearby activities pages",
-        description: "See all activites",
-        dropdown: true,
-        collapse: [
-          {
-            name: "Water parks",
-            route: "/pages/activites/waterParks",
-            component: <WaterParks />,
-          },
-          {
-            name: "Sky diving",
-            route: "/pages/activites/skydiving",
-            component: <SkyDiving />,
           },
         ],
       },

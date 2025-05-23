@@ -1,4 +1,4 @@
-import Register from "pages/LandingPages/Register";
+import Register from "pages/Register";
 
 export default function RegisterPage() {
   return <Register />;
