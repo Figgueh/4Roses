@@ -17,6 +17,7 @@ import supabase from "connection/client";
 
 // Tabs
 import ProfileTab from "./tabs/profile";
+import CrudBasic from "./tabs/admin";
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -69,6 +70,7 @@ function Dashboard() {
         </Grid>
       </Container>
       {activeTab === 0 && <ProfileTab />}
+      {activeTab === 2 && <CrudBasic />}
     </BaseLayout>
   );
 }
