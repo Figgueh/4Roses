@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 // Material Kit 2 React components
 import { RowsPhotoAlbum } from "react-photo-album";
@@ -24,10 +24,64 @@ import BaseLayout from "components/BaseLayout";
 import MKBox from "components/MKBox";
 import MediaCard from "components/Cards/BlogCards/CenteredBlogCard/MediaCard";
 
-import photos from "./photos";
+import supabase from "connection/client";
+
+const breakpoints = [1080, 640, 384, 256, 128, 96, 64, 48];
 
 function InteriorPhotos() {
   const [index, setIndex] = useState(-1);
+  const [photos, setPhotos] = useState([]);
+
+  useEffect(() => {
+    async function fetchImages() {
+      const { data, error } = await supabase.storage.from("images").list("interior");
+
+      if (error) {
+        console.error("Error listing files:", error.message);
+        return [];
+      }
+
+      function imageLink(path, width, height, size, extension) {
+        return `https://fignet.imgix.net/interior/${path}_${width}x${height}.${extension}`;
+      }
+
+      const parsedPhotos = data
+        .map((file) => {
+          console.log(file);
+          if (!file || !file.name) return null;
+          const matcher = file.name.match("^(.*)_(\\d+)x(\\d+)\\.(.+)$");
+
+          if (!matcher) {
+            console.warn("Skipping unmatched file:", file.name);
+            return null;
+          }
+
+          const path = matcher[1];
+          const width = Number.parseInt(matcher[2], 10);
+          const height = Number.parseInt(matcher[3], 10);
+          const extension = matcher[4];
+
+          console.log(path, width, height, extension);
+          return {
+            src: imageLink(path, width, height, width, extension),
+            width,
+            height,
+            srcSet: breakpoints.map((breakpoint) => ({
+              src: imageLink(path, width, height, breakpoint, extension),
+              width: breakpoint,
+              height: Math.round((height / width) * breakpoint),
+            })),
+          };
+        })
+        .filter(Boolean);
+
+      setPhotos(parsedPhotos);
+    }
+
+    fetchImages();
+    console.log(photos);
+  }, []);
+
   return (
     <BaseLayout
       title="Interior photos"
