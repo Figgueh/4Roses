@@ -28,7 +28,10 @@ function AdminInteriorPhotos() {
         return [];
       }
 
-      function imageLink(path, width, height, size, extension) {
+      function imageLink(path, width, height, extension) {
+        console.log(
+          `https://fignet.imgix.net/interior/${path}_${width}x${height}.${extension} was loaded`
+        );
         return `https://fignet.imgix.net/interior/${path}_${width}x${height}.${extension}`;
       }
 
@@ -50,11 +53,11 @@ function AdminInteriorPhotos() {
 
           console.log(path, width, height, extension);
           return {
-            src: imageLink(path, width, height, width, extension),
+            src: imageLink(path, width, height, extension),
             width,
             height,
             srcSet: breakpoints.map((breakpoint) => ({
-              src: imageLink(path, width, height, breakpoint, extension),
+              src: imageLink(path, width, height, extension),
               width: breakpoint,
               height: Math.round((height / width) * breakpoint),
             })),

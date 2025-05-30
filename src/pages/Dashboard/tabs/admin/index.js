@@ -1,31 +1,21 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import supabase from "connection/client";
 
 function AdminDash() {
-  const [images, setImages] = useState([]);
   const [file, setFile] = useState(null);
   const [name, setName] = useState("");
 
-  // Load images
-  useEffect(() => {
-    fetchImages();
-  }, []);
-
-  async function fetchImages() {
-    const { data, error } = await supabase
-      .from("image_metadata")
-      .select("*")
-      .order("created_at", { ascending: false });
-    if (!error) setImages(data);
-  }
-
-  // Upload image and store metadata
   async function handleUpload() {
-    if (!file || !name) return alert("Choose file and name");
+    if (!file) return alert("Choose file");
+
+    const dimensions = await getImageDimensions(file);
 
     const fileExt = file.name.split(".").pop();
-    const fileName = `${Date.now()}.${fileExt}`;
-    const { data, error } = await supabase.storage.from("images").upload(fileName, file);
+    const fileName = file.name.split(".").slice(0, -1);
+    const newFileName = `${fileName}_${dimensions.width}x${dimensions.height}.${fileExt}`;
+    const { data, error } = await supabase.storage
+      .from("images")
+      .upload(`interior/${newFileName}`, file);
 
     if (error) return console.error(error);
     console.log(data);
@@ -35,16 +25,22 @@ function AdminDash() {
 
     setFile(null);
     setName("");
-    fetchImages();
   }
 
-  // Delete image and metadata
-  async function handleDelete(id, url) {
-    const filePath = url.split("/").pop();
-    await supabase.storage.from("images").remove([filePath]);
-    await supabase.from("image_metadata").delete().eq("id", id);
-    fetchImages();
-  }
+  const getImageDimensions = (file) => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = function () {
+        resolve({
+          width: this.naturalWidth,
+          height: this.naturalHeight,
+        });
+        URL.revokeObjectURL(this.src);
+      };
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
   return (
     <div>
       <h2>Image CRUD</h2>
@@ -56,20 +52,6 @@ function AdminDash() {
       />
       <input type="file" accept="image/*" onChange={(e) => setFile(e.target.files[0])} />
       <button onClick={handleUpload}>Upload</button>
-
-      <div style={{ display: "flex", flexWrap: "wrap", marginTop: 20 }}>
-        {images.map((img) => (
-          <div key={img.id} style={{ margin: 10, border: "1px solid #ccc", padding: 10 }}>
-            <img
-              src={img.url}
-              alt={img.name}
-              style={{ width: 150, height: 150, objectFit: "cover" }}
-            />
-            <p>{img.name}</p>
-            <button onClick={() => handleDelete(img.id, img.url)}>Delete</button>
-          </div>
-        ))}
-      </div>
     </div>
   );
 }
