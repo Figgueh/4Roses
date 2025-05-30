@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { UserAuth } from "connection/auth/authContext";
 
 // Material Kit 2 React components
 import { RowsPhotoAlbum } from "react-photo-album";
@@ -24,13 +25,19 @@ import BaseLayout from "components/BaseLayout";
 import MKBox from "components/MKBox";
 import MediaCard from "components/Cards/BlogCards/CenteredBlogCard/MediaCard";
 
+// Database imports
 import supabase from "connection/client";
+import { checkAdmin } from "connection/users/checkAdmin";
+
+import AdminInteriorPhotos from "./admin/admin";
 
 const breakpoints = [1080, 640, 384, 256, 128, 96, 64, 48];
 
 function InteriorPhotos() {
   const [index, setIndex] = useState(-1);
   const [photos, setPhotos] = useState([]);
+  const { session } = UserAuth();
+  const [isAdmin, setIsAdmin] = useState();
 
   useEffect(() => {
     async function fetchImages() {
@@ -78,9 +85,22 @@ function InteriorPhotos() {
       setPhotos(parsedPhotos);
     }
 
+    const fetchData = async () => {
+      const isAdmin = await checkAdmin(session.user.id);
+      setIsAdmin(isAdmin);
+    };
+
+    if (session?.user?.id) {
+      fetchData();
+    }
+
     fetchImages();
     console.log(photos);
   }, []);
+
+  if (isAdmin) {
+    return <AdminInteriorPhotos></AdminInteriorPhotos>;
+  }
 
   return (
     <BaseLayout
