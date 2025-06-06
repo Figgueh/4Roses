@@ -19,7 +19,7 @@ function ProfileTab() {
     updateAccount(fullName, "");
   };
   return (
-    <Grid container justifyContent="center" spacing={2} pl={5} pt={3}>
+    <Grid container justifyContent="center" spacing={2} pl={5} pt={3} sx={{ flexGrow: 1 }}>
       <Grid size={1} pb={3} px={3}>
         <MKAvatar alt="Profile picture" size="xxl" shadow="xl" onClick=""></MKAvatar>
       </Grid>

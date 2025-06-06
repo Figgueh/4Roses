@@ -34,7 +34,7 @@ import StyledLink from "./admin/StyledLink";
 
 import { useModal } from "./admin/ModalProvider";
 
-const breakpoints = [1080, 640, 384, 256, 128, 96, 64, 48];
+const breakpoints = [480, 768, 1024, 1280, 1600, 1920, 2560];
 
 function PhotoViewer({ album }) {
   const [index, setIndex] = useState(-1);
@@ -45,14 +45,23 @@ function PhotoViewer({ album }) {
 
   useEffect(() => {
     async function fetchImages() {
-      const { data, error } = await supabase.storage.from("images").list("interior");
+      setPhotos([]);
+
+      const { data, error } = await supabase.storage.from("images").list(album);
 
       if (error) {
         console.error("Error listing files:", error.message);
         return [];
       }
 
-      function imageLink(path, width, height, extension) {
+      function imageLink(path, width, height, extension, newWidth, newHeight) {
+        console.log(
+          `Loaded: ${album}/${path}_${width}x${height}.${extension}`,
+          newWidth,
+          newHeight
+        );
+        if (newWidth && newHeight)
+          return `https://fignet.imgix.net/${album}/${path}_${width}x${height}.${extension}?w=${newWidth}&h=${newHeight}&fit=max&auto=format&dpr=2`;
         return `https://fignet.imgix.net/${album}/${path}_${width}x${height}.${extension}`;
       }
 
@@ -76,11 +85,14 @@ function PhotoViewer({ album }) {
             src: imageLink(path, width, height, extension),
             width,
             height,
-            srcSet: breakpoints.map((breakpoint) => ({
-              src: imageLink(path, width, height, extension),
-              width: breakpoint,
-              height: Math.round((height / width) * breakpoint),
-            })),
+            srcSet: breakpoints.map((breakpoint) => {
+              const resizedHeight = Math.round((height / width) * breakpoint);
+              return {
+                src: imageLink(path, width, height, extension, breakpoint, resizedHeight),
+                width: breakpoint,
+                height: resizedHeight,
+              };
+            }),
             selected: false,
           };
         })
@@ -139,7 +151,7 @@ function PhotoViewer({ album }) {
   }, [photos]);
 
   return (
-    <MKBox>
+    <MKBox sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
       <RowsPhotoAlbum
         photos={photos}
         targetRowHeight={250}
@@ -158,7 +170,6 @@ function PhotoViewer({ album }) {
   );
 }
 
-// Typechecking props for the BaseLayout
 PhotoViewer.propTypes = {
   album: PropTypes.string.isRequired,
 };
