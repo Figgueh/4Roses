@@ -18,6 +18,7 @@ import { checkAdmin } from "connection/users/checkAdmin";
 // Tabs
 import ProfileTab from "./tabs/profile";
 import AdminDash from "./tabs/admin";
+import MKBox from "components/MKBox";
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -44,23 +45,25 @@ function Dashboard() {
 
   return (
     <BaseLayout title="Account dashboard">
-      <div>
-        <span>Welcome {session?.user?.email}</span>
-        <button onClick={handleSignOut}>Sign out</button>
-      </div>
-      <Container lg={3}>
-        <Grid container item justifyContent="center" xs={12} lg={10} mx="auto">
-          <AppBar position="static">
-            <Tabs sx={{ minWidth: "100%" }} value={activeTab} onChange={handleTabType}>
-              <Tab label="My Profile" />
-              <Tab label="My Posts" />
-              {isAdmin == true && <Tab label="Administation" />};
-            </Tabs>
-          </AppBar>
-        </Grid>
-      </Container>
-      {activeTab === 0 && <ProfileTab />}
-      {activeTab === 2 && <AdminDash />}
+      <MKBox sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
+        <MKBox>
+          <span>Welcome {session?.user?.email}</span>
+          <button onClick={handleSignOut}>Sign out</button>
+        </MKBox>
+        <Container lg={3}>
+          <Grid container item justifyContent="center" xs={12} lg={10} mx="auto">
+            <AppBar position="static">
+              <Tabs sx={{ minWidth: "100%" }} value={activeTab} onChange={handleTabType}>
+                <Tab label="My Profile" />
+                <Tab label="My Posts" />
+                {isAdmin == true && <Tab label="Administration" />};
+              </Tabs>
+            </AppBar>
+          </Grid>
+        </Container>
+        {activeTab === 0 && <ProfileTab />}
+        {activeTab === 2 && <AdminDash />}
+      </MKBox>
     </BaseLayout>
   );
 }
