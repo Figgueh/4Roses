@@ -16,51 +16,77 @@ import MKInput from "components/MKInput";
 import MKButton from "components/MKButton";
 
 function PhotoUploader({ album }) {
-  const [file, setFile] = useState(null);
-  const [name, setName] = useState("");
-  const [title, setTitle] = useState("");
-  const [alt, setAlt] = useState("");
-  const [displayOrder, setDisplayOrder] = useState("");
+  const [images, setImages] = useState([]);
+  const [refreshFlag, setRefreshFlag] = useState(false);
 
-  async function handleUpload() {
-    if (!file) return alert("Choose file");
+  const triggerRefresh = () => {
+    setRefreshFlag((prev) => !prev);
+  };
 
-    // Prepare file name
-    const dimensions = await getImageDimensions(file);
-    const fileExt = file.name.split(".").pop();
-    const fileName = file.name.split(".").slice(0, -1);
-    const newFileName = `${fileName}_${dimensions.width}x${dimensions.height}.${fileExt}`;
+  const handleFilesChange = (e) => {
+    const files = Array.from(e.target.files);
+    const newImages = files.map((file) => ({
+      file,
+      preview: URL.createObjectURL(file),
+      name: "",
+      title: "",
+      alt: "",
+      displayOrder: "",
+    }));
+    setImages((prev) => [...prev, ...newImages]);
+  };
 
-    // Upload image
-    const { imageDataError } = await supabase.storage
-      .from("images")
-      .upload(`${album}/${newFileName}`, file);
-
-    if (imageDataError) return console.error(imageDataError);
-
-    // Upload meta data
-    const { imageMetaDataError } = await supabase
-      .from("image_data")
-      .insert({ image_path: album + "/" + newFileName, title: "", alt: "", display_order: 2 });
-
-    if (imageMetaDataError) console.log(imageMetaDataError);
-
-    setFile(null);
-    setName("");
-  }
+  const handleInputChange = (index, field, value) => {
+    setImages((prev) => prev.map((img, i) => (i === index ? { ...img, [field]: value } : img)));
+  };
 
   const getImageDimensions = (file) => {
     return new Promise((resolve) => {
       const img = new Image();
       img.onload = function () {
-        resolve({
-          width: this.naturalWidth,
-          height: this.naturalHeight,
-        });
+        resolve({ width: this.naturalWidth, height: this.naturalHeight });
         URL.revokeObjectURL(this.src);
       };
       img.src = URL.createObjectURL(file);
     });
+  };
+
+  const handleUploadAll = async () => {
+    for (const img of images) {
+      if (!img.file) continue;
+
+      const dimensions = await getImageDimensions(img.file);
+      const fileExt = img.file.name.split(".").pop();
+      const fileName = img.name || img.file.name.split(".").slice(0, -1).join("");
+      const newFileName = `${fileName}_${dimensions.width}x${dimensions.height}.${fileExt}`;
+      const filePath = `${album}/${newFileName}`;
+
+      // Upload file
+      const { error: imageDataError } = await supabase.storage
+        .from("images")
+        .upload(filePath, img.file);
+
+      if (imageDataError) {
+        console.error("Upload error:", imageDataError);
+        continue;
+      }
+
+      // Insert metadata
+      const { error: metaError } = await supabase.from("image_data").insert({
+        image_path: filePath,
+        title: img.title,
+        alt: img.alt,
+        display_order: parseInt(img.displayOrder, 10) || 0,
+      });
+
+      if (metaError) {
+        console.error("Metadata insert error:", metaError);
+      }
+    }
+
+    // Reset
+    setImages([]);
+    triggerRefresh();
   };
 
   return (
@@ -71,58 +97,78 @@ function PhotoUploader({ album }) {
 
       <Paper elevation={3} sx={{ p: 3, mb: 4 }}>
         <Grid container spacing={2}>
-          <Grid item xs={12} sm={6}>
-            <MKInput
-              label="Display Name"
-              fullWidth
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Optional custom name"
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <MKInput
+          <Grid item xs={12}>
+            <input
               type="file"
               accept="image/*"
-              onChange={(e) => setFile(e.target.files[0])}
+              multiple
+              onChange={handleFilesChange}
               style={{ marginTop: "16px" }}
             />
           </Grid>
-          <Grid item xs={12} sm={4}>
-            <MKInput
-              label="Title"
-              fullWidth
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-            />
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <MKInput
-              label="Alt Text"
-              fullWidth
-              value={alt}
-              onChange={(e) => setAlt(e.target.value)}
-            />
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <MKInput
-              label="Display Order"
-              type="number"
-              fullWidth
-              value={displayOrder}
-              onChange={(e) => setDisplayOrder(e.target.value)}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <MKButton variant="contained" color="secondary" onClick={handleUpload} fullWidth>
-              Upload Image
-            </MKButton>
-          </Grid>
+
+          {images.map((img, index) => (
+            <React.Fragment key={index}>
+              <Grid item xs={12} sm={2}>
+                <img
+                  src={img.preview}
+                  alt="preview"
+                  style={{
+                    width: "100%",
+                    height: "auto",
+                    borderRadius: 8,
+                    border: "1px solid #ddd",
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={2}>
+                <MKInput
+                  label="Display Name"
+                  value={img.name}
+                  onChange={(e) => handleInputChange(index, "name", e.target.value)}
+                  fullWidth
+                />
+              </Grid>
+              <Grid item xs={12} sm={2}>
+                <MKInput
+                  label="Title"
+                  value={img.title}
+                  onChange={(e) => handleInputChange(index, "title", e.target.value)}
+                  fullWidth
+                />
+              </Grid>
+              <Grid item xs={12} sm={3}>
+                <MKInput
+                  label="Alt Text"
+                  value={img.alt}
+                  onChange={(e) => handleInputChange(index, "alt", e.target.value)}
+                  fullWidth
+                />
+              </Grid>
+              <Grid item xs={12} sm={3}>
+                <MKInput
+                  label="Display Order"
+                  type="number"
+                  value={img.displayOrder}
+                  onChange={(e) => handleInputChange(index, "displayOrder", e.target.value)}
+                  fullWidth
+                />
+              </Grid>
+            </React.Fragment>
+          ))}
+
+          {images.length > 0 && (
+            <Grid item xs={12}>
+              <MKButton variant="contained" color="secondary" onClick={handleUploadAll} fullWidth>
+                Upload All Images
+              </MKButton>
+            </Grid>
+          )}
         </Grid>
       </Paper>
 
       <ModalProvider sx={{ flex: 1 }}>
-        <PhotoViewer album={album} />
+        <PhotoViewer album={album} refreshFlag={refreshFlag} />
         <EditView />
       </ModalProvider>
     </MKBox>
