@@ -23,6 +23,7 @@ import "yet-another-react-lightbox/plugins/captions.css";
 
 // Sections components
 import MKBox from "components/MKBox";
+import MKButton from "components/MKButton";
 
 // Database imports
 import supabase from "connection/client";
@@ -33,14 +34,16 @@ import SelectIcon from "./admin/SelectIcon";
 import StyledLink from "./admin/StyledLink";
 
 import { useModal } from "./admin/ModalProvider";
+import { Delete } from "@mui/icons-material";
+import { trimImagePath } from "utils";
 
 const breakpoints = [480, 768, 1024, 1280, 1600, 1920, 2560];
 
-function PhotoViewer({ album }) {
+function PhotoViewer({ album, refreshFlag }) {
   const [index, setIndex] = useState(-1);
   const [photos, setPhotos] = useState([]);
-  const { session } = UserAuth();
   const [albumRender, setAlbumRender] = useState({});
+  const { session } = UserAuth();
   const { openModal } = useModal();
 
   useEffect(() => {
@@ -100,8 +103,9 @@ function PhotoViewer({ album }) {
 
       setPhotos(parsedPhotos);
     }
+
     fetchImages();
-  }, []);
+  }, [album, refreshFlag]);
 
   useEffect(() => {
     const userCheck = async () => {
@@ -127,9 +131,6 @@ function PhotoViewer({ album }) {
                     return newPhotos;
                   });
 
-                  // const selectedPhotos = photos.filter((photo) => photo.selected);
-                  // console.log(selectedPhotos);
-
                   event.preventDefault();
                   event.stopPropagation();
                 }}
@@ -150,8 +151,67 @@ function PhotoViewer({ album }) {
     console.log(selectedPhotos);
   }, [photos]);
 
+  const handleDelete = async () => {
+    const selectedPhotos = photos.filter((photo) => photo.selected);
+
+    if (selectedPhotos.length < 1) return;
+
+    //TODO:: Make it a model
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete ${selectedPhotos.length} photos?`
+    );
+
+    if (!confirmDelete) return;
+
+    const toDeleteUrl = selectedPhotos.map((photo) => trimImagePath(photo.src));
+    console.log(toDeleteUrl);
+    const { error: error } = await supabase.storage.from("images").remove(toDeleteUrl);
+    const { error: error2 } = await supabase
+      .from("image_data")
+      .delete()
+      .in("image_path", toDeleteUrl);
+
+    if (error) console.log(error);
+    if (error2) console.log(error2);
+
+    const updatedPhotos = photos.filter((photo) => !photo.selected);
+    setPhotos(updatedPhotos);
+  };
+
   return (
     <MKBox sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
+      {photos.filter((photo) => photo.selected).length > 0 && (
+        <MKBox sx={{ mb: 2, display: "flex" }}>
+          <MKButton
+            size="medium"
+            color="secondary"
+            variant="gradient"
+            sx={{ mr: 1, maxWidth: "200px" }}
+            onClick={() => setPhotos((prev) => prev.map((img) => ({ ...img, selected: true })))}
+          >
+            Select all photos
+          </MKButton>
+          <MKButton
+            size="medium"
+            color="secondary"
+            variant="gradient"
+            sx={{ maxWidth: "200px" }}
+            onClick={() => setPhotos((prev) => prev.map((img) => ({ ...img, selected: false })))}
+          >
+            Unselect all photos
+          </MKButton>
+          <MKButton
+            size="medium"
+            color="error"
+            variant="gradient"
+            sx={{ marginLeft: "auto", maxWidth: "250px" }}
+            onClick={handleDelete}
+          >
+            <Delete sx={{ mr: 1 }}>Delete</Delete> Delete Selected (
+            {photos.filter((photo) => photo.selected).length})
+          </MKButton>
+        </MKBox>
+      )}
       <RowsPhotoAlbum
         photos={photos}
         targetRowHeight={250}
@@ -172,6 +232,7 @@ function PhotoViewer({ album }) {
 
 PhotoViewer.propTypes = {
   album: PropTypes.string.isRequired,
+  refreshFlag: PropTypes.bool,
 };
 
 export default PhotoViewer;
