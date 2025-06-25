@@ -163,9 +163,11 @@ function PhotoViewer({ album, refreshFlag }) {
 
     if (!confirmDelete) return;
 
+    // Remove image
     const toDeleteUrl = selectedPhotos.map((photo) => trimImagePath(photo.src));
-    console.log(toDeleteUrl);
     const { error: error } = await supabase.storage.from("images").remove(toDeleteUrl);
+
+    // Remove metadata
     const { error: error2 } = await supabase
       .from("image_data")
       .delete()
