@@ -5,8 +5,8 @@ export const fetchAmenities = async () => {
   if (error) console.error("Error fetching data:", error);
   else
     return data.map((item) => ({
+      name: item.title,
+      description: item.description,
       image: process.env.REACT_APP_SUPABASE_IMAGE + item.image,
-      name: item.name,
-      sub: item.description,
     }));
 };

@@ -27,7 +27,9 @@ import theme from "assets/theme";
 
 // Material Kit 2 React routes
 import routes from "routes";
-import Home from "pages/LandingPages/Home";
+import Home from "pages/Home";
+import { AuthContextProvider } from "connection/auth/authContext";
+import ActivityBuilder from "pages/ActivityBuilder";
 
 export default function App() {
   const { pathname } = useLocation();
@@ -54,11 +56,15 @@ export default function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Routes>
-        {getRoutes(routes)}
-        <Route path="/" element={<Home />} />
-        {/* <Route path="*" element={<Navigate to="/pages/landing-pages/home" />} /> */}
-      </Routes>
+      <AuthContextProvider>
+        <Routes>
+          {getRoutes(routes)}
+          <Route path="/" element={<Home />} />
+          <Route path="activities/:section/:slug" element={<ActivityBuilder />} />
+          <Route path="activities/:section" element={<ActivityBuilder />} />
+          {/* <Route path="*" element={<Navigate to="/pages/landing-pages/home" />} /> */}
+        </Routes>
+      </AuthContextProvider>
     </ThemeProvider>
   );
 }

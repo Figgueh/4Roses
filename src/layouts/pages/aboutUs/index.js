@@ -14,8 +14,8 @@ Coded by www.creative-tim.com
 */
 
 // Material Kit 2 React pages
-import SignIn from "pages/SignIn";
+import AboutUs from "pages/AboutUs";
 
-export default function SignInPage() {
-  return <SignIn />;
+export default function AboutUsPage() {
+  return <AboutUs />;
 }
