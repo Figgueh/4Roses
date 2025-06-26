@@ -1,8 +1,8 @@
 import PropTypes from "prop-types";
 
-function Overlay({ photo: { src, alt, srcSet }, width, height, padding, style, ...rest }) {
+function Overlay({ photo: { src, alt, srcSet }, width, height, padding, style }) {
   return (
-    <div style={{ padding, ...style }} {...rest}>
+    <div style={{ padding, ...style }}>
       <img
         src={src}
         alt={alt}

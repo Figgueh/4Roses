@@ -3,9 +3,9 @@ import clsx from "clsx";
 
 import classes from "./StyledLink.module.css";
 
-export default function StyledLink({ href, className, children, ...rest }) {
+export default function StyledLink({ href, className, children }) {
   return (
-    <a href={href} className={clsx(classes.link, className)} {...rest}>
+    <a href={href} className={clsx(classes.link, className)}>
       {children}
     </a>
   );
