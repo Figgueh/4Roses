@@ -18,7 +18,6 @@ import PropTypes from "prop-types";
 
 // @mui material components
 import Container from "@mui/material/Container";
-import Grid from "@mui/material/Grid";
 
 // Material Kit 2 React components
 import MKBox from "components/MKBox";
@@ -48,8 +47,9 @@ function BaseLayout({ breadcrumb, title, children }) {
           relative
         />
       </MKBox>
-      <Container sx={{ mt: 6 }}>
-        <Grid container item xs={12} flexDirection="column" justifyContent="center" mx="auto">
+      {/* Main content grows to fill space */}
+      <MKBox sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
+        <Container sx={{ mt: 6, flex: 1, display: "flex", flexDirection: "column" }}>
           <MKBox
             width={{ xs: "100%", md: "50%", lg: "35%" }}
             mb={3}
@@ -60,9 +60,12 @@ function BaseLayout({ breadcrumb, title, children }) {
           <MKTypography variant="h3" mb={1}>
             {title}
           </MKTypography>
-          {children && children}
-        </Grid>
-      </Container>
+          {/* This ensures children grow and allow footer push-down */}
+          <MKBox sx={{ flex: 1 }}>{children}</MKBox>
+        </Container>
+      </MKBox>
+
+      {/* Sticky footer */}
       <MKBox mt="auto">
         <CenteredFooter />
       </MKBox>
@@ -74,7 +77,7 @@ function BaseLayout({ breadcrumb, title, children }) {
 BaseLayout.propTypes = {
   breadcrumb: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.object])),
   title: PropTypes.string.isRequired,
-  children: PropTypes.node,
+  children: PropTypes.node.isRequired,
 };
 
 export default BaseLayout;
