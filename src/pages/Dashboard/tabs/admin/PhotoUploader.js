@@ -29,9 +29,11 @@ function PhotoUploader({ album }) {
   };
 
   const handleFilesChange = async (e) => {
+    // Get the biggest display_order number
     const { data: latest } = await supabase
       .from("image_data")
       .select("display_order")
+      .like("image_path", `%${album}%`)
       .order("display_order", { ascending: false })
       .limit(1);
     const latestDisplayOrder = latest[0]?.display_order || 0;

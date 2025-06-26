@@ -6,10 +6,7 @@ function InteriorPhotos() {
   return (
     <BaseLayout
       title="Interior photos"
-      breadcrumb={[
-        { label: "Home page", route: "/pages/landing-pages/home" },
-        { label: "Interior photos" },
-      ]}
+      breadcrumb={[{ label: "Home page", route: "/" }, { label: "Interior photos" }]}
     >
       <PhotoViewer album="interior" />
     </BaseLayout>
