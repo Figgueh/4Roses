@@ -13,3 +13,9 @@ export function unslugify(slug) {
   if (!slug) return "";
   return slug.toString().trim().replace(/[-_]+/g, " ");
 }
+
+// https://fignet.imgix.net/interior/bedroom1A_4032x3024.jpg
+// returns bedroom1A_4032x3024.jpg
+export function trimImagePath(path) {
+  return path?.split("/")[3] + "/" + path?.split("/")[4];
+}
