@@ -1,3 +1,4 @@
+// React imports
 import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 
@@ -5,18 +6,27 @@ import PropTypes from "prop-types";
 import MKBox from "components/MKBox";
 import MKButton from "components/MKButton";
 
+// Icons
+import { Delete } from "@mui/icons-material";
+
 // Database imports
 import supabase from "connection/client";
 
-import { Delete } from "@mui/icons-material";
-import { trimImagePath } from "utils";
+// Components imports
 import SortablePhotoAlbum from "components/SortablePhotoAlbum/SortablePhotoAlbum";
-
+// Modal imports
 import { ModalProvider } from "components/SortablePhotoAlbum/admin/ModalProvider";
 import EditView from "components/SortablePhotoAlbum/admin/EditView";
 
+import { trimImagePath } from "utils";
+
 const breakpoints = [480, 768, 1024, 1280, 1600, 1920, 2560];
 
+/*
+ * PhotoViewer is responsible for fetching the photos and displaying them using
+ * SortablePhotoAlbum.
+ * Currently also responsible for handling selection and removal of images.
+ */
 function PhotoViewer({ album, refreshFlag }) {
   const [photos, setPhotos] = useState([]);
 
@@ -29,6 +39,11 @@ function PhotoViewer({ album, refreshFlag }) {
 
       if (imageError) {
         console.error("Error listing files:", imageError.message);
+        return [];
+      }
+
+      if (files.length == 0) {
+        console.log("No images to load.");
         return [];
       }
 
@@ -49,7 +64,7 @@ function PhotoViewer({ album, refreshFlag }) {
         orderMap.set(element.image_path, element.display_order);
       });
 
-      // Create a new variable with the image data and its display order
+      // Create a new variable with the image data and its display order, then sort
       const combinedData = files
         .map((file) => ({
           ...file,
@@ -57,12 +72,12 @@ function PhotoViewer({ album, refreshFlag }) {
         }))
         .sort((a, b) => a.display_order - b.display_order);
 
+      /*
+       * imageLink is responsible for generating the source that is used for imgix
+       * If no newWidth and newHeight, then it returns the source image,
+       * If they are provided, then it uses imgix to generate the dimension and returns that link.
+       */
       function imageLink(path, width, height, extension, newWidth, newHeight) {
-        console.log(
-          `Loaded: ${album}/${path}_${width}x${height}.${extension}`,
-          newWidth,
-          newHeight
-        );
         if (newWidth && newHeight)
           return `https://fignet.imgix.net/${album}/${path}_${width}x${height}.${extension}?w=${newWidth}&h=${newHeight}&fit=max&auto=format&dpr=2`;
         return `https://fignet.imgix.net/${album}/${path}_${width}x${height}.${extension}`;
@@ -70,7 +85,6 @@ function PhotoViewer({ album, refreshFlag }) {
 
       const parsedPhotos = combinedData
         .map((file) => {
-          console.log(file);
           if (!file || !file.name) return null;
           const matcher = file.name.match("^(.*)_(\\d+)x(\\d+)\\.(.+)$");
 
@@ -84,7 +98,6 @@ function PhotoViewer({ album, refreshFlag }) {
           const height = Number.parseInt(matcher[3], 10);
           const extension = matcher[4];
 
-          console.log("FILE:", file);
           return {
             path: album + "/" + file.name,
             id: file.id,
@@ -111,11 +124,6 @@ function PhotoViewer({ album, refreshFlag }) {
     fetchImages();
   }, [album, refreshFlag]);
 
-  useEffect(() => {
-    const selectedPhotos = photos.filter((photo) => photo.selected);
-    console.log(selectedPhotos);
-  }, [photos]);
-
   const handleDelete = async () => {
     const selectedPhotos = photos.filter((photo) => photo.selected);
 
@@ -132,7 +140,7 @@ function PhotoViewer({ album, refreshFlag }) {
     const toDeleteUrl = selectedPhotos.map((photo) => trimImagePath(photo.src));
     const { error: error } = await supabase.storage.from("images").remove(toDeleteUrl);
 
-    // Remove metadata
+    // Remove image data
     const { error: error2 } = await supabase
       .from("image_data")
       .delete()

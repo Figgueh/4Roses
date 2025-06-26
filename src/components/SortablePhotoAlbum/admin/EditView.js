@@ -24,8 +24,10 @@ function EditView() {
   useEffect(() => {
     setImageData({});
     async function getDatabaseData() {
-      const databaseData = await getImageData(trimImagePath(data));
-      if (databaseData != false) setImageData(databaseData);
+      if (data) {
+        const databaseData = await getImageData(trimImagePath(data));
+        if (databaseData != false) setImageData(databaseData);
+      }
     }
     getDatabaseData();
   }, [data]);

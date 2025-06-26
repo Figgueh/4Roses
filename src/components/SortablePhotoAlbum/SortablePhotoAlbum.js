@@ -83,7 +83,6 @@ const SortablePhotoAlbum = ({ photos, setPhotos }) => {
   };
 
   const handleDragEnd = async ({ active, over }) => {
-    console.log("Drag end", { from: active.id, to: over.id });
     if (!over || active.id === over.id) return;
 
     const oldIndex = photos.findIndex((p) => p.id === active.id);
@@ -95,15 +94,12 @@ const SortablePhotoAlbum = ({ photos, setPhotos }) => {
     // Swap the photos in UI
     const updatedPhotos = [...photos];
     [updatedPhotos[oldIndex], updatedPhotos[newIndex]] = [photoB, photoA];
-    // updatedPhotos.sort((a, b) => a.display_order - b.display_order);
 
     // Update database
     const { error } = await supabase
       .from("image_data")
       .update({ display_order: photoB.display_order })
       .eq("image_path", photoA.path);
-
-    console.log("PHOTO:", photoA);
 
     const { error: error2 } = await supabase
       .from("image_data")
@@ -125,6 +121,7 @@ const SortablePhotoAlbum = ({ photos, setPhotos }) => {
       if (session?.user?.id) {
         const isAdmin = await checkAdmin(session.user.id);
 
+        // Function for generating a wrapped tag with sortablePhoto to be able to drag and drop
         const renderSortable = (Tag, index, photo, props) => {
           return (
             <SortablePhoto key={index} id={photo.id}>
@@ -164,6 +161,7 @@ const SortablePhotoAlbum = ({ photos, setPhotos }) => {
             button: (props, { index, photo }) => renderSortable("button", index, photo, props),
           });
         } else {
+          // Don't render any admin features.
           setAlbumRender({});
         }
       }
@@ -172,13 +170,6 @@ const SortablePhotoAlbum = ({ photos, setPhotos }) => {
     userCheck();
   }, [session]);
 
-  //   useEffect(() => {
-  //     console.log(
-  //       "Photo order",
-  //       photos.map((p) => `${p.id} (order: ${p.display_order})`)
-  //     );
-  //   }, [photos]);
-
   return (
     <DndContext
       sensors={sensors}
@@ -186,8 +177,10 @@ const SortablePhotoAlbum = ({ photos, setPhotos }) => {
       onDragStart={handleDragStart}
       collisionDetection={closestCenter}
     >
+      {/* drag and drop uses photo ID to reference modifications */}
       <SortableContext items={photos.map((p) => p.id)}>
         <div className={classes.gallery} ref={ref}>
+          {/* Actual photo album */}
           <RowsPhotoAlbum
             photos={photos}
             targetRowHeight={250}
@@ -195,6 +188,7 @@ const SortablePhotoAlbum = ({ photos, setPhotos }) => {
             render={albumRender}
           />
         </div>
+        {/* Opens images in a full screen light box */}
         <Lightbox
           slides={photos}
           open={index >= 0}
@@ -205,6 +199,7 @@ const SortablePhotoAlbum = ({ photos, setPhotos }) => {
         />
       </SortableContext>
 
+      {/* Having overlay which makes the image follow the cursor */}
       <DragOverlay>
         {activePhoto && <Overlay className={classes.overlay} {...activePhoto} />}
       </DragOverlay>
