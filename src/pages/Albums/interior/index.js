@@ -2,9 +2,6 @@
 import BaseLayout from "components/BaseLayout";
 import PhotoViewer from "../PhotoViewer";
 
-import { ModalProvider } from "../admin/ModalProvider";
-import EditView from "../admin/EditView";
-
 function InteriorPhotos() {
   return (
     <BaseLayout
@@ -14,10 +11,7 @@ function InteriorPhotos() {
         { label: "Interior photos" },
       ]}
     >
-      <ModalProvider>
-        <PhotoViewer album="interior" />
-        <EditView />
-      </ModalProvider>
+      <PhotoViewer album="interior" />
     </BaseLayout>
   );
 }
