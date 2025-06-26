@@ -7,7 +7,7 @@ export const getImageData = async (path) => {
     .eq("image_path", path)
     .single();
   if (error) {
-    console.error("Error fetching data:", error);
+    console.error("Error fetching image data:", error);
     return false;
   }
   return data;
