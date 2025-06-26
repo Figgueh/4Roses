@@ -47,7 +47,6 @@ import { SortableContext, sortableKeyboardCoordinates } from "@dnd-kit/sortable"
 import Overlay from "./dnd/Overlay";
 import classes from "./dnd/SortableGallery.module.css";
 import SortablePhoto from "./dnd/SortablePhoto";
-// import SortablePhoto from "./dnd/SortablePhoto";
 
 const SortablePhotoAlbum = ({ photos, setPhotos }) => {
   const [index, setIndex] = useState(-1);
@@ -56,7 +55,7 @@ const SortablePhotoAlbum = ({ photos, setPhotos }) => {
   const { openModal } = useModal();
 
   // Drag and drop functions
-  const ref = useRef < HTMLDivElement > null;
+  const ref = useRef(null);
   const [activePhoto, setActivePhoto] = useState();
 
   const sensors = useSensors(
@@ -115,6 +114,7 @@ const SortablePhotoAlbum = ({ photos, setPhotos }) => {
 
         if (isAdmin) {
           setAlbumRender({
+            // Adds the edit Icon and the select circle.
             extras: (_, { photo, index }) => (
               <SelectIcon
                 selected={photo.selected}
@@ -166,7 +166,7 @@ const SortablePhotoAlbum = ({ photos, setPhotos }) => {
       collisionDetection={closestCenter}
     >
       <SortableContext items={photos.map((p) => p.id)}>
-        <div className={classes.gallery}>
+        <div className={classes.gallery} ref={ref}>
           <RowsPhotoAlbum
             photos={photos}
             targetRowHeight={250}
