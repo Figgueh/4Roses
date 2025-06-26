@@ -9,7 +9,7 @@ function Overlay({ photo: { src, alt, srcSet }, width, height, padding, style, .
         width={width}
         height={height}
         sizes={`${width}px`}
-        srcSet={srcSet?.map((image) => `${image.src} ${image.width}w`).join(", ")}
+        srcSet={srcSet?.map?.((image) => `${image.src} ${image.width}w`).join(", ")}
       />
     </div>
   );
@@ -31,4 +31,5 @@ Overlay.propTypes = {
   padding: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   style: PropTypes.object,
 };
+
 export default Overlay;
