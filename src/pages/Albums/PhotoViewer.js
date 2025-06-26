@@ -35,7 +35,8 @@ function PhotoViewer({ album, refreshFlag }) {
       // Get image data from database
       const { data: imageData, error: imageDataError } = await supabase
         .from("image_data")
-        .select("image_path,display_order");
+        .select("image_path,display_order")
+        .order("display_order", { ascending: true });
 
       if (imageDataError) {
         console.error("Error listing files data:", imageDataError.message);
@@ -54,7 +55,7 @@ function PhotoViewer({ album, refreshFlag }) {
           ...file,
           display_order: orderMap.get(album + "/" + file.name),
         }))
-        .sort((a, b) => a.id - b.id);
+        .sort((a, b) => a.display_order - b.display_order);
 
       function imageLink(path, width, height, extension, newWidth, newHeight) {
         console.log(
@@ -83,7 +84,9 @@ function PhotoViewer({ album, refreshFlag }) {
           const height = Number.parseInt(matcher[3], 10);
           const extension = matcher[4];
 
+          console.log("FILE:", file);
           return {
+            path: album + "/" + file.name,
             id: file.id,
             src: imageLink(path, width, height, extension),
             width,

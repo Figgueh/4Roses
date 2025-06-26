@@ -32,6 +32,10 @@ import StyledLink from "./admin/StyledLink";
 
 import { useModal } from "./admin/ModalProvider";
 
+import supabase from "connection/client";
+
+import { trimImagePath } from "utils";
+
 // For drag and drop
 import {
   closestCenter,
@@ -78,24 +82,41 @@ const SortablePhotoAlbum = ({ photos, setPhotos }) => {
     }
   };
 
-  const handleDragEnd = ({ active, over }) => {
+  const handleDragEnd = async ({ active, over }) => {
     console.log("Drag end", { from: active.id, to: over.id });
     if (!over || active.id === over.id) return;
 
     const oldIndex = photos.findIndex((p) => p.id === active.id);
     const newIndex = photos.findIndex((p) => p.id === over.id);
 
-    const updated = [...photos];
-    const [moved] = updated.splice(oldIndex, 1);
-    updated.splice(newIndex, 0, moved);
+    var photoA = photos[oldIndex];
+    var photoB = photos[newIndex];
 
-    // Reassign display_order based on new array position
-    const reordered = updated.map((photo, index) => ({
-      ...photo,
-      display_order: index + 1,
-    }));
+    // Swap the photos in UI
+    const updatedPhotos = [...photos];
+    [updatedPhotos[oldIndex], updatedPhotos[newIndex]] = [photoB, photoA];
+    // updatedPhotos.sort((a, b) => a.display_order - b.display_order);
 
-    setPhotos(reordered);
+    // Update database
+    const { error } = await supabase
+      .from("image_data")
+      .update({ display_order: photoB.display_order })
+      .eq("image_path", photoA.path);
+
+    console.log("PHOTO:", photoA);
+
+    const { error: error2 } = await supabase
+      .from("image_data")
+      .update({ display_order: photoA.display_order })
+      .eq("image_path", photoB.path);
+
+    if (error || error2) {
+      console.error("Error swapping display_order:", error || error2);
+    } else {
+      console.log("Swapped display_order in Supabase");
+    }
+
+    setPhotos(updatedPhotos);
   };
 
   // Checks if the user is admin and displays image options if they are.
@@ -151,12 +172,12 @@ const SortablePhotoAlbum = ({ photos, setPhotos }) => {
     userCheck();
   }, [session]);
 
-  useEffect(() => {
-    console.log(
-      "Photo order",
-      photos.map((p) => `${p.id} (order: ${p.display_order})`)
-    );
-  }, [photos]);
+  //   useEffect(() => {
+  //     console.log(
+  //       "Photo order",
+  //       photos.map((p) => `${p.id} (order: ${p.display_order})`)
+  //     );
+  //   }, [photos]);
 
   return (
     <DndContext
