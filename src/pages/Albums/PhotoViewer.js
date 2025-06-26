@@ -85,7 +85,7 @@ function PhotoViewer({ album, refreshFlag }) {
 
       const parsedPhotos = combinedData
         .map((file) => {
-          if (!file || !file.name) return null;
+          if (!file || !file.name || file.name == ".emptyFolderPlaceholder") return null;
           const matcher = file.name.match("^(.*)_(\\d+)x(\\d+)\\.(.+)$");
 
           if (!matcher) {
