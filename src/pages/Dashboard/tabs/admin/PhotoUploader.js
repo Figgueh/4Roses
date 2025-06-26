@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import supabase from "connection/client";
 import PhotoViewer from "pages/Albums/PhotoViewer";
-import EditView from "pages/Albums/admin/EditView";
-import { ModalProvider } from "pages/Albums/admin/ModalProvider";
+
+import EditView from "components/SortablePhotoAlbum/admin/EditView";
+import { ModalProvider } from "components/SortablePhotoAlbum/admin/ModalProvider";
 import PropTypes from "prop-types";
 import { TailSpin } from "react-loader-spinner";
 

@@ -1,25 +1,5 @@
 import { useState, useEffect } from "react";
-import { UserAuth } from "connection/auth/authContext";
 import PropTypes from "prop-types";
-
-// Material Kit 2 React components
-import { RowsPhotoAlbum } from "react-photo-album";
-import "react-photo-album/rows.css";
-
-// Lightbox includes
-import Lightbox from "yet-another-react-lightbox";
-import "yet-another-react-lightbox/styles.css";
-
-// import optional lightbox plugins
-import Fullscreen from "yet-another-react-lightbox/plugins/fullscreen";
-import Slideshow from "yet-another-react-lightbox/plugins/slideshow";
-import Thumbnails from "yet-another-react-lightbox/plugins/thumbnails";
-import Zoom from "yet-another-react-lightbox/plugins/zoom";
-import Captions from "yet-another-react-lightbox/plugins/captions";
-
-import "./index.css";
-import "yet-another-react-lightbox/plugins/thumbnails.css";
-import "yet-another-react-lightbox/plugins/captions.css";
 
 // Sections components
 import MKBox from "components/MKBox";
@@ -27,35 +7,54 @@ import MKButton from "components/MKButton";
 
 // Database imports
 import supabase from "connection/client";
-import { checkAdmin } from "connection/users/checkAdmin";
 
-// Admin viewer imports:
-import SelectIcon from "./admin/SelectIcon";
-import StyledLink from "./admin/StyledLink";
-
-import { useModal } from "./admin/ModalProvider";
 import { Delete } from "@mui/icons-material";
 import { trimImagePath } from "utils";
+import SortablePhotoAlbum from "components/SortablePhotoAlbum/SortablePhotoAlbum";
+
+import { ModalProvider } from "components/SortablePhotoAlbum/admin/ModalProvider";
+import EditView from "components/SortablePhotoAlbum/admin/EditView";
 
 const breakpoints = [480, 768, 1024, 1280, 1600, 1920, 2560];
 
 function PhotoViewer({ album, refreshFlag }) {
-  const [index, setIndex] = useState(-1);
   const [photos, setPhotos] = useState([]);
-  const [albumRender, setAlbumRender] = useState({});
-  const { session } = UserAuth();
-  const { openModal } = useModal();
 
   useEffect(() => {
     async function fetchImages() {
       setPhotos([]);
 
-      const { data, error } = await supabase.storage.from("images").list(album);
+      // Get the actual photos
+      const { data: files, error: imageError } = await supabase.storage.from("images").list(album);
 
-      if (error) {
-        console.error("Error listing files:", error.message);
+      if (imageError) {
+        console.error("Error listing files:", imageError.message);
         return [];
       }
+
+      // Get image data from database
+      const { data: imageData, error: imageDataError } = await supabase
+        .from("image_data")
+        .select("image_path,display_order");
+
+      if (imageDataError) {
+        console.error("Error listing files data:", imageDataError.message);
+        return [];
+      }
+
+      // Create a map with the data to be able to link to each other easier.
+      const orderMap = new Map();
+      imageData.forEach((element) => {
+        orderMap.set(element.image_path, element.display_order);
+      });
+
+      // Create a new variable with the image data and its display order
+      const combinedData = files
+        .map((file) => ({
+          ...file,
+          display_order: orderMap.get(album + "/" + file.name),
+        }))
+        .sort((a, b) => a.display_order - b.display_order);
 
       function imageLink(path, width, height, extension, newWidth, newHeight) {
         console.log(
@@ -68,7 +67,7 @@ function PhotoViewer({ album, refreshFlag }) {
         return `https://fignet.imgix.net/${album}/${path}_${width}x${height}.${extension}`;
       }
 
-      const parsedPhotos = data
+      const parsedPhotos = combinedData
         .map((file) => {
           console.log(file);
           if (!file || !file.name) return null;
@@ -97,6 +96,7 @@ function PhotoViewer({ album, refreshFlag }) {
               };
             }),
             selected: false,
+            display_order: file.display_order,
           };
         })
         .filter(Boolean);
@@ -106,45 +106,6 @@ function PhotoViewer({ album, refreshFlag }) {
 
     fetchImages();
   }, [album, refreshFlag]);
-
-  useEffect(() => {
-    const userCheck = async () => {
-      if (session?.user?.id) {
-        const isAdmin = await checkAdmin(session.user.id);
-
-        if (isAdmin) {
-          setAlbumRender({
-            link: (props) => <StyledLink {...props} />,
-            extras: (_, { photo, index }) => (
-              <SelectIcon
-                selected={photo.selected}
-                onClickEdit={(event) => {
-                  openModal(photo.src);
-
-                  event.preventDefault();
-                  event.stopPropagation();
-                }}
-                onClickSelect={(event) => {
-                  setPhotos((prevPhotos) => {
-                    const newPhotos = [...prevPhotos];
-                    newPhotos[index].selected = !photo.selected;
-                    return newPhotos;
-                  });
-
-                  event.preventDefault();
-                  event.stopPropagation();
-                }}
-              />
-            ),
-          });
-        } else {
-          setAlbumRender({});
-        }
-      }
-    };
-
-    userCheck();
-  }, [session]);
 
   useEffect(() => {
     const selectedPhotos = photos.filter((photo) => photo.selected);
@@ -214,20 +175,11 @@ function PhotoViewer({ album, refreshFlag }) {
           </MKButton>
         </MKBox>
       )}
-      <RowsPhotoAlbum
-        photos={photos}
-        targetRowHeight={250}
-        onClick={({ index }) => setIndex(index)}
-        render={albumRender}
-      />
-      <Lightbox
-        slides={photos}
-        open={index >= 0}
-        index={index}
-        close={() => setIndex(-1)}
-        // enable optional lightbox plugins
-        plugins={[Fullscreen, Slideshow, Thumbnails, Zoom, Captions]}
-      />
+
+      <ModalProvider>
+        <SortablePhotoAlbum photos={photos} setPhotos={setPhotos} />
+        <EditView />
+      </ModalProvider>
     </MKBox>
   );
 }
