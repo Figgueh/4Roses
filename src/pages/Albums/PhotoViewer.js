@@ -54,7 +54,7 @@ function PhotoViewer({ album, refreshFlag }) {
           ...file,
           display_order: orderMap.get(album + "/" + file.name),
         }))
-        .sort((a, b) => a.display_order - b.display_order);
+        .sort((a, b) => a.id - b.id);
 
       function imageLink(path, width, height, extension, newWidth, newHeight) {
         console.log(
@@ -84,6 +84,7 @@ function PhotoViewer({ album, refreshFlag }) {
           const extension = matcher[4];
 
           return {
+            id: file.id,
             src: imageLink(path, width, height, extension),
             width,
             height,
