@@ -66,12 +66,17 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
 
   const openMobileNavbar = () => setMobileNavbar(!mobileNavbar);
 
-  useEffect(async () => {
-    // Check if the user is logged in
-    if (session?.user?.id) {
-      setIsLoggedIn(true);
-      setProfilePicture(await getProfilePicture(session?.user?.id));
-    }
+  useEffect(() => {
+    const init = async () => {
+      // Check if the user is logged in
+      if (session?.user?.id) {
+        setIsLoggedIn(true);
+        const picture = await getProfilePicture(session.user.id);
+        setProfilePicture(picture);
+      }
+    };
+
+    init(); // Call the async function
 
     // A function that sets the display state for the DefaultNavbarMobile.
     function displayMobileNavbar() {
@@ -514,7 +519,7 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
               <MKAvatar
                 src={profilePicture}
                 alt="Profile picture"
-                size="m"
+                size="md"
                 shadow="xl"
                 onClick=""
               ></MKAvatar>
