@@ -4,12 +4,13 @@ import PropTypes from "prop-types";
 
 // @mui material components
 import Card from "@mui/material/Card";
-import { Edit } from "@mui/icons-material";
+import { Edit, Save } from "@mui/icons-material";
 
 // Material Kit 2 React components
 import MKBox from "components/MKBox";
 import MKTypography from "components/MKTypography";
 import MKButton from "components/MKButton";
+import MKInput from "components/MKInput";
 
 // Custom components
 import BaseLayout from "..";
@@ -17,15 +18,39 @@ import BaseLayout from "..";
 // Database interactions
 import { UserAuth } from "connection/auth/authContext";
 import supabase from "connection/client";
+import { saveArticleById } from "connection/articles/saveArticleById";
 
-function ActivityLayout({ breadcrumb, title, item }) {
+function ActivityLayout({ breadcrumb, title, item, setItem }) {
   const { session, authLoading } = UserAuth();
   const [account, setAccount] = useState();
   const [isEditMode, setIsEditMode] = useState(false);
 
+  const [editedArticle, setEditedArticle] = useState([]);
+  useEffect(() => {
+    setEditedArticle(item || []);
+  }, [item]);
+
   const handleEditMode = () => {
     if (isEditMode) setIsEditMode(false);
     else setIsEditMode(true);
+  };
+
+  const handleSave = async () => {
+    if (isEditMode) setIsEditMode(false);
+    else setIsEditMode(true);
+
+    await saveArticleById(item.id, editedArticle.title, editedArticle.article);
+    setItem(editedArticle);
+  };
+
+  const changeArticle = (index, part, value) => {
+    setEditedArticle((prev) => {
+      if (!prev || !Array.isArray(prev.article)) return prev;
+      const newArticle = prev.article.map((section, i) =>
+        i === index ? { ...section, [part]: value } : section
+      );
+      return { ...prev, article: newArticle };
+    });
   };
 
   useEffect(() => {
@@ -47,7 +72,6 @@ function ActivityLayout({ breadcrumb, title, item }) {
       checkAdmin();
     }
   }, [authLoading, session?.user?.id]);
-  console.log("Updated article:", item);
 
   return (
     <BaseLayout breadcrumb={breadcrumb} title={title}>
@@ -62,7 +86,7 @@ function ActivityLayout({ breadcrumb, title, item }) {
           boxShadow: ({ boxShadows: { xxl } }) => xxl,
         }}
       >
-        {!isEditMode && (
+        {!isEditMode ? (
           <MKBox sx={{ flex: 1 }}>
             <MKTypography variant="h1" textAlign="center" m={2}>
               {item.title}
@@ -110,6 +134,123 @@ function ActivityLayout({ breadcrumb, title, item }) {
               </MKButton>
             )}
           </MKBox>
+        ) : (
+          // Admin is editing
+          <MKBox sx={{ flex: 1 }}>
+            <MKInput
+              value={editedArticle.title}
+              onChange={(e) => setEditedArticle((prev) => ({ ...prev, title: e.target.value }))}
+              type="title"
+              label="Title"
+              m={2}
+              fullWidth
+              InputProps={{
+                sx: {
+                  input: {
+                    fontSize: "2.25rem",
+                    fontWeight: 600,
+                    textAlign: "center",
+                  },
+                },
+              }}
+            >
+              {editedArticle.title}
+            </MKInput>
+            {/* Image */}
+            <MKBox
+              component="img"
+              src={item.photo}
+              borderRadius="lg"
+              shadow="lg"
+              style={{ float: "right" }}
+              sx={{
+                width: { xs: "100%", md: "50%" },
+                marginRight: { md: 2 },
+                marginLeft: { md: 2 },
+                marginTop: { md: 2 },
+              }}
+            />
+            {/* Article sections */}
+            {editedArticle.article &&
+              Object.values(editedArticle.article).map((section, index) => (
+                <MKBox
+                  key={index}
+                  sx={{ m: 2, display: "flex", flexDirection: "row", flexWrap: "wrap" }}
+                >
+                  {/* Section title */}
+                  <MKInput
+                    type="section_title"
+                    label={`Section ${index} title`}
+                    value={section?.title || ""}
+                    onChange={(e) => changeArticle(index, "title", e.target.value)}
+                    pb={1.5}
+                    InputProps={{
+                      sx: {
+                        mb: 2,
+                        input: {
+                          fontSize: "1.75rem",
+                          fontWeight: 500,
+                        },
+                      },
+                    }}
+                  >
+                    {section?.title}
+                  </MKInput>
+
+                  {/* Section content */}
+                  <MKInput
+                    type="content"
+                    label={`Section ${index} content`}
+                    value={section?.content || ""}
+                    onChange={(e) => changeArticle(index, "content", e.target.value)}
+                    multiline
+                    InputProps={{
+                      sx: {
+                        textarea: {
+                          fontSize: "1rem",
+                          fontWeight: 400,
+                          lineHeight: 1.5,
+                        },
+                      },
+                    }}
+                    sx={{
+                      width: "100%",
+                    }}
+                  />
+                  {section?.detail && (
+                    <MKTypography component="ul">
+                      {Object.values(section.detail).map((val, index) => (
+                        <MKTypography key={index} component="li" ml={3}>
+                          {val}
+                        </MKTypography> //Close for the list item
+                      ))}
+                    </MKTypography> //Close for the unordered list
+                  )}
+                </MKBox> //Close for the content of the page
+              ))}
+            {account?.is_admin && (
+              <MKBox>
+                <MKButton
+                  startIcon={<Edit />}
+                  color="secondary"
+                  variant="outlined"
+                  sx={{ float: "right" }}
+                  onClick={handleEditMode}
+                >
+                  {isEditMode ? "Cancel Edit" : "Edit post"}
+                </MKButton>
+                <MKButton
+                  startIcon={<Save />}
+                  color="secondary"
+                  variant="outlined"
+                  sx={{ float: "right", mr: 2 }}
+                  onClick={handleSave}
+                >
+                  Save
+                </MKButton>
+              </MKBox>
+            )}
+          </MKBox>
         )}
       </Card>
     </BaseLayout>
@@ -121,11 +262,13 @@ ActivityLayout.propTypes = {
   breadcrumb: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.object])).isRequired,
   title: PropTypes.string.isRequired,
   item: PropTypes.shape({
+    id: PropTypes.number,
     title: PropTypes.string,
     photo: PropTypes.string,
     article: PropTypes.array,
     url: PropTypes.string,
   }).isRequired,
+  setItem: PropTypes.func.isRequired,
 };
 
 export default ActivityLayout;
