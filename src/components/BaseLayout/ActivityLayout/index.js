@@ -4,7 +4,7 @@ import PropTypes from "prop-types";
 
 // @mui material components
 import Card from "@mui/material/Card";
-import { Edit, Save } from "@mui/icons-material";
+import { Add, Edit, Remove, Save } from "@mui/icons-material";
 
 // Material Kit 2 React components
 import MKBox from "components/MKBox";
@@ -33,6 +33,8 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
   const handleEditMode = () => {
     if (isEditMode) setIsEditMode(false);
     else setIsEditMode(true);
+    // Clear any edits made
+    setEditedArticle(item);
   };
 
   const handleSave = async () => {
@@ -43,12 +45,56 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
     setItem(editedArticle);
   };
 
-  const changeArticle = (index, part, value) => {
+  const changeArticle = (index, part, value, detailIndex = null) => {
     setEditedArticle((prev) => {
       if (!prev || !Array.isArray(prev.article)) return prev;
-      const newArticle = prev.article.map((section, i) =>
-        i === index ? { ...section, [part]: value } : section
-      );
+
+      const newArticle = prev.article.map((section, i) => {
+        if (i !== index) return section;
+
+        // If updating a nested detail value
+        if (detailIndex !== null && Array.isArray(section[part])) {
+          const newDetail = [...section[part]];
+          newDetail[detailIndex] = value;
+          return { ...section, [part]: newDetail };
+        }
+
+        // Otherwise, update normal field
+        return { ...section, [part]: value };
+      });
+
+      return { ...prev, article: newArticle };
+    });
+  };
+
+  const addDetail = (index) => {
+    setEditedArticle((prev) => {
+      if (!prev || !Array.isArray(prev.article)) return prev;
+
+      const newArticle = prev.article.map((section, i) => {
+        if (i !== index) return section;
+
+        const newDetail = [...(section.detail || []), ""];
+        return { ...section, detail: newDetail };
+      });
+
+      return { ...prev, article: newArticle };
+    });
+  };
+
+  const removeDetail = (sectionIndex) => {
+    setEditedArticle((prev) => {
+      if (!prev || !Array.isArray(prev.article)) return prev;
+
+      const newArticle = prev.article.map((section, i) => {
+        if (i !== sectionIndex || !Array.isArray(section.detail)) return section;
+
+        const newDetail = section.detail.filter(
+          (_, dIndex) => dIndex !== section.detail.length - 1
+        );
+        return { ...section, detail: newDetail };
+      });
+
       return { ...prev, article: newArticle };
     });
   };
@@ -172,17 +218,17 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
             />
             {/* Article sections */}
             {editedArticle.article &&
-              Object.values(editedArticle.article).map((section, index) => (
+              Object.values(editedArticle.article).map((section, articleIndex) => (
                 <MKBox
-                  key={index}
+                  key={articleIndex}
                   sx={{ m: 2, display: "flex", flexDirection: "row", flexWrap: "wrap" }}
                 >
                   {/* Section title */}
                   <MKInput
                     type="section_title"
-                    label={`Section ${index} title`}
+                    label={`Section ${articleIndex} title`}
                     value={section?.title || ""}
-                    onChange={(e) => changeArticle(index, "title", e.target.value)}
+                    onChange={(e) => changeArticle(articleIndex, "title", e.target.value)}
                     pb={1.5}
                     InputProps={{
                       sx: {
@@ -196,13 +242,36 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
                   >
                     {section?.title}
                   </MKInput>
+                  {/* Buttons to add or remove a detail */}
+                  {articleIndex != 0 && (
+                    <MKBox mt={1.5}>
+                      <MKButton
+                        sx={{ ml: 2, mb: 2 }}
+                        size="medium"
+                        color="success"
+                        variant="gradient"
+                        onClick={() => addDetail(articleIndex)}
+                      >
+                        <Add />
+                      </MKButton>
+                      <MKButton
+                        sx={{ ml: 2, mb: 2 }}
+                        size="medium"
+                        color="error"
+                        variant="gradient"
+                        onClick={() => removeDetail(articleIndex)}
+                      >
+                        <Remove />
+                      </MKButton>
+                    </MKBox>
+                  )}
 
                   {/* Section content */}
                   <MKInput
                     type="content"
-                    label={`Section ${index} content`}
+                    label={`Section ${articleIndex} content`}
                     value={section?.content || ""}
-                    onChange={(e) => changeArticle(index, "content", e.target.value)}
+                    onChange={(e) => changeArticle(articleIndex, "content", e.target.value)}
                     multiline
                     InputProps={{
                       sx: {
@@ -218,10 +287,16 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
                     }}
                   />
                   {section?.detail && (
-                    <MKTypography component="ul">
+                    <MKTypography component="ul" width="100%">
                       {Object.values(section.detail).map((val, index) => (
                         <MKTypography key={index} component="li" ml={3}>
-                          {val}
+                          <MKInput
+                            value={val}
+                            fullWidth
+                            onChange={(e) =>
+                              changeArticle(articleIndex, "detail", e.target.value, index)
+                            }
+                          />
                         </MKTypography> //Close for the list item
                       ))}
                     </MKTypography> //Close for the unordered list
