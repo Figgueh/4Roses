@@ -9,6 +9,7 @@ export const fetchArticleByTitle = async (articleTitle) => {
   if (error) console.error("Error fetching data:", error);
   else
     return {
+      id: data.id,
       title: data.title,
       url: data.url,
       photo: process.env.REACT_APP_SUPABASE_IMAGE + data.image,

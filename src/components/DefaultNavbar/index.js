@@ -15,6 +15,7 @@ Coded by www.creative-tim.com
 */
 
 import { Fragment, useState, useEffect } from "react";
+import { UserAuth } from "connection/auth/authContext";
 
 // react-router components
 import { Link } from "react-router-dom";
@@ -35,6 +36,7 @@ import MuiLink from "@mui/material/Link";
 import MKBox from "components/MKBox";
 import MKTypography from "components/MKTypography";
 import MKButton from "components/MKButton";
+import MKAvatar from "components/MKAvatar";
 
 // Material Kit 2 React example components
 import DefaultNavbarDropdown from "./DefaultNavbarDropdown";
@@ -45,6 +47,7 @@ import breakpoints from "assets/theme/base/breakpoints";
 
 //Images
 import MainLogo from "assets/images/small-logos/4RosesHeader.png";
+import { getProfilePicture } from "connection/users/getProfilePicture";
 
 function DefaultNavbar({ brand, routes, transparent, light, action, sticky, relative, center }) {
   const [dropdown, setDropdown] = useState("");
@@ -57,9 +60,24 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
   const [mobileNavbar, setMobileNavbar] = useState(false);
   const [mobileView, setMobileView] = useState(false);
 
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [profilePicture, setProfilePicture] = useState("");
+  const { session } = UserAuth();
+
   const openMobileNavbar = () => setMobileNavbar(!mobileNavbar);
 
   useEffect(() => {
+    const init = async () => {
+      // Check if the user is logged in
+      if (session?.user?.id) {
+        setIsLoggedIn(true);
+        const picture = await getProfilePicture(session.user.id);
+        setProfilePicture(picture);
+      }
+    };
+
+    init(); // Call the async function
+
     // A function that sets the display state for the DefaultNavbarMobile.
     function displayMobileNavbar() {
       if (window.innerWidth < breakpoints.values.lg) {
@@ -495,6 +513,13 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
           >
             {renderNavbarItems}
           </MKBox>
+          {/* Check if the user is logged in, if they are show the profile picture */}
+          {isLoggedIn && (
+            <MKBox ml={{ xs: "auto", lg: 0 }} mr={2}>
+              <MKAvatar src={profilePicture} alt="Profile picture" size="md" shadow="xl"></MKAvatar>
+            </MKBox>
+          )}
+
           <MKBox ml={{ xs: "auto", lg: 0 }}>
             {action &&
               (action.type === "internal" ? (

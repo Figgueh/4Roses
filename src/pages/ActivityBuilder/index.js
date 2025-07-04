@@ -50,6 +50,7 @@ function ActivityBuilder() {
           { label: article.title },
         ]}
         item={article}
+        setItem={setArticle}
       />
     );
   }
