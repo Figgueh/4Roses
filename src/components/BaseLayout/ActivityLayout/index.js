@@ -18,21 +18,39 @@ import BaseLayout from "..";
 
 // Database interactions
 import { UserAuth } from "connection/auth/authContext";
-import supabase from "connection/client";
 import { saveArticleById } from "connection/articles/saveArticleById";
+import { uploadImage } from "connection/images/uploadImage";
+import { removeImage } from "connection/images/removeImage";
+import { updateArticleImage } from "connection/articles/updateArticleImage";
 
+// Utility
+import { trimImagePathNoSize } from "utils";
+import { getAllUserInfo } from "connection/users/getAllUserInfo";
+
+/*
+ * ActivityLayout is the boilerplate template for all of the activities that are around
+ * the rental property.
+ *
+ * This component has the ability to also make changes when an admin is logged in, The title,
+ * image, content and details of the article are all customizable.
+ */
 function ActivityLayout({ breadcrumb, title, item, setItem }) {
   const { session, authLoading } = UserAuth();
   const [account, setAccount] = useState();
   const [isEditMode, setIsEditMode] = useState(false);
-  const [previewImage, setPreviewImage] = useState(null);
-  const [openPicture, setOpenPicture] = useState();
-
   const [editedArticle, setEditedArticle] = useState([]);
+  const [previewImage, setPreviewImage] = useState(null);
+  const [openPicture, setOpenPicture] = useState(); //The picture that is currently in previewImage
+
+  // If the article changes, then update the edited version
   useEffect(() => {
-    requestAnimationFrame(() => {
-      setEditedArticle(item || []);
-    });
+    const defaultArticle = {
+      title: "",
+      photo: "",
+      article: [],
+    };
+
+    setEditedArticle(item || defaultArticle);
   }, [item]);
 
   const handleEditMode = () => {
@@ -43,18 +61,34 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
   };
 
   const handleSave = async () => {
-    if (isEditMode) setIsEditMode(false);
-    else setIsEditMode(true);
+    let updatedArticle = { ...editedArticle };
 
-    await saveArticleById(item.id, editedArticle.title, editedArticle.article);
-    if (openPicture) await saveArticleImage(openPicture);
+    // If a new image was uploaded, update editedArticle (wait for it)
+    if (openPicture) {
+      const filePath = `articles/${openPicture.name}`;
+      await uploadImage(filePath, openPicture);
+      await removeImage(trimImagePathNoSize(editedArticle.photo));
+      await updateArticleImage(item.id, filePath);
 
-    setItem(editedArticle);
+      updatedArticle = {
+        ...updatedArticle,
+        photo: process.env.REACT_APP_SUPABASE_IMAGE + filePath,
+      };
+
+      setEditedArticle(updatedArticle); // for future state sync
+    }
+
+    // Save article content
+    await saveArticleById(item.id, updatedArticle.title, updatedArticle.article);
+
+    // Update final `item` to sync with parent
+    setItem(updatedArticle);
     setPreviewImage(null);
+    setIsEditMode(false);
   };
 
-  // Most updates to the database should only be done when clicking save, not just changing the image.
-  const updateArticleImage = async (event) => {
+  // Set the preview for the image
+  const handleImageUploadChange = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -63,29 +97,13 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
     setPreviewImage(previewURL);
   };
 
-  const saveArticleImage = async (file) => {
-    if (!file) return;
-    const filePath = `articles/${file.name}`;
+  useEffect(() => {
+    console.log("editedArticle updated:", editedArticle);
+  }, [editedArticle]);
 
-    // Try to upload the file
-    let { error: uploadError } = await supabase.storage.from("images").upload(filePath, file);
-
-    if (uploadError) console.error(uploadError.message);
-
-    // Update the link in the database
-    const { error: articleError } = await supabase
-      .from("articles")
-      .update({ image: filePath })
-      .eq("id", item.id);
-
-    if (articleError) console.log(articleError);
-
-    // Update local state
-    setEditedArticle((prev) => ({
-      ...prev,
-      photo: process.env.REACT_APP_SUPABASE_IMAGE + filePath ?? prev.photo,
-    }));
-  };
+  useEffect(() => {
+    console.log("item updated:", item);
+  }, [item]);
 
   const changeArticle = (index, part, value, detailIndex = null) => {
     setEditedArticle((prev) => {
@@ -146,18 +164,13 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
     if (authLoading) {
       return;
     }
-    const checkAdmin = async () => {
-      const { data: account, error } = await supabase
-        .from("users")
-        .select("*")
-        .eq("id", session.user.id)
-        .single();
 
-      if (error) console.log(error);
-      setAccount(account);
+    // Not just a simple isAdmin check since there are future plans to add testimonials
+    const statusCheck = async () => {
+      setAccount(await getAllUserInfo(session.user.id));
     };
     if (session?.user?.id) {
-      checkAdmin();
+      statusCheck();
     }
   }, [authLoading, session?.user?.id]);
 
@@ -182,7 +195,7 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
             {/* Image */}
             <MKBox
               component="img"
-              src={previewImage || editedArticle.photo} // editedArticle has to be the src here to allow updated after save.
+              src={editedArticle.photo} // editedArticle has to be the src here to allow updated after save.
               borderRadius="lg"
               shadow="lg"
               style={{ float: "right" }}
@@ -285,7 +298,7 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
                   whiteSpace: "nowrap",
                   width: "1px",
                 }}
-                onChange={updateArticleImage}
+                onChange={handleImageUploadChange}
               />
             </ButtonBase>
 

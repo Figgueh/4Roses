@@ -11,6 +11,5 @@ export const getAllUserInfo = async (id) => {
     console.error("Error fetching data:", error);
     return false;
   }
-  console.log(data);
   return data;
 };
