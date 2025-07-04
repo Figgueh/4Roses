@@ -14,6 +14,10 @@ import MKTypography from "components/MKTypography";
 import BaseLayout from "..";
 import TransparentBlogCard from "components/Cards/BlogCards/TransparentBlogCard";
 import { slugify } from "utils";
+import MKButton from "components/MKButton";
+import { Add } from "@mui/icons-material";
+
+// useEffect(() => {});
 
 function ActivityPicker({ breadcrumb, title, items }) {
   return (
@@ -33,8 +37,13 @@ function ActivityPicker({ breadcrumb, title, items }) {
           <Container>
             <Grid container item xs={12} lg={12}>
               <MKTypography variant="h3" mb={6}>
-                Check out all the latest {title} activites
+                Check out all the latest {title.toLowerCase()} activities
               </MKTypography>
+              <MKBox pl={2}>
+                <MKButton size="medium" color="success" variant="gradient">
+                  <Add sx={{ mr: 1 }} /> Add article to {title.toLowerCase()} activities
+                </MKButton>
+              </MKBox>
             </Grid>
             <Grid container spacing={3}>
               {items.map(
