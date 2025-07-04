@@ -516,13 +516,7 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
           {/* Check if the user is logged in, if they are show the profile picture */}
           {isLoggedIn && (
             <MKBox ml={{ xs: "auto", lg: 0 }} mr={2}>
-              <MKAvatar
-                src={profilePicture}
-                alt="Profile picture"
-                size="md"
-                shadow="xl"
-                onClick=""
-              ></MKAvatar>
+              <MKAvatar src={profilePicture} alt="Profile picture" size="md" shadow="xl"></MKAvatar>
             </MKBox>
           )}
 

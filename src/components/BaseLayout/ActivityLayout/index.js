@@ -4,6 +4,7 @@ import PropTypes from "prop-types";
 
 // @mui material components
 import Card from "@mui/material/Card";
+import ButtonBase from "@mui/material/ButtonBase";
 import { Add, Edit, Remove, Save } from "@mui/icons-material";
 
 // Material Kit 2 React components
@@ -24,10 +25,14 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
   const { session, authLoading } = UserAuth();
   const [account, setAccount] = useState();
   const [isEditMode, setIsEditMode] = useState(false);
+  const [previewImage, setPreviewImage] = useState(null);
+  const [openPicture, setOpenPicture] = useState();
 
   const [editedArticle, setEditedArticle] = useState([]);
   useEffect(() => {
-    setEditedArticle(item || []);
+    requestAnimationFrame(() => {
+      setEditedArticle(item || []);
+    });
   }, [item]);
 
   const handleEditMode = () => {
@@ -42,7 +47,44 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
     else setIsEditMode(true);
 
     await saveArticleById(item.id, editedArticle.title, editedArticle.article);
+    if (openPicture) await saveArticleImage(openPicture);
+
     setItem(editedArticle);
+    setPreviewImage(null);
+  };
+
+  // Most updates to the database should only be done when clicking save, not just changing the image.
+  const updateArticleImage = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const previewURL = URL.createObjectURL(file);
+    setOpenPicture(file);
+    setPreviewImage(previewURL);
+  };
+
+  const saveArticleImage = async (file) => {
+    if (!file) return;
+    const filePath = `articles/${file.name}`;
+
+    // Try to upload the file
+    let { error: uploadError } = await supabase.storage.from("images").upload(filePath, file);
+
+    if (uploadError) console.error(uploadError.message);
+
+    // Update the link in the database
+    const { error: articleError } = await supabase
+      .from("articles")
+      .update({ image: filePath })
+      .eq("id", item.id);
+
+    if (articleError) console.log(articleError);
+
+    // Update local state
+    setEditedArticle((prev) => ({
+      ...prev,
+      photo: process.env.REACT_APP_SUPABASE_IMAGE + filePath ?? prev.photo,
+    }));
   };
 
   const changeArticle = (index, part, value, detailIndex = null) => {
@@ -140,7 +182,7 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
             {/* Image */}
             <MKBox
               component="img"
-              src={item.photo}
+              src={previewImage || editedArticle.photo} // editedArticle has to be the src here to allow updated after save.
               borderRadius="lg"
               shadow="lg"
               style={{ float: "right" }}
@@ -202,20 +244,51 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
             >
               {editedArticle.title}
             </MKInput>
+
             {/* Image */}
-            <MKBox
-              component="img"
-              src={item.photo}
-              borderRadius="lg"
-              shadow="lg"
-              style={{ float: "right" }}
+            <ButtonBase
+              component="label"
+              tabIndex={-1}
+              aria-label="article image"
               sx={{
-                width: { xs: "100%", md: "50%" },
-                marginRight: { md: 2 },
-                marginLeft: { md: 2 },
-                marginTop: { md: 2 },
+                display: "inline-block",
+                float: "right",
+                maxWidth: { xs: "100%", md: "50%" },
+                m: { xs: 0, md: 2 },
+                p: 0,
+                overflow: "hidden",
               }}
-            />
+            >
+              <MKBox
+                component="img"
+                src={previewImage || editedArticle.photo}
+                borderRadius="lg"
+                shadow="lg"
+                sx={{
+                  width: "100%",
+                  height: "auto",
+                  display: "block",
+                }}
+              />
+
+              <input
+                type="file"
+                accept="image/*"
+                style={{
+                  border: 0,
+                  clip: "rect(0 0 0 0)",
+                  height: "1px",
+                  margin: "-1px",
+                  overflow: "hidden",
+                  padding: 0,
+                  position: "absolute",
+                  whiteSpace: "nowrap",
+                  width: "1px",
+                }}
+                onChange={updateArticleImage}
+              />
+            </ButtonBase>
+
             {/* Article sections */}
             {editedArticle.article &&
               Object.values(editedArticle.article).map((section, articleIndex) => (
@@ -337,7 +410,7 @@ ActivityLayout.propTypes = {
   breadcrumb: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.object])).isRequired,
   title: PropTypes.string.isRequired,
   item: PropTypes.shape({
-    id: PropTypes.number,
+    id: PropTypes.string,
     title: PropTypes.string,
     photo: PropTypes.string,
     article: PropTypes.array,
