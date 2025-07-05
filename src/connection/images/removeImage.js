@@ -5,7 +5,9 @@ export const removeImage = async (toDeleteUrl) => {
 
   if (deleteError) {
     console.error("Failed to delete image:", deleteError.message);
+    return false;
   } else {
     console.log("Successfully deleted:", toDeleteUrl);
+    return true;
   }
 };

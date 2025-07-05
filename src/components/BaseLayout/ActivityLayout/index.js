@@ -1,11 +1,13 @@
 // Base imports
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+
 import PropTypes from "prop-types";
 
 // @mui material components
 import Card from "@mui/material/Card";
 import ButtonBase from "@mui/material/ButtonBase";
-import { Add, Edit, Remove, Save } from "@mui/icons-material";
+import { Add, Delete, Edit, Remove, Save } from "@mui/icons-material";
 
 // Material Kit 2 React components
 import MKBox from "components/MKBox";
@@ -22,10 +24,12 @@ import { saveArticleById } from "connection/articles/saveArticleById";
 import { uploadImage } from "connection/images/uploadImage";
 import { removeImage } from "connection/images/removeImage";
 import { updateArticleImage } from "connection/articles/updateArticleImage";
+import { getAllUserInfo } from "connection/users/getAllUserInfo";
+import { deleteArticle } from "connection/articles/deleteArticle";
 
 // Utility
 import { trimImagePathNoSize } from "utils";
-import { getAllUserInfo } from "connection/users/getAllUserInfo";
+import { slugify } from "utils";
 
 /*
  * ActivityLayout is the boilerplate template for all of the activities that are around
@@ -35,6 +39,7 @@ import { getAllUserInfo } from "connection/users/getAllUserInfo";
  * image, content and details of the article are all customizable.
  */
 function ActivityLayout({ breadcrumb, title, item, setItem }) {
+  const navigate = useNavigate();
   const { session, authLoading } = UserAuth();
   const [account, setAccount] = useState();
   const [isEditMode, setIsEditMode] = useState(false);
@@ -63,7 +68,7 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
   const handleSave = async () => {
     let updatedArticle = { ...editedArticle };
 
-    // If a new image was uploaded, update editedArticle (wait for it)
+    // If a new image was uploaded, update editedArticle
     if (openPicture) {
       const filePath = `articles/${openPicture.name}`;
       await uploadImage(filePath, openPicture);
@@ -96,14 +101,6 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
     setOpenPicture(file);
     setPreviewImage(previewURL);
   };
-
-  useEffect(() => {
-    console.log("editedArticle updated:", editedArticle);
-  }, [editedArticle]);
-
-  useEffect(() => {
-    console.log("item updated:", item);
-  }, [item]);
 
   const changeArticle = (index, part, value, detailIndex = null) => {
     setEditedArticle((prev) => {
@@ -159,6 +156,11 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
     });
   };
 
+  const handleDelete = async () => {
+    await deleteArticle(item);
+    navigate(`/activities/${slugify(title)}`);
+  };
+
   useEffect(() => {
     // check to see if the user is signed in as admin.
     if (authLoading) {
@@ -176,6 +178,49 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
 
   return (
     <BaseLayout breadcrumb={breadcrumb} title={title}>
+      {account?.is_admin && !isEditMode ? (
+        <MKButton
+          startIcon={<Edit />}
+          color="secondary"
+          variant="outlined"
+          sx={{ ml: 5 }}
+          onClick={handleEditMode}
+        >
+          Edit post
+        </MKButton>
+      ) : (
+        account?.is_admin &&
+        isEditMode && (
+          <MKBox>
+            <MKButton
+              startIcon={<Delete />}
+              color="error"
+              variant="outlined"
+              sx={{ float: "right", mr: 5 }}
+              onClick={handleDelete}
+            >
+              Delete post
+            </MKButton>
+            <MKButton
+              startIcon={<Save />}
+              color="secondary"
+              variant="outlined"
+              sx={{ mr: 2, ml: 5 }}
+              onClick={handleSave}
+            >
+              Save
+            </MKButton>
+            <MKButton
+              startIcon={<Edit />}
+              color="secondary"
+              variant="outlined"
+              onClick={handleEditMode}
+            >
+              {isEditMode ? "Cancel Edit" : "Edit post"}
+            </MKButton>
+          </MKBox>
+        )
+      )}
       <Card
         sx={{
           alignItems: "flex-start",
@@ -223,17 +268,6 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
                 )}
               </MKBox> //Close for the content of the page
             ))}
-            {account?.is_admin && (
-              <MKButton
-                startIcon={<Edit />}
-                color="secondary"
-                variant="outlined"
-                sx={{ float: "right" }}
-                onClick={handleEditMode}
-              >
-                Edit post
-              </MKButton>
-            )}
           </MKBox>
         ) : (
           // Admin is editing
@@ -389,28 +423,6 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
                   )}
                 </MKBox> //Close for the content of the page
               ))}
-            {account?.is_admin && (
-              <MKBox>
-                <MKButton
-                  startIcon={<Edit />}
-                  color="secondary"
-                  variant="outlined"
-                  sx={{ float: "right" }}
-                  onClick={handleEditMode}
-                >
-                  {isEditMode ? "Cancel Edit" : "Edit post"}
-                </MKButton>
-                <MKButton
-                  startIcon={<Save />}
-                  color="secondary"
-                  variant="outlined"
-                  sx={{ float: "right", mr: 2 }}
-                  onClick={handleSave}
-                >
-                  Save
-                </MKButton>
-              </MKBox>
-            )}
           </MKBox>
         )}
       </Card>
