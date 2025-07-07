@@ -141,8 +141,6 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
     });
   };
 
-  console.log(editedArticle);
-
   const handleRemoveSection = () => {
     setEditedArticle((prev) => {
       return {
