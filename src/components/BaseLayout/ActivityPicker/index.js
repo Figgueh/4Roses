@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+
 import React from "react";
 import PropTypes from "prop-types";
 
@@ -13,9 +15,34 @@ import MKTypography from "components/MKTypography";
 // Custom components
 import BaseLayout from "..";
 import TransparentBlogCard from "components/Cards/BlogCards/TransparentBlogCard";
+
+// Database interactions
+import { UserAuth } from "connection/auth/authContext";
+
 import { slugify } from "utils";
+import { checkAdmin } from "connection/users/checkAdmin";
+import NewModal from "./modal/NewModal";
 
 function ActivityPicker({ breadcrumb, title, items }) {
+  const { session, authLoading } = UserAuth();
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+
+  useEffect(() => {
+    // check to see if the user is signed in as admin.
+    if (authLoading) {
+      return;
+    }
+
+    const adminCheck = async () => {
+      const state = await checkAdmin(session.user.id);
+      setIsAdmin(state);
+    };
+    if (session?.user?.id) {
+      adminCheck();
+    }
+  }, [authLoading, session?.user?.id]);
+
   return (
     <BaseLayout breadcrumb={breadcrumb} title={title}>
       <Card
@@ -33,8 +60,17 @@ function ActivityPicker({ breadcrumb, title, items }) {
           <Container>
             <Grid container item xs={12} lg={12}>
               <MKTypography variant="h3" mb={6}>
-                Check out all the latest {title} activites
+                Check out all the latest {title.toLowerCase()} activities
               </MKTypography>
+              {isAdmin && (
+                <MKBox pl={2}>
+                  <NewModal
+                    activityTitle={title}
+                    open={modalOpen}
+                    onClose={() => setModalOpen(false)}
+                  />
+                </MKBox>
+              )}
             </Grid>
             <Grid container spacing={3}>
               {items.map(

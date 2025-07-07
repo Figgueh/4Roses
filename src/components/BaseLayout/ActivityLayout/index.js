@@ -1,11 +1,13 @@
 // Base imports
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+
 import PropTypes from "prop-types";
 
 // @mui material components
 import Card from "@mui/material/Card";
 import ButtonBase from "@mui/material/ButtonBase";
-import { Add, Edit, Remove, Save } from "@mui/icons-material";
+import { Add, Delete, Edit, Remove, Save } from "@mui/icons-material";
 
 // Material Kit 2 React components
 import MKBox from "components/MKBox";
@@ -18,21 +20,42 @@ import BaseLayout from "..";
 
 // Database interactions
 import { UserAuth } from "connection/auth/authContext";
-import supabase from "connection/client";
 import { saveArticleById } from "connection/articles/saveArticleById";
+import { uploadImage } from "connection/images/uploadImage";
+import { removeImage } from "connection/images/removeImage";
+import { updateArticleImage } from "connection/articles/updateArticleImage";
+import { getAllUserInfo } from "connection/users/getAllUserInfo";
+import { deleteArticle } from "connection/articles/deleteArticle";
 
+// Utility
+import { trimImagePathNoSize } from "utils";
+import { slugify } from "utils";
+
+/*
+ * ActivityLayout is the boilerplate template for all of the activities that are around
+ * the rental property.
+ *
+ * This component has the ability to also make changes when an admin is logged in, The title,
+ * image, content and details of the article are all customizable.
+ */
 function ActivityLayout({ breadcrumb, title, item, setItem }) {
+  const navigate = useNavigate();
   const { session, authLoading } = UserAuth();
   const [account, setAccount] = useState();
   const [isEditMode, setIsEditMode] = useState(false);
-  const [previewImage, setPreviewImage] = useState(null);
-  const [openPicture, setOpenPicture] = useState();
-
   const [editedArticle, setEditedArticle] = useState([]);
+  const [previewImage, setPreviewImage] = useState(null);
+  const [openPicture, setOpenPicture] = useState(); //The picture that is currently in previewImage
+
+  // If the article changes, then update the edited version
   useEffect(() => {
-    requestAnimationFrame(() => {
-      setEditedArticle(item || []);
-    });
+    const defaultArticle = {
+      title: "",
+      photo: "",
+      article: [],
+    };
+
+    setEditedArticle(item || defaultArticle);
   }, [item]);
 
   const handleEditMode = () => {
@@ -43,48 +66,40 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
   };
 
   const handleSave = async () => {
-    if (isEditMode) setIsEditMode(false);
-    else setIsEditMode(true);
+    let updatedArticle = { ...editedArticle };
 
-    await saveArticleById(item.id, editedArticle.title, editedArticle.article);
-    if (openPicture) await saveArticleImage(openPicture);
+    // If a new image was uploaded, update editedArticle
+    if (openPicture) {
+      const filePath = `articles/${openPicture.name}`;
+      await uploadImage(filePath, openPicture);
+      await removeImage(trimImagePathNoSize(editedArticle.photo));
+      await updateArticleImage(item.id, filePath);
 
-    setItem(editedArticle);
+      updatedArticle = {
+        ...updatedArticle,
+        photo: process.env.REACT_APP_SUPABASE_IMAGE + filePath,
+      };
+
+      setEditedArticle(updatedArticle); // for future state sync
+    }
+
+    // Save article content
+    await saveArticleById(item.id, updatedArticle.title, updatedArticle.article);
+
+    // Update final `item` to sync with parent
+    setItem(updatedArticle);
     setPreviewImage(null);
+    setIsEditMode(false);
   };
 
-  // Most updates to the database should only be done when clicking save, not just changing the image.
-  const updateArticleImage = async (event) => {
+  // Set the preview for the image
+  const handleImageUploadChange = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
     const previewURL = URL.createObjectURL(file);
     setOpenPicture(file);
     setPreviewImage(previewURL);
-  };
-
-  const saveArticleImage = async (file) => {
-    if (!file) return;
-    const filePath = `articles/${file.name}`;
-
-    // Try to upload the file
-    let { error: uploadError } = await supabase.storage.from("images").upload(filePath, file);
-
-    if (uploadError) console.error(uploadError.message);
-
-    // Update the link in the database
-    const { error: articleError } = await supabase
-      .from("articles")
-      .update({ image: filePath })
-      .eq("id", item.id);
-
-    if (articleError) console.log(articleError);
-
-    // Update local state
-    setEditedArticle((prev) => ({
-      ...prev,
-      photo: process.env.REACT_APP_SUPABASE_IMAGE + filePath ?? prev.photo,
-    }));
   };
 
   const changeArticle = (index, part, value, detailIndex = null) => {
@@ -106,6 +121,32 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
       });
 
       return { ...prev, article: newArticle };
+    });
+  };
+
+  const handleAddSection = () => {
+    setEditedArticle((prev) => {
+      if (!prev || !Array.isArray(prev.article)) return prev;
+
+      const newSection = {
+        title: "",
+        content: "",
+        detail: [],
+      };
+
+      return {
+        ...prev,
+        article: [...prev.article, newSection],
+      };
+    });
+  };
+
+  const handleRemoveSection = () => {
+    setEditedArticle((prev) => {
+      return {
+        ...prev,
+        article: prev.article.slice(0, -1),
+      };
     });
   };
 
@@ -141,28 +182,105 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
     });
   };
 
+  const handleDelete = async () => {
+    await deleteArticle(item);
+    navigate(`/activities/${slugify(title)}`);
+  };
+
   useEffect(() => {
     // check to see if the user is signed in as admin.
     if (authLoading) {
       return;
     }
-    const checkAdmin = async () => {
-      const { data: account, error } = await supabase
-        .from("users")
-        .select("*")
-        .eq("id", session.user.id)
-        .single();
 
-      if (error) console.log(error);
-      setAccount(account);
+    // Not just a simple isAdmin check since there are future plans to add testimonials
+    const statusCheck = async () => {
+      setAccount(await getAllUserInfo(session.user.id));
     };
     if (session?.user?.id) {
-      checkAdmin();
+      statusCheck();
     }
   }, [authLoading, session?.user?.id]);
 
   return (
     <BaseLayout breadcrumb={breadcrumb} title={title}>
+      {account?.is_admin && !isEditMode ? (
+        <MKButton
+          startIcon={<Edit />}
+          color="secondary"
+          variant="outlined"
+          sx={{ ml: 5 }}
+          onClick={handleEditMode}
+        >
+          Edit post
+        </MKButton>
+      ) : (
+        account?.is_admin &&
+        isEditMode && (
+          <MKBox
+            display="flex"
+            alignItems="center"
+            justifyContent="space-between"
+            flexWrap="wrap"
+            gap={2}
+          >
+            {/* Save and cancel buttons */}
+            <MKBox display="flex" justifyContent="left">
+              <MKButton
+                startIcon={<Save />}
+                color="secondary"
+                variant="outlined"
+                sx={{ mr: 2, ml: 5 }}
+                onClick={handleSave}
+              >
+                Save
+              </MKButton>
+              <MKButton
+                startIcon={<Edit />}
+                color="secondary"
+                variant="outlined"
+                onClick={handleEditMode}
+              >
+                {isEditMode ? "Cancel Edit" : "Edit post"}
+              </MKButton>
+            </MKBox>
+
+            {/* Add and remove section buttons */}
+            <MKBox display="flex" justifyContent="center">
+              <MKButton
+                startIcon={<Add />}
+                color="secondary"
+                variant="outlined"
+                sx={{ mr: 2 }}
+                onClick={handleAddSection}
+              >
+                Add Section
+              </MKButton>
+              <MKButton
+                startIcon={<Remove />}
+                color="secondary"
+                variant="outlined"
+                onClick={handleRemoveSection}
+              >
+                Remove Section
+              </MKButton>
+            </MKBox>
+
+            {/* Delete post button */}
+            <MKBox display="flex" justifyContent="right">
+              <MKButton
+                startIcon={<Delete />}
+                color="error"
+                variant="outlined"
+                sx={{ float: "right", mr: 5 }}
+                onClick={handleDelete}
+              >
+                Delete post
+              </MKButton>
+            </MKBox>
+          </MKBox>
+        )
+      )}
       <Card
         sx={{
           alignItems: "flex-start",
@@ -182,7 +300,7 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
             {/* Image */}
             <MKBox
               component="img"
-              src={previewImage || editedArticle.photo} // editedArticle has to be the src here to allow updated after save.
+              src={editedArticle.photo} // editedArticle has to be the src here to allow updated after save.
               borderRadius="lg"
               shadow="lg"
               style={{ float: "right" }}
@@ -210,17 +328,6 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
                 )}
               </MKBox> //Close for the content of the page
             ))}
-            {account?.is_admin && (
-              <MKButton
-                startIcon={<Edit />}
-                color="secondary"
-                variant="outlined"
-                sx={{ float: "right" }}
-                onClick={handleEditMode}
-              >
-                Edit post
-              </MKButton>
-            )}
           </MKBox>
         ) : (
           // Admin is editing
@@ -285,7 +392,7 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
                   whiteSpace: "nowrap",
                   width: "1px",
                 }}
-                onChange={updateArticleImage}
+                onChange={handleImageUploadChange}
               />
             </ButtonBase>
 
@@ -376,28 +483,6 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
                   )}
                 </MKBox> //Close for the content of the page
               ))}
-            {account?.is_admin && (
-              <MKBox>
-                <MKButton
-                  startIcon={<Edit />}
-                  color="secondary"
-                  variant="outlined"
-                  sx={{ float: "right" }}
-                  onClick={handleEditMode}
-                >
-                  {isEditMode ? "Cancel Edit" : "Edit post"}
-                </MKButton>
-                <MKButton
-                  startIcon={<Save />}
-                  color="secondary"
-                  variant="outlined"
-                  sx={{ float: "right", mr: 2 }}
-                  onClick={handleSave}
-                >
-                  Save
-                </MKButton>
-              </MKBox>
-            )}
           </MKBox>
         )}
       </Card>

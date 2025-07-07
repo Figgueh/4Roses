@@ -19,3 +19,8 @@ export function unslugify(slug) {
 export function trimImagePath(path) {
   return path?.split("/")[3] + "/" + path?.split("/")[4];
 }
+// https://ywkadgkdgycsjuhllfau.supabase.co/storage/v1/object/images/articles/testimonial-6-3.jpg
+// returns articles/testimonial-6-3.jpg
+export function trimImagePathNoSize(path) {
+  return path?.split("/")[8] + "/" + path?.split("/")[9];
+}
