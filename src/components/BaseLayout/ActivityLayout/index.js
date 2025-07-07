@@ -124,6 +124,34 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
     });
   };
 
+  const handleAddSection = () => {
+    setEditedArticle((prev) => {
+      if (!prev || !Array.isArray(prev.article)) return prev;
+
+      const newSection = {
+        title: "",
+        content: "",
+        detail: [],
+      };
+
+      return {
+        ...prev,
+        article: [...prev.article, newSection],
+      };
+    });
+  };
+
+  console.log(editedArticle);
+
+  const handleRemoveSection = () => {
+    setEditedArticle((prev) => {
+      return {
+        ...prev,
+        article: prev.article.slice(0, -1),
+      };
+    });
+  };
+
   const addDetail = (index) => {
     setEditedArticle((prev) => {
       if (!prev || !Array.isArray(prev.article)) return prev;
@@ -191,33 +219,67 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
       ) : (
         account?.is_admin &&
         isEditMode && (
-          <MKBox>
-            <MKButton
-              startIcon={<Delete />}
-              color="error"
-              variant="outlined"
-              sx={{ float: "right", mr: 5 }}
-              onClick={handleDelete}
-            >
-              Delete post
-            </MKButton>
-            <MKButton
-              startIcon={<Save />}
-              color="secondary"
-              variant="outlined"
-              sx={{ mr: 2, ml: 5 }}
-              onClick={handleSave}
-            >
-              Save
-            </MKButton>
-            <MKButton
-              startIcon={<Edit />}
-              color="secondary"
-              variant="outlined"
-              onClick={handleEditMode}
-            >
-              {isEditMode ? "Cancel Edit" : "Edit post"}
-            </MKButton>
+          <MKBox
+            display="flex"
+            alignItems="center"
+            justifyContent="space-between"
+            flexWrap="wrap"
+            gap={2}
+          >
+            {/* Save and cancel buttons */}
+            <MKBox display="flex" justifyContent="left">
+              <MKButton
+                startIcon={<Save />}
+                color="secondary"
+                variant="outlined"
+                sx={{ mr: 2, ml: 5 }}
+                onClick={handleSave}
+              >
+                Save
+              </MKButton>
+              <MKButton
+                startIcon={<Edit />}
+                color="secondary"
+                variant="outlined"
+                onClick={handleEditMode}
+              >
+                {isEditMode ? "Cancel Edit" : "Edit post"}
+              </MKButton>
+            </MKBox>
+
+            {/* Add and remove section buttons */}
+            <MKBox display="flex" justifyContent="center">
+              <MKButton
+                startIcon={<Add />}
+                color="secondary"
+                variant="outlined"
+                sx={{ mr: 2 }}
+                onClick={handleAddSection}
+              >
+                Add Section
+              </MKButton>
+              <MKButton
+                startIcon={<Remove />}
+                color="secondary"
+                variant="outlined"
+                onClick={handleRemoveSection}
+              >
+                Remove Section
+              </MKButton>
+            </MKBox>
+
+            {/* Delete post button */}
+            <MKBox display="flex" justifyContent="right">
+              <MKButton
+                startIcon={<Delete />}
+                color="error"
+                variant="outlined"
+                sx={{ float: "right", mr: 5 }}
+                onClick={handleDelete}
+              >
+                Delete post
+              </MKButton>
+            </MKBox>
           </MKBox>
         )
       )}
