@@ -6,8 +6,10 @@ export const fetchActivities = async () => {
   if (error) console.error("Error fetching data:", error);
   else
     return data.map((item) => ({
+      id: item.id,
       name: item.title,
+      title: item.title,
       slug: "activities/" + slugify(item.title),
-      image: process.env.REACT_APP_SUPABASE_IMAGE + item.image,
+      image: item.image,
     }));
 };
