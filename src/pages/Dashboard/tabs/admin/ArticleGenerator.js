@@ -1,15 +1,15 @@
 // import ActivityLayout from "components/BaseLayout/ActivityLayout";
+import { Icon, Menu } from "@mui/material";
 import MenuItem from "@mui/material/MenuItem";
 import ActivityLayout from "components/BaseLayout/ActivityLayout";
 import MKButton from "components/MKButton";
-import MKInput from "components/MKInput";
 import MKTypography from "components/MKTypography";
 import { fetchActivities } from "connection/activities/fetchActivities";
 import { generateArticleFromUrl } from "connection/openRouter/generateArticleFromUrl";
 import { useEffect, useState } from "react";
 import { unslugify } from "utils";
 
-function ActivityGenerator() {
+function ArticleGenerator() {
   const [urls, setUrls] = useState([
     "https://villaalvor.pt/en/about-us/",
     "https://villaalvor.pt/en/villa-alvor/",
@@ -21,6 +21,10 @@ function ActivityGenerator() {
   const [loading, setLoading] = useState(null);
   const [section, setSection] = useState("");
   const [activities, setActivities] = useState([]);
+
+  const [dropdown, setDropdown] = useState(null);
+  const openDropdown = ({ currentTarget }) => setDropdown(currentTarget);
+  const closeDropdown = () => setDropdown(null);
 
   const handleUrlChange = (index, newValue) => {
     const updatedUrls = [...urls];
@@ -45,9 +49,19 @@ function ActivityGenerator() {
     const fetchData = async () => {
       const data = await fetchActivities();
       setActivities(data);
+      if (activities.length) {
+        setSection(activities[0]?.title);
+      }
     };
     fetchData();
   }, []);
+
+  // Once the activities are loaded, select the first one.
+  useEffect(() => {
+    if (activities.length && !section) {
+      setSection(activities[0].title);
+    }
+  }, [activities]);
 
   useEffect(() => {
     if (article && loading === "Done") {
@@ -65,18 +79,40 @@ function ActivityGenerator() {
     }
   }, [article, loading]);
 
+  const iconStyles = {
+    ml: 1,
+    fontWeight: "bold",
+    transition: "transform 200ms ease-in-out",
+  };
+  const dropdownIconStyles = {
+    transform: dropdown ? "rotate(180deg)" : "rotate(0)",
+    ...iconStyles,
+  };
+
   return (
     <div style={{ padding: "1rem" }}>
       <h3>Activity Article Generator</h3>
 
-      <MKTypography>for activity:</MKTypography>
-      <MKInput select value={section} onChange={(e) => setSection(e.target.value)}>
+      <MKTypography>Select the activity of the article:</MKTypography>
+      <MKButton variant="gradient" color="info" onClick={openDropdown}>
+        {section} <Icon sx={dropdownIconStyles}>expand_more</Icon>
+      </MKButton>
+
+      <Menu anchorEl={dropdown} open={Boolean(dropdown)} onClose={closeDropdown}>
         {activities.map((activity) => (
-          <MenuItem key={activity.id} value={activity.title}>
+          <MenuItem
+            key={activity.id}
+            onClick={() => {
+              setSection(activity.title);
+              closeDropdown();
+            }}
+            value={activity.title}
+            label="Select Activity"
+          >
             {activity.title}
           </MenuItem>
         ))}
-      </MKInput>
+      </Menu>
 
       <MKTypography>Data points for context:</MKTypography>
       {urls.map((url, index) => (
@@ -137,4 +173,4 @@ function ActivityGenerator() {
   );
 }
 
-export default ActivityGenerator;
+export default ArticleGenerator;
