@@ -31,13 +31,6 @@ import { deleteArticle } from "connection/articles/deleteArticle";
 import { trimImagePathNoSize } from "utils";
 import { slugify } from "utils";
 
-/*
- * ActivityLayout is the boilerplate template for all of the activities that are around
- * the rental property.
- *
- * This component has the ability to also make changes when an admin is logged in, The title,
- * image, content and details of the article are all customizable.
- */
 function ActivityLayout({ breadcrumb, title, item, setItem }) {
   const navigate = useNavigate();
   const { session, authLoading } = UserAuth();
@@ -45,30 +38,25 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
   const [isEditMode, setIsEditMode] = useState(false);
   const [editedArticle, setEditedArticle] = useState([]);
   const [previewImage, setPreviewImage] = useState(null);
-  const [openPicture, setOpenPicture] = useState(); //The picture that is currently in previewImage
+  const [openPicture, setOpenPicture] = useState();
 
-  // If the article changes, then update the edited version
   useEffect(() => {
     const defaultArticle = {
       title: "",
       photo: "",
       article: [],
     };
-
     setEditedArticle(item || defaultArticle);
   }, [item]);
 
   const handleEditMode = () => {
-    if (isEditMode) setIsEditMode(false);
-    else setIsEditMode(true);
-    // Clear any edits made
+    setIsEditMode((prev) => !prev);
     setEditedArticle(item);
   };
 
   const handleSave = async () => {
     let updatedArticle = { ...editedArticle };
 
-    // If a new image was uploaded, update editedArticle
     if (openPicture) {
       const filePath = `articles/${openPicture.name}`;
       await uploadImage(filePath, openPicture);
@@ -80,20 +68,25 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
         photo: process.env.REACT_APP_SUPABASE_IMAGE + filePath,
       };
 
-      setEditedArticle(updatedArticle); // for future state sync
+      setEditedArticle(updatedArticle);
     }
 
-    // Save article content
-    await saveArticleById(item.id, updatedArticle.title, updatedArticle.article);
+    console.log("UPDATED:", item);
+    await saveArticleById(
+      item.id,
+      updatedArticle.title,
+      updatedArticle.article,
+      updatedArticle.url,
+      updatedArticle.photo,
+      updatedArticle.description
+    );
 
-    // Update final `item` to sync with parent
     setItem(updatedArticle);
     setPreviewImage(null);
     setIsEditMode(false);
   };
 
-  // Set the preview for the image
-  const handleImageUploadChange = async (event) => {
+  const handleImageUploadChange = (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -109,14 +102,12 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
       const newArticle = prev.article.map((section, i) => {
         if (i !== index) return section;
 
-        // If updating a nested detail value
         if (detailIndex !== null && Array.isArray(section[part])) {
           const newDetail = [...section[part]];
           newDetail[detailIndex] = value;
           return { ...section, [part]: newDetail };
         }
 
-        // Otherwise, update normal field
         return { ...section, [part]: value };
       });
 
@@ -125,59 +116,35 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
   };
 
   const handleAddSection = () => {
-    setEditedArticle((prev) => {
-      if (!prev || !Array.isArray(prev.article)) return prev;
-
-      const newSection = {
-        title: "",
-        content: "",
-        detail: [],
-      };
-
-      return {
-        ...prev,
-        article: [...prev.article, newSection],
-      };
-    });
+    setEditedArticle((prev) => ({
+      ...prev,
+      article: [...prev.article, { title: "", content: "", detail: [] }],
+    }));
   };
 
   const handleRemoveSection = () => {
-    setEditedArticle((prev) => {
-      return {
-        ...prev,
-        article: prev.article.slice(0, -1),
-      };
-    });
+    setEditedArticle((prev) => ({
+      ...prev,
+      article: prev.article.slice(0, -1),
+    }));
   };
 
   const addDetail = (index) => {
     setEditedArticle((prev) => {
-      if (!prev || !Array.isArray(prev.article)) return prev;
-
       const newArticle = prev.article.map((section, i) => {
         if (i !== index) return section;
-
-        const newDetail = [...(section.detail || []), ""];
-        return { ...section, detail: newDetail };
+        return { ...section, detail: [...(section.detail || []), ""] };
       });
-
       return { ...prev, article: newArticle };
     });
   };
 
   const removeDetail = (sectionIndex) => {
     setEditedArticle((prev) => {
-      if (!prev || !Array.isArray(prev.article)) return prev;
-
       const newArticle = prev.article.map((section, i) => {
         if (i !== sectionIndex || !Array.isArray(section.detail)) return section;
-
-        const newDetail = section.detail.filter(
-          (_, dIndex) => dIndex !== section.detail.length - 1
-        );
-        return { ...section, detail: newDetail };
+        return { ...section, detail: section.detail.slice(0, -1) };
       });
-
       return { ...prev, article: newArticle };
     });
   };
@@ -188,22 +155,22 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
   };
 
   useEffect(() => {
-    // check to see if the user is signed in as admin.
-    if (authLoading) {
-      return;
-    }
-
-    // Not just a simple isAdmin check since there are future plans to add testimonials
-    const statusCheck = async () => {
-      setAccount(await getAllUserInfo(session.user.id));
-    };
+    if (authLoading) return;
     if (session?.user?.id) {
+      const statusCheck = async () => {
+        setAccount(await getAllUserInfo(session.user.id));
+      };
       statusCheck();
     }
   }, [authLoading, session?.user?.id]);
 
-  return (
-    <BaseLayout breadcrumb={breadcrumb} title={title}>
+  useEffect(() => {
+    console.log("Here", item.article);
+  }, []);
+
+  // component renderer
+  const renderComponent = () => (
+    <>
       {account?.is_admin && !isEditMode ? (
         <MKButton
           startIcon={<Edit />}
@@ -224,7 +191,6 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
             flexWrap="wrap"
             gap={2}
           >
-            {/* Save and cancel buttons */}
             <MKBox display="flex" justifyContent="left">
               <MKButton
                 startIcon={<Save />}
@@ -241,11 +207,10 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
                 variant="outlined"
                 onClick={handleEditMode}
               >
-                {isEditMode ? "Cancel Edit" : "Edit post"}
+                Cancel Edit
               </MKButton>
             </MKBox>
 
-            {/* Add and remove section buttons */}
             <MKBox display="flex" justifyContent="center">
               <MKButton
                 startIcon={<Add />}
@@ -266,7 +231,6 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
               </MKButton>
             </MKBox>
 
-            {/* Delete post button */}
             <MKBox display="flex" justifyContent="right">
               <MKButton
                 startIcon={<Delete />}
@@ -281,6 +245,7 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
           </MKBox>
         )
       )}
+
       <Card
         sx={{
           alignItems: "flex-start",
@@ -297,10 +262,10 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
             <MKTypography variant="h1" textAlign="center" m={2}>
               {item.title}
             </MKTypography>
-            {/* Image */}
+
             <MKBox
               component="img"
-              src={editedArticle.photo} // editedArticle has to be the src here to allow updated after save.
+              src={editedArticle.photo}
               borderRadius="lg"
               shadow="lg"
               style={{ float: "right" }}
@@ -311,26 +276,26 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
                 marginTop: { md: 2 },
               }}
             />
-            {Object.values(item.article).map((section, index) => (
+
+            {item.article.map((section, index) => (
               <MKBox key={index} sx={{ m: 2 }}>
-                <MKTypography variant="h3" pb={1.5} sx={{ textDecoration: "bold" }}>
+                <MKTypography variant="h3" pb={1.5} sx={{ fontWeight: "bold" }}>
                   {section?.title}
                 </MKTypography>
-                <MKTypography variant="body1"> {section?.content} </MKTypography>
+                <MKTypography variant="body1">{section?.content}</MKTypography>
                 {section?.detail && (
                   <MKTypography component="ul">
-                    {Object.values(section.detail).map((val, index) => (
+                    {section.detail.map((val, index) => (
                       <MKTypography key={index} component="li" ml={3}>
                         {val}
-                      </MKTypography> //Close for the list item
+                      </MKTypography>
                     ))}
-                  </MKTypography> //Close for the unordered list
+                  </MKTypography>
                 )}
-              </MKBox> //Close for the content of the page
+              </MKBox>
             ))}
           </MKBox>
         ) : (
-          // Admin is editing
           <MKBox sx={{ flex: 1 }}>
             <MKInput
               value={editedArticle.title}
@@ -348,11 +313,8 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
                   },
                 },
               }}
-            >
-              {editedArticle.title}
-            </MKInput>
+            />
 
-            {/* Image */}
             <ButtonBase
               component="label"
               tabIndex={-1}
@@ -371,128 +333,115 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
                 src={previewImage || editedArticle.photo}
                 borderRadius="lg"
                 shadow="lg"
-                sx={{
-                  width: "100%",
-                  height: "auto",
-                  display: "block",
-                }}
+                sx={{ width: "100%", height: "auto", display: "block" }}
               />
-
               <input
                 type="file"
                 accept="image/*"
-                style={{
-                  border: 0,
-                  clip: "rect(0 0 0 0)",
-                  height: "1px",
-                  margin: "-1px",
-                  overflow: "hidden",
-                  padding: 0,
-                  position: "absolute",
-                  whiteSpace: "nowrap",
-                  width: "1px",
-                }}
+                style={{ display: "none" }}
                 onChange={handleImageUploadChange}
               />
             </ButtonBase>
 
-            {/* Article sections */}
-            {editedArticle.article &&
-              Object.values(editedArticle.article).map((section, articleIndex) => (
-                <MKBox
-                  key={articleIndex}
-                  sx={{ m: 2, display: "flex", flexDirection: "row", flexWrap: "wrap" }}
-                >
-                  {/* Section title */}
-                  <MKInput
-                    type="section_title"
-                    label={`Section ${articleIndex} title`}
-                    value={section?.title || ""}
-                    onChange={(e) => changeArticle(articleIndex, "title", e.target.value)}
-                    pb={1.5}
-                    InputProps={{
-                      sx: {
-                        mb: 2,
-                        input: {
-                          fontSize: "1.75rem",
-                          fontWeight: 500,
-                        },
+            {editedArticle.article.map((section, articleIndex) => (
+              <MKBox
+                key={articleIndex}
+                sx={{ m: 2, display: "flex", flexDirection: "row", flexWrap: "wrap" }}
+              >
+                <MKInput
+                  type="section_title"
+                  label={`Section ${articleIndex} title`}
+                  value={section?.title || ""}
+                  onChange={(e) => changeArticle(articleIndex, "title", e.target.value)}
+                  pb={1.5}
+                  InputProps={{
+                    sx: {
+                      mb: 2,
+                      input: {
+                        fontSize: "1.75rem",
+                        fontWeight: 500,
                       },
-                    }}
-                  >
-                    {section?.title}
-                  </MKInput>
-                  {/* Buttons to add or remove a detail */}
-                  {articleIndex != 0 && (
-                    <MKBox mt={1.5}>
-                      <MKButton
-                        sx={{ ml: 2, mb: 2 }}
-                        size="medium"
-                        color="success"
-                        variant="gradient"
-                        onClick={() => addDetail(articleIndex)}
-                      >
-                        <Add />
-                      </MKButton>
-                      <MKButton
-                        sx={{ ml: 2, mb: 2 }}
-                        size="medium"
-                        color="error"
-                        variant="gradient"
-                        onClick={() => removeDetail(articleIndex)}
-                      >
-                        <Remove />
-                      </MKButton>
-                    </MKBox>
-                  )}
+                    },
+                  }}
+                />
 
-                  {/* Section content */}
-                  <MKInput
-                    type="content"
-                    label={`Section ${articleIndex} content`}
-                    value={section?.content || ""}
-                    onChange={(e) => changeArticle(articleIndex, "content", e.target.value)}
-                    multiline
-                    InputProps={{
-                      sx: {
-                        textarea: {
-                          fontSize: "1rem",
-                          fontWeight: 400,
-                          lineHeight: 1.5,
-                        },
+                {articleIndex !== 0 && (
+                  <MKBox mt={1.5}>
+                    <MKButton
+                      sx={{ ml: 2, mb: 2 }}
+                      size="medium"
+                      color="success"
+                      variant="gradient"
+                      onClick={() => addDetail(articleIndex)}
+                    >
+                      <Add />
+                    </MKButton>
+                    <MKButton
+                      sx={{ ml: 2, mb: 2 }}
+                      size="medium"
+                      color="error"
+                      variant="gradient"
+                      onClick={() => removeDetail(articleIndex)}
+                    >
+                      <Remove />
+                    </MKButton>
+                  </MKBox>
+                )}
+
+                <MKInput
+                  type="content"
+                  label={`Section ${articleIndex} content`}
+                  value={section?.content || ""}
+                  onChange={(e) => changeArticle(articleIndex, "content", e.target.value)}
+                  multiline
+                  InputProps={{
+                    sx: {
+                      textarea: {
+                        fontSize: "1rem",
+                        fontWeight: 400,
+                        lineHeight: 1.5,
                       },
-                    }}
-                    sx={{
-                      width: "100%",
-                    }}
-                  />
-                  {section?.detail && (
-                    <MKTypography component="ul" width="100%">
-                      {Object.values(section.detail).map((val, index) => (
-                        <MKTypography key={index} component="li" ml={3}>
-                          <MKInput
-                            value={val}
-                            fullWidth
-                            onChange={(e) =>
-                              changeArticle(articleIndex, "detail", e.target.value, index)
-                            }
-                          />
-                        </MKTypography> //Close for the list item
-                      ))}
-                    </MKTypography> //Close for the unordered list
-                  )}
-                </MKBox> //Close for the content of the page
-              ))}
+                    },
+                  }}
+                  sx={{ width: "100%" }}
+                />
+
+                {section?.detail && (
+                  <MKTypography component="ul" width="100%">
+                    {section.detail.map((val, index) => (
+                      <MKTypography key={index} component="li" ml={3}>
+                        <MKInput
+                          value={val}
+                          fullWidth
+                          onChange={(e) =>
+                            changeArticle(articleIndex, "detail", e.target.value, index)
+                          }
+                        />
+                      </MKTypography>
+                    ))}
+                  </MKTypography>
+                )}
+              </MKBox>
+            ))}
           </MKBox>
         )}
       </Card>
-    </BaseLayout>
+    </>
   );
+
+  if (item.isPreview) {
+    return renderComponent();
+  } else {
+    return (
+      <BaseLayout breadcrumb={breadcrumb} title={title}>
+        {renderComponent()}
+      </BaseLayout>
+    );
+  }
 }
 
-// Typechecking props for the BaseLayout
 ActivityLayout.propTypes = {
-  breadcrumb: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.object])).isRequired,
+  breadcrumb: PropTypes.arrayOf(PropTypes.object).isRequired,
   title: PropTypes.string.isRequired,
   item: PropTypes.shape({
     id: PropTypes.string,
@@ -500,6 +449,7 @@ ActivityLayout.propTypes = {
     photo: PropTypes.string,
     article: PropTypes.array,
     url: PropTypes.string,
+    isPreview: PropTypes.bool,
   }).isRequired,
   setItem: PropTypes.func.isRequired,
 };

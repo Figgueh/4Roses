@@ -17,7 +17,7 @@ export const generateArticleFromUrl = async (urls, setResult, setLoading) => {
       return reader.parse();
     } catch (error) {
       console.error(`Error fetching ${url}:`, error);
-      return null;
+      throw error;
     }
   };
 
@@ -55,34 +55,39 @@ Only add the details section if necessary.
 Respond with valid JSON only.`;
 
   setLoading("Assembling prompt");
-  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "deepseek/deepseek-chat-v3-0324:free",
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are a helpful assistant who generates structured articles based on web content.",
-        },
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
-      stream: true,
-    }),
-  });
+  let response;
 
-  if (!response.ok) {
-    const errorText = await response.text(); // To debug what's returned
-    console.error(`Request failed with status ${response.status}:`, errorText);
-    setLoading(`Failed to generate article: ${response.status}`);
-    return;
+  try {
+    response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "deepseek/deepseek-chat-v3-0324:free",
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are a helpful assistant who generates structured articles based on web content.",
+          },
+          {
+            role: "user",
+            content: prompt,
+          },
+        ],
+        stream: true,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`OpenRouter request failed (${response.status}): ${errorText}`);
+    }
+  } catch (err) {
+    setLoading("Failed to generate article");
+    throw err;
   }
 
   const reader = response.body.getReader();
@@ -109,6 +114,14 @@ Respond with valid JSON only.`;
 
         try {
           const parsed = JSON.parse(json);
+
+          if (parsed.error) {
+            const { message, code, metadata } = parsed.error;
+            throw new Error(
+              `OpenRouter Error [${code}]: ${message}${metadata?.raw ? ` (${metadata.raw})` : ""}`
+            );
+          }
+
           const delta = parsed.choices?.[0]?.delta?.content;
           if (delta) {
             text += delta;
@@ -116,6 +129,7 @@ Respond with valid JSON only.`;
           }
         } catch (err) {
           console.error("Error parsing chunk", err);
+          throw new Error("Failed to parse streamed response from OpenRouter: " + err.message);
         }
       }
     });
