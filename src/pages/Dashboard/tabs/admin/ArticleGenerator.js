@@ -8,6 +8,7 @@ import { fetchActivities } from "connection/activities/fetchActivities";
 import { generateArticleFromUrl } from "connection/openRouter/generateArticleFromUrl";
 import { useEffect, useState } from "react";
 import { unslugify } from "utils";
+import { v4 as uuidv4 } from "uuid";
 
 function ArticleGenerator() {
   const [urls, setUrls] = useState([
@@ -20,6 +21,7 @@ function ArticleGenerator() {
   const [parsedArticle, setParsedArticle] = useState(null);
   const [loading, setLoading] = useState(null);
   const [section, setSection] = useState("");
+  const [error, setError] = useState("");
   const [activities, setActivities] = useState([]);
 
   const [dropdown, setDropdown] = useState(null);
@@ -41,8 +43,16 @@ function ArticleGenerator() {
     setUrls(updatedUrls);
   };
 
-  const handleGenerate = () => {
-    generateArticleFromUrl(urls, setArticle, setLoading);
+  const handleGenerate = async () => {
+    setError(null);
+    try {
+      setLoading("Loading...");
+      await generateArticleFromUrl(urls, setArticle, setLoading);
+    } catch (err) {
+      console.error("Article generation failed:", err);
+      setError(err.message || "Something went wrong while generating the article.");
+      setLoading(null);
+    }
   };
 
   useEffect(() => {
@@ -68,9 +78,10 @@ function ArticleGenerator() {
       const cleaned = article.replace(/```json|```/g, "").trim();
       try {
         const parsed = JSON.parse(cleaned);
-        parsed.id = 100;
-        parsed.url = urls[0];
-        delete parsed.description;
+        parsed.isPreview = true;
+        parsed.id = uuidv4();
+        parsed.url = urls.join(", ");
+        // delete parsed.description;
         setParsedArticle(parsed);
         console.log(parsed);
       } catch (error) {
@@ -142,6 +153,8 @@ function ArticleGenerator() {
 
       {loading && <p>{loading}</p>}
 
+      {error && <div style={{ color: "red", marginTop: "1rem" }}>{error}, Please try again.</div>}
+
       <pre
         style={{
           whiteSpace: "pre-wrap",
@@ -156,7 +169,7 @@ function ArticleGenerator() {
 
       {loading === "Done" && parsedArticle?.article && (
         <>
-          ({console.log(unslugify(section), parsedArticle)})
+          {console.log(unslugify(section), parsedArticle)}
           <ActivityLayout
             title={unslugify(section)}
             breadcrumb={[
