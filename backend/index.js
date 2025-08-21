@@ -1,0 +1,29 @@
+import express from "express";
+import cors from "cors";
+
+
+// Routes
+import articlesRoutes from "./routes/articles.js";
+import activityRoutes from "./routes/activities.js";
+import amenitiesRoutes from "./routes/amenities.js";
+
+// Addons
+import { errorHandler } from "./middlewares/errorHandler.js";
+
+
+const app = express();
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// Routes
+app.use("/api/articles", articlesRoutes);
+app.use("/api/activities", activityRoutes);
+app.use("/api/amenities", amenitiesRoutes);
+
+// Error handling
+app.use(errorHandler);
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

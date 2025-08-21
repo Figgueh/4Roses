@@ -1,3 +1,4 @@
+//added
 import supabase from "connection/client";
 
 export const addActivity = async (title, image) => {

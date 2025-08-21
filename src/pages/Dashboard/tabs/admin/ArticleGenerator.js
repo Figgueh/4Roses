@@ -4,11 +4,12 @@ import MenuItem from "@mui/material/MenuItem";
 import ActivityLayout from "components/BaseLayout/ActivityLayout";
 import MKButton from "components/MKButton";
 import MKTypography from "components/MKTypography";
-import { fetchActivities } from "connection/activities/fetchActivities";
 import { generateArticleFromUrl } from "connection/openRouter/generateArticleFromUrl";
 import { useEffect, useState } from "react";
 import { unslugify } from "utils";
 import { v4 as uuidv4 } from "uuid";
+
+import axios from "axios";
 
 function ArticleGenerator() {
   const [urls, setUrls] = useState([
@@ -57,8 +58,8 @@ function ArticleGenerator() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const data = await fetchActivities();
-      setActivities(data);
+      const activitiesRequest = await axios.get(`${process.env.REACT_APP_BACKEND}/activities`);
+      setActivities(activitiesRequest.data);
       if (activities.length) {
         setSection(activities[0]?.title);
       }

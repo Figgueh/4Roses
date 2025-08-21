@@ -13,9 +13,7 @@ import MKTypography from "components/MKTypography";
 // Presentation page components
 import ExampleCard from "components/Cards/ExampleCard";
 
-// Database connection imports
-import { fetchAmenities } from "connection/amenities/fetchAmenities";
-import { fetchActivities } from "connection/activities/fetchActivities";
+import axios from "axios";
 
 import { slugify } from "utils";
 
@@ -25,8 +23,10 @@ function Amenities() {
 
   useEffect(() => {
     const loadData = async () => {
-      setAmenities(await fetchAmenities());
-      setActivities(await fetchActivities());
+      const amenitiesRequest = await axios.get(`${process.env.REACT_APP_BACKEND}/amenities`);
+      setAmenities(amenitiesRequest.data);
+      const activitiesRequest = await axios.get(`${process.env.REACT_APP_BACKEND}/activities`);
+      setActivities(activitiesRequest.data);
     };
 
     loadData();
@@ -61,20 +61,20 @@ function Amenities() {
       </Grid>
       <Grid item xs={12} lg={9}>
         <Grid container spacing={3}>
-          {items.map(({ image, name, description, slug, pro }) => (
-            <Grid item xs={12} md={4} sx={{ mb: 2 }} id={slugify(name)} key={name}>
+          {items.map(({ image, title, description, slug, pro }) => (
+            <Grid item xs={12} md={4} sx={{ mb: 2 }} id={slugify(title)} key={title}>
               <Link to={slug}>
-                <ExampleCard image={image} name={name} description={description} pro={pro} />
+                <ExampleCard image={image} name={title} description={description} pro={pro} />
               </Link>
             </Grid>
           ))}
         </Grid>
       </Grid>
       <Grid container spacing={10} pt={4} pl={3}>
-        {smallItems.map(({ image, name, sub }) => (
-          <Grid item xs={12} md={3} sx={{ mb: 1 }} id={name} key={name}>
+        {smallItems.map(({ image, title, sub }) => (
+          <Grid item xs={12} md={3} sx={{ mb: 1 }} id={title} key={title}>
             {image}
-            <MKTypography variant="h6">{name}</MKTypography>
+            <MKTypography variant="h6">{title}</MKTypography>
             <MKTypography variant="h6" fontWeight="regular">
               {sub}
             </MKTypography>

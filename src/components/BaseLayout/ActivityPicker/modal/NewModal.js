@@ -10,7 +10,8 @@ import MKInput from "components/MKInput";
 import MKBox from "components/MKBox";
 import { addNewArticle } from "connection/articles/addNewArticle";
 import { slugify } from "utils";
-import { fetchActivitiesIdByName } from "connection/activities/fetchActivitiesIdByName";
+import axios from "axios";
+const API_BASE = process.env.REACT_APP_BACKEND;
 
 function NewModal({ activityTitle }) {
   const [title, setTitle] = useState("");
@@ -20,7 +21,8 @@ function NewModal({ activityTitle }) {
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
   const handleConfirm = async () => {
-    const id = await fetchActivitiesIdByName(activityTitle);
+    const activities = await axios.get(`${API_BASE}/activities/${activityTitle}`);
+    const id = activities.data.id;
     await addNewArticle(id, "", title);
     navigate(`/activities/${slugify(activityTitle)}/${slugify(title)}`);
   };

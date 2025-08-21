@@ -1,3 +1,4 @@
+// Added to backend
 import supabase from "connection/client";
 
 export const fetchArticleByTitle = async (articleTitle) => {
