@@ -1,3 +1,4 @@
+// Added to backend
 import supabase from "connection/client";
 
 export const addNewArticle = async (activityId, url, title, content, image, description) => {

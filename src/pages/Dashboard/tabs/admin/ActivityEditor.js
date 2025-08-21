@@ -1,8 +1,10 @@
 import MKButton from "components/MKButton";
-import { fetchActivities } from "connection/activities/fetchActivities";
 import supabase from "connection/client";
 import React, { useEffect, useState } from "react";
 import { Modal, Box, TextField } from "@mui/material";
+
+// Backend connection
+import axios from "axios";
 
 function ActivityEditor() {
   const [activities, setActivities] = useState([]);
@@ -13,8 +15,8 @@ function ActivityEditor() {
   const [editingId, setEditingId] = useState(null);
 
   const loadActivities = async () => {
-    const databaseActivities = await fetchActivities();
-    setActivities(databaseActivities);
+    const databaseActivities = await axios.get(`${process.env.REACT_APP_BACKEND}/activities`);
+    setActivities(databaseActivities.data);
   };
 
   useEffect(() => {
@@ -61,12 +63,17 @@ function ActivityEditor() {
 
       if (updateError) console.error("Update error:", updateError);
     } else {
-      const { error: insertError } = await supabase.from("activities").insert({
+      const addActivity = await axios.post(`${process.env.REACT_APP_BACKEND}/activities`, {
         title,
         image: imageUrl,
       });
+      console.log(addActivity);
+      // const { error: insertError } = await supabase.from("/activities").insert({
+      //   title,
+      //   image: imageUrl,
+      // });
 
-      if (insertError) console.error("Insert error:", insertError);
+      // if (insertError) console.error("Insert error:", insertError);
     }
 
     // Reset
