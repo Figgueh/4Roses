@@ -1,10 +1,9 @@
 import MKButton from "components/MKButton";
-import supabase from "connection/client";
 import React, { useEffect, useState } from "react";
 import { Modal, Box, TextField } from "@mui/material";
-
-// Backend connection
+import { Alert, AlertTitle } from "@mui/material";
 import axios from "axios";
+import { Add } from "@mui/icons-material";
 
 function ActivityEditor() {
   const [activities, setActivities] = useState([]);
@@ -13,6 +12,7 @@ function ActivityEditor() {
   const [imageFile, setImageFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [error, setError] = useState(null);
 
   const loadActivities = async () => {
     const databaseActivities = await axios.get(`${process.env.REACT_APP_BACKEND}/activities`);
@@ -25,55 +25,24 @@ function ActivityEditor() {
 
   const handleSave = async () => {
     if (!title || (editingId === null && !imageFile)) return;
+    const formData = new FormData();
+    formData.append("title", title);
 
-    setUploading(true);
-    let imageUrl = null;
-
-    // If new image is selected, upload it
     if (imageFile) {
-      const fileExt = imageFile.name.split(".").pop();
-      const fileName = `${title}.${fileExt}`;
-      const filePath = `activities/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("images")
-        .upload(filePath, imageFile);
-
-      if (uploadError) {
-        console.error("Image upload failed:", uploadError.message);
-        setUploading(false);
-        return;
-      }
-
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from("images").getPublicUrl(filePath);
-
-      imageUrl = publicUrl;
+      const filePath = `activities/${imageFile.name}`;
+      formData.append("imageUrl", filePath);
+      formData.append("image", imageFile);
     }
 
     if (editingId) {
-      const updates = { title };
-      if (imageUrl) updates.image = imageUrl;
-
-      const { error: updateError } = await supabase
-        .from("activities")
-        .update(updates)
-        .eq("id", editingId);
-
-      if (updateError) console.error("Update error:", updateError);
+      await axios.put(`${process.env.REACT_APP_BACKEND}/activities/${editingId}`, formData);
     } else {
-      const addActivity = await axios.post(`${process.env.REACT_APP_BACKEND}/activities`, {
-        title,
-        image: imageUrl,
-      });
-      console.log(addActivity);
-      // const { error: insertError } = await supabase.from("/activities").insert({
-      //   title,
-      //   image: imageUrl,
-      // });
-
-      // if (insertError) console.error("Insert error:", insertError);
+      const addActivity = await axios.post(
+        `${process.env.REACT_APP_BACKEND}/activities`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+      console.log(addActivity.data);
     }
 
     // Reset
@@ -88,24 +57,35 @@ function ActivityEditor() {
   const handleEdit = (activity) => {
     setTitle(activity.title);
     setEditingId(activity.id);
-    setImageFile(null); // don't prefill old image
+    setImageFile(null);
     setOpenModal(true);
   };
 
   const handleDelete = async (id) => {
-    const { error } = await supabase.from("activities").delete().eq("id", id);
-    if (error) {
-      console.error("Delete failed:", error.message);
-    } else {
-      setActivities((prev) => prev.filter((a) => a.id !== id));
+    try {
+      const deleteRes = await axios.delete(`${process.env.REACT_APP_BACKEND}/activities/${id}`);
+      if (deleteRes.status == 204) {
+        setActivities((prev) => prev.filter((a) => a.id !== id));
+        setError(null);
+      }
+    } catch (err) {
+      // Check to see if there are articles in the activity.
+      if (err.response.status == 409) {
+        setError("This activity has articles that must be remove first.");
+      } else {
+        setError("Delete failed. Please try again", err);
+      }
     }
   };
 
   return (
     <div>
-      <MKButton color="secondary" onClick={() => setOpenModal(true)}>
-        Add new activity
-      </MKButton>
+      {error && (
+        <Alert sx={{ mt: 2 }} severity="error" onClose={() => setError(null)}>
+          <AlertTitle>Error</AlertTitle>
+          {error}
+        </Alert>
+      )}
 
       <div
         style={{
@@ -187,6 +167,10 @@ function ActivityEditor() {
           </MKButton>
         </Box>
       </Modal>
+      <MKButton color="success" sx={{ float: "right", mr: 5 }} onClick={() => setOpenModal(true)}>
+        <Add sx={{ mr: 1, mb: 0.3 }} />
+        Add new activity
+      </MKButton>
     </div>
   );
 }

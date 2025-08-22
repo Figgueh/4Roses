@@ -1,7 +1,6 @@
 import express from "express";
 import cors from "cors";
 
-
 // Routes
 import articlesRoutes from "./routes/articles.js";
 import activityRoutes from "./routes/activities.js";
@@ -9,7 +8,6 @@ import amenitiesRoutes from "./routes/amenities.js";
 
 // Addons
 import { errorHandler } from "./middlewares/errorHandler.js";
-
 
 const app = express();
 
