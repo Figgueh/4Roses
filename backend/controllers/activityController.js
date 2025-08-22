@@ -5,9 +5,11 @@ import { slugify } from "../utils.js";
 // /
 export const getActivities = async (req, res, next) => {
   try {
+    // Get the activities
     const { data, error } = await supabase.from("activities").select("*");
     if (error) throw error;
 
+    // Add the supabase link to the path, and prepare the slug
     const activities = data.map((activity) => ({
       ...activity,
       image: `${process.env.SUPABASE_IMAGE}${activity.image}`,
@@ -31,6 +33,7 @@ export const getActivityIdByName = async (req, res, next) => {
       .eq("title", activityName)
       .single();
     if (error) throw error;
+
     res.json(data);
   } catch (err) {
     next(err);
@@ -45,6 +48,7 @@ export const addActivity = async (req, res, next) => {
     const { title, imageUrl } = req.body;
     const file = req.file;
 
+    // Image is required
     if (!file) return res.status(400).json({ error: "No image uploaded" });
 
     // Upload photo
@@ -55,7 +59,9 @@ export const addActivity = async (req, res, next) => {
       .from("activities")
       .insert({ title: title, image: imageUrl })
       .select();
+
     if (error) throw error;
+
     res.status(201).json(data[0]);
   } catch (err) {
     next(err);
@@ -72,24 +78,30 @@ export const updateActivity = async (req, res, next) => {
     const image = req.file;
 
     if (image && imageUrl) {
+      // Get the current photo
       const { data: existingPhoto } = await supabase
         .from("activities")
         .select("image")
         .eq("id", id)
         .single();
 
+      // If there was one, delete it and upload the new photo
       if (existingPhoto.image) await deletePhoto(existingPhoto.image);
       await uploadPhoto(imageUrl, image);
 
+      // Update the row in the database
       const { error } = await supabase
         .from("activities")
         .update({ title, image: imageUrl })
         .eq("id", id);
+
       if (error) throw error;
     } else {
+      // If there wasn't a photo being uploaded, then just update the title
       const { error } = await supabase.from("activities").update({ title }).eq("id", id);
       if (error) throw error;
     }
+
     res.status(200).send();
   } catch (err) {
     next(err);
