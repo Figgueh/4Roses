@@ -1,4 +1,5 @@
 import supabase from "../config/supabaseClient.js";
+import { deletePhoto, uploadPhoto } from "../utils/helpers.js";
 
 // GET all articles
 // /
@@ -73,22 +74,73 @@ export const createArticle = async (req, res, next) => {
 export const updateArticle = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { title, content } = req.body;
-    const { data, error } = await supabase.from("articles").update({ title, content }).eq("id", id);
+    const { title, rawContent, image } = req.body;
+    const file = req.file;
+
+    // Rebuild the article
+    let content;
+    try {
+      content = JSON.parse(rawContent);
+    } catch (e) {
+      content = rawContent;
+    }
+
+    // If there is an image, update it
+    if (file) {
+      // Get the old image path
+      const { data: articleData } = await supabase
+        .from("articles")
+        .select("image")
+        .eq("id", id)
+        .single();
+
+      // Switch the photos
+      await deletePhoto(articleData.image);
+      await uploadPhoto("/articles/" + file.originalname, file);
+    }
+
+    // Update the title and content
+    const { data, error } = await supabase
+      .from("articles")
+      .update({ title, content, image })
+      .eq("id", id);
+
     if (error) throw error;
-    res.json(data);
+    res.status(200).json({ message: "Article updated successfully", article: data });
   } catch (err) {
     next(err);
   }
 };
 
 // DELETE article
+// /:id
 export const deleteArticle = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { data, error } = await supabase.from("articles").delete().eq("id", id);
-    if (error) throw error;
-    res.json(data);
+
+    // Get the name of the image for the article
+    const { data: articleData, error: articleError } = await supabase
+      .from("articles")
+      .select("image")
+      .eq("id", id)
+      .single();
+
+    if (articleError) throw articleError;
+    if (!articleData) return res.status(404).json({ message: "Article not found" });
+
+    // Delete the image.
+    if (articleData.image) {
+      const { error: deletePhotoError } = await supabase.storage
+        .from("images")
+        .remove([articleData.image]);
+      if (deletePhotoError) throw deletePhotoError;
+    }
+
+    // Delete the row
+    const { error: deleteRowError } = await supabase.from("articles").delete().eq("id", id);
+    if (deleteRowError) throw deleteRowError;
+
+    res.status(200).json({ message: "Activity deleted successfully" });
   } catch (err) {
     next(err);
   }

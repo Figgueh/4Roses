@@ -20,16 +20,12 @@ import BaseLayout from "..";
 
 // Database interactions
 import { UserAuth } from "connection/auth/authContext";
-import { saveArticleById } from "connection/articles/saveArticleById";
-import { uploadImage } from "connection/images/uploadImage";
-import { removeImage } from "connection/images/removeImage";
-import { updateArticleImage } from "connection/articles/updateArticleImage";
 import { getAllUserInfo } from "connection/users/getAllUserInfo";
-import { deleteArticle } from "connection/articles/deleteArticle";
 
 // Utility
 import { trimImagePathNoSize } from "utils";
 import { slugify } from "utils";
+import axios from "axios";
 
 function ActivityLayout({ breadcrumb, title, item, setItem }) {
   const navigate = useNavigate();
@@ -56,12 +52,11 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
 
   const handleSave = async () => {
     let updatedArticle = { ...editedArticle };
+    const formData = new FormData();
 
     if (openPicture) {
       const filePath = `articles/${openPicture.name}`;
-      await uploadImage(filePath, openPicture);
-      await removeImage(trimImagePathNoSize(editedArticle.photo));
-      await updateArticleImage(item.id, filePath);
+      formData.append("image", openPicture);
 
       updatedArticle = {
         ...updatedArticle,
@@ -71,19 +66,21 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
       setEditedArticle(updatedArticle);
     }
 
-    console.log("UPDATED:", item);
-    await saveArticleById(
-      item.id,
-      updatedArticle.title,
-      updatedArticle.article,
-      updatedArticle.url,
-      updatedArticle.photo,
-      updatedArticle.description
-    );
+    // Add all the data for the article
+    formData.append("id", item.id);
+    formData.append("title", updatedArticle.title);
+    formData.append("rawContent", JSON.stringify(updatedArticle.article));
+    formData.append("url", updatedArticle.url);
+    formData.append("image", trimImagePathNoSize(updatedArticle.photo));
+    formData.append("description", updatedArticle.description);
 
-    setItem(updatedArticle);
-    setPreviewImage(null);
-    setIsEditMode(false);
+    const res = await axios.put(`${process.env.REACT_APP_BACKEND}/articles/${item.id}`, formData);
+
+    if (res.status == 200) {
+      setItem(updatedArticle);
+      setPreviewImage(null);
+      setIsEditMode(false);
+    }
   };
 
   const handleImageUploadChange = (event) => {
@@ -150,8 +147,10 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
   };
 
   const handleDelete = async () => {
-    await deleteArticle(item);
-    navigate(`/activities/${slugify(title)}`);
+    const deleteResponse = await axios.delete(
+      `${process.env.REACT_APP_BACKEND}/articles/${item.id}`
+    );
+    if (deleteResponse.status == 200) navigate(`/activities/${slugify(title)}`);
   };
 
   useEffect(() => {
