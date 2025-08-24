@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import supabase from "connection/client";
+// import supabase from "connection/client";
 import PhotoViewer from "pages/Albums/PhotoViewer";
 
 import EditView from "components/SortablePhotoAlbum/admin/EditView";
@@ -18,6 +18,7 @@ import MKInput from "components/MKInput";
 import MKButton from "components/MKButton";
 import { Check } from "@mui/icons-material";
 import MKProgress from "components/MKProgress";
+import axios from "axios";
 
 function PhotoUploader({ album }) {
   const [images, setImages] = useState([]);
@@ -30,13 +31,9 @@ function PhotoUploader({ album }) {
 
   const handleFilesChange = async (e) => {
     // Get the biggest display_order number
-    const { data: latest } = await supabase
-      .from("image_data")
-      .select("display_order")
-      .like("image_path", `%${album}%`)
-      .order("display_order", { ascending: false })
-      .limit(1);
-    const latestDisplayOrder = latest[0]?.display_order || 0;
+    const latestDisplayOrder = await axios.get(
+      `${process.env.REACT_APP_BACKEND}/images/largestDisplayOrder/${album}`
+    );
 
     const files = Array.from(e.target.files);
     const newImages = files.map((file, index) => ({
@@ -45,7 +42,7 @@ function PhotoUploader({ album }) {
       name: file.name.split(".").slice(0, -1).join(""),
       title: "",
       alt: `A picture of ${file.name.split(".").slice(0, -1).join("")}`,
-      displayOrder: latestDisplayOrder + index + 1,
+      displayOrder: latestDisplayOrder.data + index + 1,
     }));
     setImages((prev) => [...prev, ...newImages]);
   };
@@ -82,26 +79,41 @@ function PhotoUploader({ album }) {
       const filePath = `${album}/${newFileName}`;
 
       // Upload file
-      const { error: imageDataError } = await supabase.storage
-        .from("images")
-        .upload(filePath, img.file);
+      const formData = new FormData();
+      formData.append("image", img.file);
+      formData.append("filePath", filePath);
+      formData.append("image_path", filePath);
+      formData.append("title", img.title);
+      formData.append("alt", img.alt);
+      formData.append("displayOrder", img.displayOrder);
+      const uploadFileRequest = await axios.post(
+        `${process.env.REACT_APP_BACKEND}/images`,
+        formData
+      );
 
-      if (imageDataError) {
-        console.error("Upload error:", imageDataError);
-        continue;
+      if (uploadFileRequest.status != 201) {
+        console.error("Unable to upload image");
       }
+      // const { error: imageDataError } = await supabase.storage
+      //   .from("images")
+      //   .upload(filePath, img.file);
+
+      // if (imageDataError) {
+      //   console.error("Upload error:", imageDataError);
+      //   continue;
+      // }
 
       // Insert metadata
-      const { error: metaError } = await supabase.from("image_data").insert({
-        image_path: filePath,
-        title: img.title,
-        alt: img.alt,
-        display_order: parseInt(img.displayOrder, 10) || 0,
-      });
+      // const { error: metaError } = await supabase.from("image_data").insert({
+      //   image_path: filePath,
+      //   title: img.title,
+      //   alt: img.alt,
+      //   display_order: parseInt(img.displayOrder, 10) || 0,
+      // });
 
-      if (metaError) {
-        console.error("Metadata insert error:", metaError);
-      }
+      // if (metaError) {
+      //   console.error("Metadata insert error:", metaError);
+      // }
 
       // Mark as done
       setImages((prev) =>
