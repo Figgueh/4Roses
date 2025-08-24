@@ -5,6 +5,7 @@ import cors from "cors";
 import articlesRoutes from "./routes/articles.js";
 import activityRoutes from "./routes/activities.js";
 import amenitiesRoutes from "./routes/amenities.js";
+import imageRoutes from "./routes/images.js";
 
 // Addons
 import { errorHandler } from "./middlewares/errorHandler.js";
@@ -19,6 +20,7 @@ app.use(express.json());
 app.use("/api/articles", articlesRoutes);
 app.use("/api/activities", activityRoutes);
 app.use("/api/amenities", amenitiesRoutes);
+app.use("/api/images", imageRoutes);
 
 // Error handling
 app.use(errorHandler);
