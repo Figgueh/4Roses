@@ -39,7 +39,7 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
   useEffect(() => {
     const defaultArticle = {
       title: "",
-      photo: "",
+      image: "",
       article: [],
     };
     setEditedArticle(item || defaultArticle);
@@ -60,7 +60,7 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
 
       updatedArticle = {
         ...updatedArticle,
-        photo: process.env.REACT_APP_SUPABASE_IMAGE + filePath,
+        image: process.env.REACT_APP_SUPABASE_IMAGE + filePath,
       };
 
       setEditedArticle(updatedArticle);
@@ -69,9 +69,9 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
     // Add all the data for the article
     formData.append("id", item.id);
     formData.append("title", updatedArticle.title);
-    formData.append("rawContent", JSON.stringify(updatedArticle.article));
+    formData.append("rawContent", JSON.stringify(updatedArticle.content));
     formData.append("url", updatedArticle.url);
-    formData.append("image", trimImagePathNoSize(updatedArticle.photo));
+    formData.append("image", trimImagePathNoSize(updatedArticle.image));
     formData.append("description", updatedArticle.description);
 
     const res = await axios.put(`${process.env.REACT_APP_BACKEND}/articles/${item.id}`, formData);
@@ -94,9 +94,9 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
 
   const changeArticle = (index, part, value, detailIndex = null) => {
     setEditedArticle((prev) => {
-      if (!prev || !Array.isArray(prev.article)) return prev;
+      if (!prev || !Array.isArray(prev.content)) return prev;
 
-      const newArticle = prev.article.map((section, i) => {
+      const newArticle = prev.content.map((section, i) => {
         if (i !== index) return section;
 
         if (detailIndex !== null && Array.isArray(section[part])) {
@@ -108,41 +108,41 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
         return { ...section, [part]: value };
       });
 
-      return { ...prev, article: newArticle };
+      return { ...prev, content: newArticle };
     });
   };
 
   const handleAddSection = () => {
     setEditedArticle((prev) => ({
       ...prev,
-      article: [...prev.article, { title: "", content: "", detail: [] }],
+      content: [...(prev.content || []), { title: "", content: "", detail: [] }],
     }));
   };
 
   const handleRemoveSection = () => {
     setEditedArticle((prev) => ({
       ...prev,
-      article: prev.article.slice(0, -1),
+      content: (prev.content || []).slice(0, -1),
     }));
   };
 
   const addDetail = (index) => {
     setEditedArticle((prev) => {
-      const newArticle = prev.article.map((section, i) => {
+      const newArticle = (prev.content || []).map((section, i) => {
         if (i !== index) return section;
         return { ...section, detail: [...(section.detail || []), ""] };
       });
-      return { ...prev, article: newArticle };
+      return { ...prev, content: newArticle };
     });
   };
 
   const removeDetail = (sectionIndex) => {
     setEditedArticle((prev) => {
-      const newArticle = prev.article.map((section, i) => {
+      const newArticle = (prev.content || []).map((section, i) => {
         if (i !== sectionIndex || !Array.isArray(section.detail)) return section;
         return { ...section, detail: section.detail.slice(0, -1) };
       });
-      return { ...prev, article: newArticle };
+      return { ...prev, content: newArticle };
     });
   };
 
@@ -164,7 +164,7 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
   }, [authLoading, session?.user?.id]);
 
   useEffect(() => {
-    console.log("Here", item.article);
+    console.log("Here", item.content);
   }, []);
 
   // component renderer
@@ -264,7 +264,7 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
 
             <MKBox
               component="img"
-              src={editedArticle.photo}
+              src={editedArticle.image}
               borderRadius="lg"
               shadow="lg"
               style={{ float: "right" }}
@@ -276,7 +276,7 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
               }}
             />
 
-            {item.article.map((section, index) => (
+            {item.content?.map((section, index) => (
               <MKBox key={index} sx={{ m: 2 }}>
                 <MKTypography variant="h3" pb={1.5} sx={{ fontWeight: "bold" }}>
                   {section?.title}
@@ -329,7 +329,7 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
             >
               <MKBox
                 component="img"
-                src={previewImage || editedArticle.photo}
+                src={previewImage || editedArticle.image}
                 borderRadius="lg"
                 shadow="lg"
                 sx={{ width: "100%", height: "auto", display: "block" }}
@@ -342,7 +342,7 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
               />
             </ButtonBase>
 
-            {editedArticle.article.map((section, articleIndex) => (
+            {editedArticle?.content?.map((section, articleIndex) => (
               <MKBox
                 key={articleIndex}
                 sx={{ m: 2, display: "flex", flexDirection: "row", flexWrap: "wrap" }}
@@ -445,8 +445,8 @@ ActivityLayout.propTypes = {
   item: PropTypes.shape({
     id: PropTypes.string,
     title: PropTypes.string,
-    photo: PropTypes.string,
-    article: PropTypes.array,
+    image: PropTypes.string,
+    content: PropTypes.array,
     url: PropTypes.string,
     isPreview: PropTypes.bool,
   }).isRequired,

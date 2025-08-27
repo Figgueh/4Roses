@@ -8,10 +8,122 @@ export const getImages = async (req, res, next) => {
     const { data, error } = await supabase.storage.from("images").list();
     if (error) throw error;
 
-    res.json(data);
+    return res.json({ data });
   } catch (err) {
     next(err);
   }
+};
+
+// GET the row from image_data of the image id
+// /imageData/:id
+export const getImageData = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const { data, error } = await supabase.from("image_data").select("*").eq("id", id);
+
+    if (error) console.log(error);
+    if (data) res.status(200).json(data);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// GET all photos from an album
+// /:album
+export const getImagesFromAlbum = async (req, res, next) => {
+  try {
+    const { album } = req.params;
+
+    const { data: files, error: imageError } = await supabase.storage.from("images").list(album);
+
+    if (imageError) {
+      console.error("Error listing files:", imageError.message);
+      return res.status(500).json({ error: imageError.message });
+    }
+
+    if (!files || files.length === 0) {
+      return res.json({ files: [] });
+    }
+
+    return res.json({ files });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// GET all photos from an album
+// /data/:album
+export const getImageDataForAlbum = async (req, res, next) => {
+  try {
+    const { album } = req.params;
+
+    const { data: imageData, error: imageDataError } = await supabase
+      .from("image_data")
+      .select("image_path,display_order")
+      .like("image_path", `${album}/%`)
+      .order("display_order", { ascending: true });
+    if (imageDataError) {
+      console.error("Error listing files data:", imageDataError.message);
+      return res.status(500).json({ error: imageDataError.message });
+    }
+
+    if (!imageData || imageData.length === 0) {
+      return res.json({ images: [] });
+    }
+
+    return res.json(imageData);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// GET ordered images
+// /data/:album
+export const getOrderedImages = async (req, res, next) => {
+  try {
+    const { album } = req.params;
+
+    const [images, imageData] = await Promise.all([
+      fetchFilesFromAlbum(album),
+      fetchImageDataForAlbum(album),
+    ]);
+
+    // Create a map to link metadata to files
+    const imageMeta = Object.fromEntries(
+      imageData.map(({ image_path, id, display_order }) => [image_path, { id, display_order }])
+    );
+    const combinedData = images
+      .map((file) => {
+        const meta = imageMeta[`${album}/${file.name}`] ?? {};
+        return {
+          database_id: meta.id,
+          ...file,
+          display_order: meta.display_order ?? null,
+        };
+      })
+      .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
+
+    return res.json({ combinedData });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const fetchFilesFromAlbum = async (album) => {
+  const { data: files, error } = await supabase.storage.from("images").list(album);
+  if (error) throw new Error(error.message);
+  return files || [];
+};
+
+const fetchImageDataForAlbum = async (album) => {
+  const { data: imageData, error } = await supabase
+    .from("image_data")
+    .select("id, image_path, display_order")
+    .like("image_path", `${album}/%`)
+    .order("display_order", { ascending: true });
+  if (error) throw new Error(error.message);
+  return imageData || [];
 };
 
 // GET largest display order
@@ -30,7 +142,128 @@ export const getLargestDisplayOrder = async (req, res, next) => {
 
     const largestOrder = latest?.[0]?.display_order ?? 0;
 
-    res.json(largestOrder);
+    return res.json(largestOrder);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// DELETE a image based on path.
+// /:id
+export const deleteImageById = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    // Get the image that will be removed
+    const { data: image, error: fetchError } = await supabase
+      .from("image_data")
+      .select("id, image_path")
+      .eq("id", id)
+      .single();
+
+    if (fetchError || !image) {
+      console.error("Error fetching image:", fetchError?.message);
+      return res.status(404).json({ error: "Image not found" });
+    }
+
+    // Remove the image
+    const { error: imageFileError } = await supabase.storage
+      .from("images")
+      .remove(image.image_path);
+
+    if (imageFileError) {
+      console.error("Error removing image from storage:", imageFileError.message);
+    }
+
+    // Remove image data
+    const { error: imageDataError } = await supabase.from("image_data").delete().eq("id", id);
+
+    if (imageDataError) {
+      console.error("Error deleting image record:", imageDataError.message);
+      return res.status(500).json({ error: "Failed to delete image record" });
+    }
+
+    return res.status(200).json({
+      message: "Image deleted successfully",
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// PUT /images/reorder
+// Body: { photos: [{ id: "...", display_order: 1 }, ...] }
+export const reorderImages = async (req, res, next) => {
+  try {
+    const { photos } = req.body;
+
+    if (!photos || !Array.isArray(photos)) {
+      return res.status(400).json({ error: "Invalid request body" });
+    }
+
+    const updates = photos.map((photo) =>
+      supabase.from("image_data").update({ display_order: photo.display_order }).eq("id", photo.id)
+    );
+
+    const results = await Promise.all(updates);
+
+    // Check if any updates failed
+    const errors = results.filter((r) => r.error);
+    if (errors.length > 0) {
+      console.error("Reorder errors:", errors);
+      return res.status(500).json({ error: "Some updates failed" });
+    }
+
+    return res.status(200).json({ message: "Reorder successful" });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// POST delete all given id.
+// /
+// Body: { ids: [ "uuid1", "uuid2", ... ] }
+export const deleteImagesByIds = async (req, res, next) => {
+  try {
+    const { ids } = req.body;
+
+    if (!ids || ids.length === 0) {
+      return res.status(400).json({ error: "No ids provided" });
+    }
+
+    // 1. Fetch all image paths for given ids
+    const { data: images, error: fetchError } = await supabase
+      .from("image_data")
+      .select("id, image_path")
+      .in("id", ids);
+
+    if (fetchError) {
+      console.error("Error fetching images:", fetchError.message);
+      return res.status(500).json({ error: fetchError.message });
+    }
+
+    if (!images || images.length === 0) {
+      return res.status(404).json({ error: "No matching images found" });
+    }
+
+    // 2. Remove from storage
+    const paths = images.map((img) => img.image_path);
+    const { error: storageError } = await supabase.storage.from("images").remove(paths);
+
+    if (storageError) {
+      console.error("Error removing from storage:", storageError.message);
+      return res.status(500).json({ error: storageError.message });
+    }
+
+    // 3. Remove from DB
+    const { error: dbError } = await supabase.from("image_data").delete().in("id", ids);
+
+    if (dbError) {
+      console.error("Error deleting DB records:", dbError.message);
+      return res.status(500).json({ error: dbError.message });
+    }
+
+    return res.json({ success: true, deleted: ids.length });
   } catch (err) {
     next(err);
   }
@@ -61,7 +294,7 @@ export const uploadImage = async (req, res, next) => {
       console.error("Metadata insert error:", metaError);
     }
 
-    res.status(201).json({
+    return res.status(201).json({
       message: "Image uploaded successfully",
       path: publicUrlData.path,
       url: publicUrlData.publicUrl,

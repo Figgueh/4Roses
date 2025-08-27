@@ -94,26 +94,6 @@ function PhotoUploader({ album }) {
       if (uploadFileRequest.status != 201) {
         console.error("Unable to upload image");
       }
-      // const { error: imageDataError } = await supabase.storage
-      //   .from("images")
-      //   .upload(filePath, img.file);
-
-      // if (imageDataError) {
-      //   console.error("Upload error:", imageDataError);
-      //   continue;
-      // }
-
-      // Insert metadata
-      // const { error: metaError } = await supabase.from("image_data").insert({
-      //   image_path: filePath,
-      //   title: img.title,
-      //   alt: img.alt,
-      //   display_order: parseInt(img.displayOrder, 10) || 0,
-      // });
-
-      // if (metaError) {
-      //   console.error("Metadata insert error:", metaError);
-      // }
 
       // Mark as done
       setImages((prev) =>

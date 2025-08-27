@@ -55,6 +55,7 @@ export const getArticlesForActivity = async (req, res, next) => {
 export const createArticle = async (req, res, next) => {
   try {
     const { activityId, url, title, content, image, description } = req.body;
+    console.log(req.body);
     const { data, error } = await supabase.from("articles").insert({
       activity_id: activityId,
       url: url,

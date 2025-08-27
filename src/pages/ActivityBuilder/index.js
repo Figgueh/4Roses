@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import ActivityLayout from "components/BaseLayout/ActivityLayout";
 
 //database imports
-import { fetchArticleByTitle } from "connection/articles/fetchArticleByTitle";
+// import { fetchArticleByTitle } from "connection/articles/fetchArticleByTitle";
 
 import ActivityPicker from "components/BaseLayout/ActivityPicker";
 import { unslugify } from "utils";
@@ -26,8 +26,11 @@ function ActivityBuilder() {
       setListOfArticles(articlesListData.data);
 
       if (slug) {
-        const articleData = await fetchArticleByTitle(unslugify(slug));
-        setArticle(articleData);
+        const articleData = await axios.get(
+          `${process.env.REACT_APP_BACKEND}/articles/${unslugify(slug)}`
+        );
+        console.log(articleData);
+        setArticle(articleData.data);
       }
     };
     fetchData();
