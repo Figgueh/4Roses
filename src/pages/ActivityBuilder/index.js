@@ -3,12 +3,13 @@ import { useParams } from "react-router-dom";
 import ActivityLayout from "components/BaseLayout/ActivityLayout";
 
 //database imports
-import { fetchArticlesForActivity } from "connection/articles/fetchArticlesForActivity";
-import { fetchActivitiesIdByName } from "connection/activities/fetchActivitiesIdByName";
-import { fetchArticleByTitle } from "connection/articles/fetchArticleByTitle";
+// import { fetchArticleByTitle } from "connection/articles/fetchArticleByTitle";
 
 import ActivityPicker from "components/BaseLayout/ActivityPicker";
 import { unslugify } from "utils";
+
+import axios from "axios";
+const API_BASE = process.env.REACT_APP_BACKEND;
 
 function ActivityBuilder() {
   const { section, slug } = useParams();
@@ -18,13 +19,18 @@ function ActivityBuilder() {
   useEffect(() => {
     // Functions that fetch data:
     const fetchData = async () => {
-      const activityId = await fetchActivitiesIdByName(unslugify(section));
-      const articlesListData = await fetchArticlesForActivity(activityId);
-      setListOfArticles(articlesListData);
+      const activityRes = await axios.get(`${API_BASE}/activities/${unslugify(section)}`);
+      const activityId = activityRes.data.id;
+
+      const articlesListData = await axios.get(`${API_BASE}/articles/activity/${activityId}`);
+      setListOfArticles(articlesListData.data);
 
       if (slug) {
-        const articleData = await fetchArticleByTitle(unslugify(slug));
-        setArticle(articleData);
+        const articleData = await axios.get(
+          `${process.env.REACT_APP_BACKEND}/articles/${unslugify(slug)}`
+        );
+        console.log(articleData);
+        setArticle(articleData.data);
       }
     };
     fetchData();

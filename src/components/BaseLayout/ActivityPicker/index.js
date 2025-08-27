@@ -79,7 +79,7 @@ function ActivityPicker({ breadcrumb, title, items }) {
                   (
                     <Grid item xs={12} sm={6} lg={3} key={item.id}>
                       <TransparentBlogCard
-                        image={item.photo}
+                        image={item.image}
                         title={item.title}
                         description={item.description}
                         action={{

@@ -5,7 +5,7 @@ const ModalContext = createContext();
 
 export function ModalProvider({ children }) {
   const [open, setOpen] = useState(false);
-  const [data, setData] = useState(null); // optional payload (like an item ID)
+  const [data, setData] = useState(null);
 
   const openModal = (data) => {
     setData(data);

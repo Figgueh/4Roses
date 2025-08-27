@@ -1,16 +1,16 @@
-// App.jsx or SimpleModal.jsx
+import PropTypes from "prop-types";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { Button, Dialog, DialogTitle, DialogContent } from "@mui/material";
-import MKButton from "components/MKButton";
 import { Add } from "@mui/icons-material";
-import PropTypes from "prop-types";
+
+import MKButton from "components/MKButton";
 import MKInput from "components/MKInput";
 import MKBox from "components/MKBox";
-import { addNewArticle } from "connection/articles/addNewArticle";
+
+import axios from "axios";
 import { slugify } from "utils";
-import { fetchActivitiesIdByName } from "connection/activities/fetchActivitiesIdByName";
 
 function NewModal({ activityTitle }) {
   const [title, setTitle] = useState("");
@@ -20,8 +20,17 @@ function NewModal({ activityTitle }) {
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
   const handleConfirm = async () => {
-    const id = await fetchActivitiesIdByName(activityTitle);
-    await addNewArticle(id, "", title);
+    const activities = await axios.get(
+      `${process.env.REACT_APP_BACKEND}/activities/${activityTitle}`
+    );
+    const id = activities.data.id;
+    await axios.post(`${process.env.REACT_APP_BACKEND}/articles`, {
+      activityId: id,
+      url: "",
+      title,
+      image: "",
+      description: "",
+    });
     navigate(`/activities/${slugify(activityTitle)}/${slugify(title)}`);
   };
 
