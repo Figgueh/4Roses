@@ -14,8 +14,7 @@ import MKTypography from "components/MKTypography";
 
 import { useModal } from "./ModalProvider";
 import { useEffect, useState } from "react";
-import { getImageData } from "connection/images/getImageData";
-import { trimImagePath } from "utils";
+import axios from "axios";
 
 function EditView() {
   const { open, closeModal, data } = useModal();
@@ -25,8 +24,11 @@ function EditView() {
     setImageData({});
     async function getDatabaseData() {
       if (data) {
-        const databaseData = await getImageData(trimImagePath(data));
-        if (databaseData != false) setImageData(databaseData);
+        console.log("DATA", data);
+        const databaseData = await axios.get(
+          `${process.env.REACT_APP_BACKEND}/images/imageData/${data}`
+        );
+        if (databaseData != false) setImageData(databaseData.data);
       }
     }
     getDatabaseData();
@@ -47,14 +49,13 @@ function EditView() {
               shadow="xl"
             >
               {Object.keys(imageData).length > 0 ? (
-                <div>
-                  <MKBox display="flex" alginItems="center" justifyContent="space-between" p={2}>
+                <>
+                  <MKBox display="flex" justifyContent="space-between" p={2}>
                     <MKTypography variant="h5">{imageData?.image_path}</MKTypography>
                     <CloseIcon fontSize="medium" sx={{ cursor: "pointer" }} onClick={closeModal} />
                   </MKBox>
                   <Divider sx={{ my: 0 }} />
                   <MKBox p={2}>
-                    {console.log(data)}
                     <MKTypography variant="body2" color="secondary" fontWeight="regular">
                       Society has put up so many boundaries, so many limitations on what&apos;s
                       right and wrong that it&apos;s almost impossible to get a pure thought out.
@@ -75,9 +76,13 @@ function EditView() {
                       save changes
                     </MKButton>
                   </MKBox>
-                </div>
+                </>
               ) : (
-                <div>no data</div>
+                <MKBox p={2} textAlign="center">
+                  <MKTypography variant="body2" color="text">
+                    No data
+                  </MKTypography>
+                </MKBox>
               )}
             </MKBox>
           </Slide>

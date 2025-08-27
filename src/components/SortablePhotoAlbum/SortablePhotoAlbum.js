@@ -1,5 +1,3 @@
-/* eslint-disable no-unused-vars */
-/* eslint-disable react/prop-types */
 import React, { useState, useEffect, useRef } from "react";
 import { UserAuth } from "connection/auth/authContext";
 import PropTypes from "prop-types";
@@ -32,10 +30,6 @@ import StyledLink from "./admin/StyledLink";
 
 import { useModal } from "./admin/ModalProvider";
 
-import supabase from "connection/client";
-
-import { trimImagePath } from "utils";
-
 // For drag and drop
 import {
   closestCenter,
@@ -51,6 +45,7 @@ import { SortableContext, sortableKeyboardCoordinates } from "@dnd-kit/sortable"
 import Overlay from "./dnd/Overlay";
 import classes from "./dnd/SortableGallery.module.css";
 import SortablePhoto from "./dnd/SortablePhoto";
+import axios from "axios";
 
 const SortablePhotoAlbum = ({ photos, setPhotos }) => {
   const [index, setIndex] = useState(-1);
@@ -88,29 +83,21 @@ const SortablePhotoAlbum = ({ photos, setPhotos }) => {
     const oldIndex = photos.findIndex((p) => p.id === active.id);
     const newIndex = photos.findIndex((p) => p.id === over.id);
 
-    var photoA = photos[oldIndex];
-    var photoB = photos[newIndex];
+    // Reorder in UI
+    let updatedPhotos = [...photos];
+    const [moved] = updatedPhotos.splice(oldIndex, 1);
+    updatedPhotos.splice(newIndex, 0, moved);
 
-    // Swap the photos in UI
-    const updatedPhotos = [...photos];
-    [updatedPhotos[oldIndex], updatedPhotos[newIndex]] = [photoB, photoA];
+    // Recompute display_order based on new array positions
+    updatedPhotos = updatedPhotos.map((p, index) => ({
+      ...p,
+      display_order: index + 1, // or index if 0-based
+    }));
 
-    // Update database
-    const { error } = await supabase
-      .from("image_data")
-      .update({ display_order: photoB.display_order })
-      .eq("image_path", photoA.path);
-
-    const { error: error2 } = await supabase
-      .from("image_data")
-      .update({ display_order: photoA.display_order })
-      .eq("image_path", photoB.path);
-
-    if (error || error2) {
-      console.error("Error swapping display_order:", error || error2);
-    } else {
-      console.log("Swapped display_order in Supabase");
-    }
+    // Update backend with the full list
+    await axios.put(`${process.env.REACT_APP_BACKEND}/images/reorder`, {
+      photos: updatedPhotos,
+    });
 
     setPhotos(updatedPhotos);
   };
@@ -137,7 +124,8 @@ const SortablePhotoAlbum = ({ photos, setPhotos }) => {
               <SelectIcon
                 selected={photo.selected}
                 onClickEdit={(event) => {
-                  openModal(photo.src);
+                  console.log(photo);
+                  openModal(photo.id);
 
                   event.preventDefault();
                   event.stopPropagation();
@@ -210,6 +198,7 @@ const SortablePhotoAlbum = ({ photos, setPhotos }) => {
 SortablePhotoAlbum.propTypes = {
   photos: PropTypes.array.isRequired,
   setPhotos: PropTypes.func.isRequired,
+  children: PropTypes.node.isRequired,
 };
 
 export default SortablePhotoAlbum;
