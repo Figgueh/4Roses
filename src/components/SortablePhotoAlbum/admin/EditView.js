@@ -24,7 +24,6 @@ function EditView() {
     setImageData({});
     async function getDatabaseData() {
       if (data) {
-        console.log("DATA", data);
         const databaseData = await axios.get(
           `${process.env.REACT_APP_BACKEND}/images/imageData/${data}`
         );

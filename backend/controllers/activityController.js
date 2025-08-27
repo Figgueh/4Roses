@@ -43,7 +43,7 @@ export const getActivityIdByName = async (req, res, next) => {
 
 // POST a new activity
 // /
-// Body: title, image
+// Body: title, image, image
 export const addActivity = async (req, res, next) => {
   try {
     const { title, imageUrl } = req.body;
