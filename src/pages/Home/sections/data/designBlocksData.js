@@ -37,22 +37,18 @@ import Parking from "@mui/icons-material/LocalParking";
 
 //Imports for database
 import { useState, useEffect } from "react";
-import { createClient } from "@supabase/supabase-js";
+
+import axios from "axios";
 
 const imagesPrefix = process.env.PUBLIC_URL + "/assets/images";
-const supabase = createClient(
-  process.env.REACT_APP_SUPABASE_URL,
-  process.env.REACT_APP_SUPABASE_ANON_KEY
-);
 
 const getActivities = async () => {
   const [data, setData] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
-      const { data, error } = await supabase.from("activities").select("*");
-      if (error) console.error("Error fetching data:", error);
-      else setData(data);
+      const activitiesRequest = await axios(`${process.env.REACT_APP_BACKEND}/activities`);
+      setData(activitiesRequest.data);
     };
 
     fetchData();

@@ -20,6 +20,7 @@
     "@emotion/cache": "11.10.7",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
+    "@mozilla/readability": "^0.6.0",
     "@mui/icons-material": "^5.17.1",
     "@mui/material": "^5.17.1",
     "@mui/styled-engine": "5.12.0",
@@ -30,6 +31,7 @@
     "@testing-library/user-event": "14.4.3",
     "@toolpad/core": "^0.15.0",
     "array-move": "^4.0.0",
+    "axios": "^1.11.0",
     "chroma-js": "2.4.2",
     "flatpickr": "4.6.13",
     "prop-types": "15.8.1",
@@ -47,6 +49,7 @@
     "react-router-hash-link": "^2.4.3",
     "react-scripts": "5.0.1",
     "react-syntax-highlighter": "15.5.0",
+    "uuid": "^11.1.0",
     "web-vitals": "3.3.1",
     "yet-another-react-lightbox": "^3.21.7"
   },

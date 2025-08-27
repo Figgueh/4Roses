@@ -10,7 +10,7 @@ import MKButton from "components/MKButton";
 import { Delete } from "@mui/icons-material";
 
 // Database imports
-import supabase from "connection/client";
+// import supabase from "connection/client";
 
 // Components imports
 import SortablePhotoAlbum from "components/SortablePhotoAlbum/SortablePhotoAlbum";
@@ -18,7 +18,8 @@ import SortablePhotoAlbum from "components/SortablePhotoAlbum/SortablePhotoAlbum
 import { ModalProvider } from "components/SortablePhotoAlbum/admin/ModalProvider";
 import EditView from "components/SortablePhotoAlbum/admin/EditView";
 
-import { trimImagePath } from "utils";
+// import { trimImagePath } from "utils";
+import axios from "axios";
 
 const breakpoints = [480, 768, 1024, 1280, 1600, 1920, 2560];
 
@@ -34,43 +35,9 @@ function PhotoViewer({ album, refreshFlag }) {
     async function fetchImages() {
       setPhotos([]);
 
-      // Get the actual photos
-      const { data: files, error: imageError } = await supabase.storage.from("images").list(album);
-
-      if (imageError) {
-        console.error("Error listing files:", imageError.message);
-        return [];
-      }
-
-      if (files.length == 0) {
-        console.log("No images to load.");
-        return [];
-      }
-
-      // Get image data from database
-      const { data: imageData, error: imageDataError } = await supabase
-        .from("image_data")
-        .select("image_path,display_order")
-        .order("display_order", { ascending: true });
-
-      if (imageDataError) {
-        console.error("Error listing files data:", imageDataError.message);
-        return [];
-      }
-
-      // Create a map with the data to be able to link to each other easier.
-      const orderMap = new Map();
-      imageData.forEach((element) => {
-        orderMap.set(element.image_path, element.display_order);
-      });
-
-      // Create a new variable with the image data and its display order, then sort
-      const combinedData = files
-        .map((file) => ({
-          ...file,
-          display_order: orderMap.get(album + "/" + file.name),
-        }))
-        .sort((a, b) => a.display_order - b.display_order);
+      // Get the album images from the backend
+      const photoRequest = await axios.get(`${process.env.REACT_APP_BACKEND}/images/${album}`);
+      const photoData = photoRequest.data;
 
       /*
        * imageLink is responsible for generating the source that is used for imgix
@@ -83,9 +50,9 @@ function PhotoViewer({ album, refreshFlag }) {
         return `https://fignet.imgix.net/${album}/${path}_${width}x${height}.${extension}`;
       }
 
-      const parsedPhotos = combinedData
+      const parsedPhotos = photoData.combinedData
         .map((file) => {
-          if (!file || !file.name || file.name == ".emptyFolderPlaceholder") return null;
+          if (!file || !file.name) return null;
           const matcher = file.name.match("^(.*)_(\\d+)x(\\d+)\\.(.+)$");
 
           if (!matcher) {
@@ -98,9 +65,10 @@ function PhotoViewer({ album, refreshFlag }) {
           const height = Number.parseInt(matcher[3], 10);
           const extension = matcher[4];
 
+          // Build the photo object with all the processed data.
           return {
             path: album + "/" + file.name,
-            id: file.id,
+            id: file.database_id,
             src: imageLink(path, width, height, extension),
             width,
             height,
@@ -136,21 +104,21 @@ function PhotoViewer({ album, refreshFlag }) {
 
     if (!confirmDelete) return;
 
-    // Remove image
-    const toDeleteUrl = selectedPhotos.map((photo) => trimImagePath(photo.src));
-    const { error: error } = await supabase.storage.from("images").remove(toDeleteUrl);
+    // Get all the selected images ids
+    const toDeleteIds = selectedPhotos.map((photo) => photo.id);
 
-    // Remove image data
-    const { error: error2 } = await supabase
-      .from("image_data")
-      .delete()
-      .in("image_path", toDeleteUrl);
+    // Send request to backend
+    try {
+      await axios.post(`${process.env.REACT_APP_BACKEND}/images/deleteMany`, {
+        ids: toDeleteIds,
+      });
 
-    if (error) console.log(error);
-    if (error2) console.log(error2);
-
-    const updatedPhotos = photos.filter((photo) => !photo.selected);
-    setPhotos(updatedPhotos);
+      // Update UI only if all deletes succeeded
+      setPhotos((prev) => prev.filter((photo) => !photo.selected));
+    } catch (err) {
+      console.error("Error deleting images:", err);
+      alert("Some images could not be deleted.");
+    }
   };
 
   return (
