@@ -2,7 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import dotenv from "dotenv";
 
 // Get env
-const envFile = `.env.${process.env.NODE_ENV || "dev"}`;
+const envFile = `.env.${process.env.NODE_ENV || "production"}`;
 dotenv.config({ path: envFile });
 
 const supabaseUrl = process.env.SUPABASE_URL;
