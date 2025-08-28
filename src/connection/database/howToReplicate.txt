@@ -1,0 +1,19 @@
+Have postgresql cli tools installed.
+Change the --dbname variable by going to the supabase website.
+
+Top of the page, connect button, ORM's tab.
+Get this line:
+DIRECT_URL="postgresql://postgres.uxnskwzffdyvcsawklfo:[YOUR-PASSWORD]@aws-1-ca-central-1.pooler.supabase.com:5432/postgres"
+change [YOUR-PASSWORD]
+
+
+Dump:
+pg_dump --dbname="[DIRECT_URL]?sslmode=require" --format=custom --blobs --verbose --file=full_backup.dump
+
+
+Restore:
+pg_restore --dbname="[DIRECT_URL]?sslmode=require" --verbose full_backup.dump
+
+
+then run both python files, changing the variables for the database.
+
