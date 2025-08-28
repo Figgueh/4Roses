@@ -13,12 +13,15 @@
 
 # misc
 .DS_Store
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-/backend/.env
+.env.development
+.env.production
+.env.staging
+/backend/.env.development
+/backend/.env.production
+
+# database dumps
+/src/connection/database/images
+/src/connection/database/full_backup.dump
 
 npm-debug.log*
 yarn-debug.log*
