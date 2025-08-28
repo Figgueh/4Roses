@@ -1,0 +1,456 @@
+// Base imports
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+
+import PropTypes from "prop-types";
+
+// @mui material components
+import Card from "@mui/material/Card";
+import ButtonBase from "@mui/material/ButtonBase";
+import { Add, Delete, Edit, Remove, Save } from "@mui/icons-material";
+
+// Material Kit 2 React components
+import MKBox from "components/MKBox";
+import MKTypography from "components/MKTypography";
+import MKButton from "components/MKButton";
+import MKInput from "components/MKInput";
+
+// Custom components
+import BaseLayout from "..";
+
+// Database interactions
+import { UserAuth } from "connection/auth/authContext";
+import { getAllUserInfo } from "connection/users/getAllUserInfo";
+
+// Utility
+import { trimImagePathNoSize } from "utils";
+import { slugify } from "utils";
+import axios from "axios";
+
+function ActivityLayout({ breadcrumb, title, item, setItem }) {
+  const navigate = useNavigate();
+  const { session, authLoading } = UserAuth();
+  const [account, setAccount] = useState();
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editedArticle, setEditedArticle] = useState([]);
+  const [previewImage, setPreviewImage] = useState(null);
+  const [openPicture, setOpenPicture] = useState();
+
+  useEffect(() => {
+    const defaultArticle = {
+      title: "",
+      image: "",
+      article: [],
+    };
+    setEditedArticle(item || defaultArticle);
+  }, [item]);
+
+  const handleEditMode = () => {
+    setIsEditMode((prev) => !prev);
+    setEditedArticle(item);
+  };
+
+  const handleSave = async () => {
+    let updatedArticle = { ...editedArticle };
+    const formData = new FormData();
+
+    if (openPicture) {
+      const filePath = `articles/${openPicture.name}`;
+      formData.append("image", openPicture);
+
+      updatedArticle = {
+        ...updatedArticle,
+        image: process.env.REACT_APP_SUPABASE_IMAGE + filePath,
+      };
+
+      setEditedArticle(updatedArticle);
+    }
+
+    // Add all the data for the article
+    formData.append("id", item.id);
+    formData.append("title", updatedArticle.title);
+    formData.append("rawContent", JSON.stringify(updatedArticle.content));
+    formData.append("url", updatedArticle.url);
+    formData.append("image", trimImagePathNoSize(updatedArticle.image));
+    formData.append("description", updatedArticle.description);
+
+    const res = await axios.put(`${process.env.REACT_APP_BACKEND}/articles/${item.id}`, formData);
+
+    if (res.status == 200) {
+      setItem(updatedArticle);
+      setPreviewImage(null);
+      setIsEditMode(false);
+    }
+  };
+
+  const handleImageUploadChange = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const previewURL = URL.createObjectURL(file);
+    setOpenPicture(file);
+    setPreviewImage(previewURL);
+  };
+
+  const changeArticle = (index, part, value, detailIndex = null) => {
+    setEditedArticle((prev) => {
+      if (!prev || !Array.isArray(prev.content)) return prev;
+
+      const newArticle = prev.content.map((section, i) => {
+        if (i !== index) return section;
+
+        if (detailIndex !== null && Array.isArray(section[part])) {
+          const newDetail = [...section[part]];
+          newDetail[detailIndex] = value;
+          return { ...section, [part]: newDetail };
+        }
+
+        return { ...section, [part]: value };
+      });
+
+      return { ...prev, content: newArticle };
+    });
+  };
+
+  const handleAddSection = () => {
+    setEditedArticle((prev) => ({
+      ...prev,
+      content: [...(prev.content || []), { title: "", content: "", detail: [] }],
+    }));
+  };
+
+  const handleRemoveSection = () => {
+    setEditedArticle((prev) => ({
+      ...prev,
+      content: (prev.content || []).slice(0, -1),
+    }));
+  };
+
+  const addDetail = (index) => {
+    setEditedArticle((prev) => {
+      const newArticle = (prev.content || []).map((section, i) => {
+        if (i !== index) return section;
+        return { ...section, detail: [...(section.detail || []), ""] };
+      });
+      return { ...prev, content: newArticle };
+    });
+  };
+
+  const removeDetail = (sectionIndex) => {
+    setEditedArticle((prev) => {
+      const newArticle = (prev.content || []).map((section, i) => {
+        if (i !== sectionIndex || !Array.isArray(section.detail)) return section;
+        return { ...section, detail: section.detail.slice(0, -1) };
+      });
+      return { ...prev, content: newArticle };
+    });
+  };
+
+  const handleDelete = async () => {
+    const deleteResponse = await axios.delete(
+      `${process.env.REACT_APP_BACKEND}/articles/${item.id}`
+    );
+    if (deleteResponse.status == 200) navigate(`/activities/${slugify(title)}`);
+  };
+
+  useEffect(() => {
+    if (authLoading) return;
+    if (session?.user?.id) {
+      const statusCheck = async () => {
+        setAccount(await getAllUserInfo(session.user.id));
+      };
+      statusCheck();
+    }
+  }, [authLoading, session?.user?.id]);
+
+  useEffect(() => {
+    console.log("Here", item.content);
+  }, []);
+
+  // component renderer
+  const renderComponent = () => (
+    <>
+      {account?.is_admin && !isEditMode ? (
+        <MKButton
+          startIcon={<Edit />}
+          color="secondary"
+          variant="outlined"
+          sx={{ ml: 5 }}
+          onClick={handleEditMode}
+        >
+          Edit post
+        </MKButton>
+      ) : (
+        account?.is_admin &&
+        isEditMode && (
+          <MKBox
+            display="flex"
+            alignItems="center"
+            justifyContent="space-between"
+            flexWrap="wrap"
+            gap={2}
+          >
+            <MKBox display="flex" justifyContent="left">
+              <MKButton
+                startIcon={<Save />}
+                color="secondary"
+                variant="outlined"
+                sx={{ mr: 2, ml: 5 }}
+                onClick={handleSave}
+              >
+                Save
+              </MKButton>
+              <MKButton
+                startIcon={<Edit />}
+                color="secondary"
+                variant="outlined"
+                onClick={handleEditMode}
+              >
+                Cancel Edit
+              </MKButton>
+            </MKBox>
+
+            <MKBox display="flex" justifyContent="center">
+              <MKButton
+                startIcon={<Add />}
+                color="secondary"
+                variant="outlined"
+                sx={{ mr: 2 }}
+                onClick={handleAddSection}
+              >
+                Add Section
+              </MKButton>
+              <MKButton
+                startIcon={<Remove />}
+                color="secondary"
+                variant="outlined"
+                onClick={handleRemoveSection}
+              >
+                Remove Section
+              </MKButton>
+            </MKBox>
+
+            <MKBox display="flex" justifyContent="right">
+              <MKButton
+                startIcon={<Delete />}
+                color="error"
+                variant="outlined"
+                sx={{ float: "right", mr: 5 }}
+                onClick={handleDelete}
+              >
+                Delete post
+              </MKButton>
+            </MKBox>
+          </MKBox>
+        )
+      )}
+
+      <Card
+        sx={{
+          alignItems: "flex-start",
+          p: 2,
+          mx: { xs: 2, lg: 3 },
+          mb: 4,
+          backgroundColor: ({ palette: { white }, functions: { rgba } }) => rgba(white.main, 0.8),
+          backdropFilter: "saturate(200%) blur(30px)",
+          boxShadow: ({ boxShadows: { xxl } }) => xxl,
+        }}
+      >
+        {!isEditMode ? (
+          <MKBox sx={{ flex: 1 }}>
+            <MKTypography variant="h1" textAlign="center" m={2}>
+              {item.title}
+            </MKTypography>
+
+            <MKBox
+              component="img"
+              src={editedArticle.image}
+              borderRadius="lg"
+              shadow="lg"
+              style={{ float: "right" }}
+              sx={{
+                width: { xs: "100%", md: "50%" },
+                marginRight: { md: 2 },
+                marginLeft: { md: 2 },
+                marginTop: { md: 2 },
+              }}
+            />
+
+            {item.content?.map((section, index) => (
+              <MKBox key={index} sx={{ m: 2 }}>
+                <MKTypography variant="h3" pb={1.5} sx={{ fontWeight: "bold" }}>
+                  {section?.title}
+                </MKTypography>
+                <MKTypography variant="body1">{section?.content}</MKTypography>
+                {section?.detail && (
+                  <MKTypography component="ul">
+                    {section.detail.map((val, index) => (
+                      <MKTypography key={index} component="li" ml={3}>
+                        {val}
+                      </MKTypography>
+                    ))}
+                  </MKTypography>
+                )}
+              </MKBox>
+            ))}
+          </MKBox>
+        ) : (
+          <MKBox sx={{ flex: 1 }}>
+            <MKInput
+              value={editedArticle.title}
+              onChange={(e) => setEditedArticle((prev) => ({ ...prev, title: e.target.value }))}
+              type="title"
+              label="Title"
+              m={2}
+              fullWidth
+              InputProps={{
+                sx: {
+                  input: {
+                    fontSize: "2.25rem",
+                    fontWeight: 600,
+                    textAlign: "center",
+                  },
+                },
+              }}
+            />
+
+            <ButtonBase
+              component="label"
+              tabIndex={-1}
+              aria-label="article image"
+              sx={{
+                display: "inline-block",
+                float: "right",
+                maxWidth: { xs: "100%", md: "50%" },
+                m: { xs: 0, md: 2 },
+                p: 0,
+                overflow: "hidden",
+              }}
+            >
+              <MKBox
+                component="img"
+                src={previewImage || editedArticle.image}
+                borderRadius="lg"
+                shadow="lg"
+                sx={{ width: "100%", height: "auto", display: "block" }}
+              />
+              <input
+                type="file"
+                accept="image/*"
+                style={{ display: "none" }}
+                onChange={handleImageUploadChange}
+              />
+            </ButtonBase>
+
+            {editedArticle?.content?.map((section, articleIndex) => (
+              <MKBox
+                key={articleIndex}
+                sx={{ m: 2, display: "flex", flexDirection: "row", flexWrap: "wrap" }}
+              >
+                <MKInput
+                  type="section_title"
+                  label={`Section ${articleIndex} title`}
+                  value={section?.title || ""}
+                  onChange={(e) => changeArticle(articleIndex, "title", e.target.value)}
+                  pb={1.5}
+                  InputProps={{
+                    sx: {
+                      mb: 2,
+                      input: {
+                        fontSize: "1.75rem",
+                        fontWeight: 500,
+                      },
+                    },
+                  }}
+                />
+
+                {articleIndex !== 0 && (
+                  <MKBox mt={1.5}>
+                    <MKButton
+                      sx={{ ml: 2, mb: 2 }}
+                      size="medium"
+                      color="success"
+                      variant="gradient"
+                      onClick={() => addDetail(articleIndex)}
+                    >
+                      <Add />
+                    </MKButton>
+                    <MKButton
+                      sx={{ ml: 2, mb: 2 }}
+                      size="medium"
+                      color="error"
+                      variant="gradient"
+                      onClick={() => removeDetail(articleIndex)}
+                    >
+                      <Remove />
+                    </MKButton>
+                  </MKBox>
+                )}
+
+                <MKInput
+                  type="content"
+                  label={`Section ${articleIndex} content`}
+                  value={section?.content || ""}
+                  onChange={(e) => changeArticle(articleIndex, "content", e.target.value)}
+                  multiline
+                  InputProps={{
+                    sx: {
+                      textarea: {
+                        fontSize: "1rem",
+                        fontWeight: 400,
+                        lineHeight: 1.5,
+                      },
+                    },
+                  }}
+                  sx={{ width: "100%" }}
+                />
+
+                {section?.detail && (
+                  <MKTypography component="ul" width="100%">
+                    {section.detail.map((val, index) => (
+                      <MKTypography key={index} component="li" ml={3}>
+                        <MKInput
+                          value={val}
+                          fullWidth
+                          onChange={(e) =>
+                            changeArticle(articleIndex, "detail", e.target.value, index)
+                          }
+                        />
+                      </MKTypography>
+                    ))}
+                  </MKTypography>
+                )}
+              </MKBox>
+            ))}
+          </MKBox>
+        )}
+      </Card>
+    </>
+  );
+
+  if (item.isPreview) {
+    return renderComponent();
+  } else {
+    return (
+      <BaseLayout breadcrumb={breadcrumb} title={title}>
+        {renderComponent()}
+      </BaseLayout>
+    );
+  }
+}
+
+ActivityLayout.propTypes = {
+  breadcrumb: PropTypes.arrayOf(PropTypes.object).isRequired,
+  title: PropTypes.string.isRequired,
+  item: PropTypes.shape({
+    id: PropTypes.string,
+    title: PropTypes.string,
+    image: PropTypes.string,
+    content: PropTypes.array,
+    url: PropTypes.string,
+    isPreview: PropTypes.bool,
+  }).isRequired,
+  setItem: PropTypes.func.isRequired,
+};
+
+export default ActivityLayout;
