@@ -5,8 +5,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "dev": "NODE_ENV=development node index.js"
+    "start": "cross-env NODE_ENV=production node index.js",
+    "dev": "cross-env NODE_ENV=development node index.js"
   },
   "keywords": [],
   "author": "",
@@ -17,5 +17,8 @@
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
     "multer": "^2.0.2"
+  },
+  "devDependencies": {
+    "cross-env": "^10.0.0"
   }
 }
