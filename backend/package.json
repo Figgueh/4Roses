@@ -6,19 +6,24 @@
   "main": "index.js",
   "scripts": {
     "start": "cross-env NODE_ENV=production node index.js",
-    "dev": "cross-env NODE_ENV=development node index.js"
+    "dev": "cross-env NODE_ENV=development nodemon index.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@mozilla/readability": "^0.6.0",
     "@supabase/supabase-js": "^2.55.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
-    "multer": "^2.0.2"
+    "jsdom": "^26.1.0",
+    "multer": "^2.0.2",
+    "node-fetch": "^3.3.2",
+    "puppeteer": "^24.18.0"
   },
   "devDependencies": {
-    "cross-env": "^10.0.0"
+    "cross-env": "^10.0.0",
+    "nodemon": "^3.1.10"
   }
 }
