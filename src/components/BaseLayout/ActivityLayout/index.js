@@ -77,6 +77,7 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
     const res = await axios.put(`${process.env.REACT_APP_BACKEND}/articles/${item.id}`, formData);
 
     if (res.status == 200) {
+      console.log("saved");
       setItem(updatedArticle);
       setPreviewImage(null);
       setIsEditMode(false);

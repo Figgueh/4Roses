@@ -1,15 +1,16 @@
-// import ActivityLayout from "components/BaseLayout/ActivityLayout";
-import { Icon, Menu } from "@mui/material";
+import { useEffect, useState } from "react";
+import { v4 as uuidv4 } from "uuid";
+import axios from "axios";
+
+import { Icon, Menu, Alert, AlertTitle } from "@mui/material";
 import MenuItem from "@mui/material/MenuItem";
+
 import ActivityLayout from "components/BaseLayout/ActivityLayout";
+
 import MKButton from "components/MKButton";
 import MKTypography from "components/MKTypography";
-import { generateArticleFromUrl } from "connection/openRouter/generateArticleFromUrl";
-import { useEffect, useState } from "react";
-import { unslugify } from "utils";
-import { v4 as uuidv4 } from "uuid";
 
-import axios from "axios";
+import { unslugify } from "utils";
 
 function ArticleGenerator() {
   const [urls, setUrls] = useState([
@@ -19,8 +20,8 @@ function ArticleGenerator() {
   ]);
 
   const [article, setArticle] = useState("");
-  const [parsedArticle, setParsedArticle] = useState(null);
-  const [loading, setLoading] = useState(null);
+
+  const [status, setStatus] = useState(null);
   const [section, setSection] = useState("");
   const [error, setError] = useState("");
   const [activities, setActivities] = useState([]);
@@ -46,13 +47,97 @@ function ArticleGenerator() {
 
   const handleGenerate = async () => {
     setError(null);
+    setArticle("");
+    setStatus("Sending details to server...");
+
     try {
-      setLoading("Loading...");
-      await generateArticleFromUrl(urls, setArticle, setLoading);
+      const response = await fetch(
+        `${process.env.REACT_APP_BACKEND}/articles/generateArticleFromUrls`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ urls }),
+        }
+      );
+
+      // Setup a reader to read SSE
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder("utf-8");
+      let buffer = "";
+      let currentEvent = "message";
+
+      // Loop which reads what is sent from the server
+      // eslint-disable-next-line no-constant-condition
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+
+        for (let line of lines.slice(0, -1)) {
+          line = line.trim();
+          if (!line) continue;
+
+          // Parse the event data
+          if (line.startsWith("event:")) {
+            currentEvent = line.slice(6).trim();
+
+            // Parse the payload stored in "data:"
+          } else if (line.startsWith("data:")) {
+            const payload = line.slice(5).trim();
+
+            // Server finished sending all the data
+            if (payload === "[DONE]") {
+              // Append the other necessary data
+              setArticle((prev) => ({
+                ...prev,
+                id: uuidv4(),
+                url: urls.join(", "),
+                isPreview: true,
+              }));
+
+              setStatus("Done");
+              return;
+            }
+
+            // Event specific behavior
+            // Error handling
+            if (currentEvent === "error") {
+              const parsed = JSON.parse(payload);
+              console.error("Backend error:", parsed);
+              setError(parsed.message + " " + parsed.error);
+              setStatus(null);
+
+              // Server status handling
+            } else if (currentEvent == "preProcessing") {
+              setStatus(payload);
+
+              // Metadata handling
+            } else if (currentEvent == "metadata") {
+              const parsed = JSON.parse(payload);
+              setArticle((prev) => ({
+                ...prev,
+                title: parsed.title,
+                image: parsed.image,
+                description: parsed.description,
+                content: [],
+              }));
+
+              // Article content handling
+            } else if (currentEvent == "section") {
+              const parsed = JSON.parse(payload);
+              setArticle((prev) => ({
+                ...prev,
+                content: [...(prev.content ?? []), parsed],
+              }));
+            }
+          }
+        }
+      }
     } catch (err) {
-      console.error("Article generation failed:", err);
-      setError(err.message || "Something went wrong while generating the article.");
-      setLoading(null);
+      setError(err.message);
+      setStatus(null);
     }
   };
 
@@ -73,23 +158,6 @@ function ArticleGenerator() {
       setSection(activities[0].title);
     }
   }, [activities]);
-
-  useEffect(() => {
-    if (article && loading === "Done") {
-      const cleaned = article.replace(/```json|```/g, "").trim();
-      try {
-        const parsed = JSON.parse(cleaned);
-        parsed.isPreview = true;
-        parsed.id = uuidv4();
-        parsed.url = urls.join(", ");
-        // delete parsed.description;
-        setParsedArticle(parsed);
-        console.log(parsed);
-      } catch (error) {
-        console.error("Invalid JSON", error);
-      }
-    }
-  }, [article, loading]);
 
   const iconStyles = {
     ml: 1,
@@ -147,39 +215,39 @@ function ArticleGenerator() {
           Add URL
         </MKButton>
       </div>
+      {error && (
+        <Alert sx={{ mt: 2 }} severity="error" onClose={() => setError(null)}>
+          <AlertTitle>Error</AlertTitle>
+          {error}
+        </Alert>
+      )}
+      {status && error == null && (
+        <Alert
+          sx={{ mt: 2 }}
+          severity="success" // or "success", "warning"
+          onClose={() => setStatus(null)}
+        >
+          <AlertTitle>Article generator status</AlertTitle>
+          {status}
+        </Alert>
+      )}
 
-      <MKButton onClick={handleGenerate} variant="gradient" color="info">
+      <MKButton onClick={handleGenerate} variant="gradient" color="info" sx={{ my: 2 }}>
         Generate Article
       </MKButton>
 
-      {loading && <p>{loading}</p>}
-
-      {error && <div style={{ color: "red", marginTop: "1rem" }}>{error}, Please try again.</div>}
-
-      <pre
-        style={{
-          whiteSpace: "pre-wrap",
-          marginTop: "1rem",
-          background: "#f8f9fa",
-          padding: "1rem",
-          borderRadius: "8px",
-        }}
-      >
-        {article}
-      </pre>
-
-      {loading === "Done" && parsedArticle?.article && (
+      {article?.title && (
         <>
-          {console.log(unslugify(section), parsedArticle)}
+          {console.log(unslugify(section), article)}
           <ActivityLayout
             title={unslugify(section)}
             breadcrumb={[
               { label: "Home page", route: `/#${section}` },
               { label: unslugify(section), route: `/activities/${section}` },
-              { label: parsedArticle.title },
+              { label: article.title },
             ]}
-            item={parsedArticle}
-            setItem={(newItem) => setParsedArticle((prev) => ({ ...prev, article: newItem }))}
+            item={article}
+            setItem={(newItem) => setArticle((prev) => ({ ...prev, article: newItem }))}
           />
         </>
       )}
