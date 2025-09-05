@@ -66,7 +66,7 @@ const routes = [
             component: <Home />,
           },
           {
-            name: "AboutUs",
+            name: "About Us",
             route: "/pages/landing-pages/AboutUs",
             component: <AboutUs />,
           },
@@ -93,6 +93,11 @@ const routes = [
                 <Dashboard />
               </PrivateRoute>
             ),
+          },
+          {
+            name: "sign out",
+            route: "/",
+            component: <></>,
           },
         ],
       },
