@@ -19,6 +19,7 @@ import { checkAdmin } from "connection/users/checkAdmin";
 import ProfileTab from "./tabs/profile";
 import AdminDash from "./tabs/admin";
 import MKBox from "components/MKBox";
+import MKButton from "components/MKButton";
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -30,7 +31,7 @@ function Dashboard() {
   const handleSignOut = async (event) => {
     event.preventDefault();
     await signOut();
-    navigate("/sign-in");
+    navigate("/");
   };
 
   useEffect(() => {
@@ -46,10 +47,25 @@ function Dashboard() {
   return (
     <BaseLayout title="Account dashboard">
       <MKBox sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
-        <MKBox>
-          <span>Welcome {session?.user?.email}</span>
-          <button onClick={handleSignOut}>Sign out</button>
+        <MKBox
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+          p={2}
+          sx={{
+            backgroundColor: "background.paper",
+            borderRadius: 2,
+            boxShadow: 2,
+          }}
+        >
+          <span style={{ fontWeight: 500, fontSize: "1rem" }}>
+            Welcome, <strong>{session?.user?.email}</strong>
+          </span>
+          <MKButton variant="gradient" color="light" size="small" onClick={handleSignOut}>
+            Sign out
+          </MKButton>
         </MKBox>
+
         <Container lg={3}>
           <Grid container item justifyContent="center" xs={12} lg={10} mx="auto">
             <AppBar position="static">
