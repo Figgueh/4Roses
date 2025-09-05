@@ -18,8 +18,7 @@ import { Fragment, useState, useEffect } from "react";
 import { UserAuth } from "connection/auth/authContext";
 
 // react-router components
-import { Link } from "react-router-dom";
-
+import { Link, useNavigate } from "react-router-dom";
 // prop-types is a library for typechecking of props.
 import PropTypes from "prop-types";
 
@@ -50,6 +49,7 @@ import MainLogo from "assets/images/small-logos/4RosesHeader.png";
 import { getProfilePicture } from "connection/users/getProfilePicture";
 
 function DefaultNavbar({ brand, routes, transparent, light, action, sticky, relative, center }) {
+  const navigate = useNavigate();
   const [dropdown, setDropdown] = useState("");
   const [dropdownEl, setDropdownEl] = useState("");
   const [dropdownName, setDropdownName] = useState("");
@@ -62,9 +62,15 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [profilePicture, setProfilePicture] = useState("");
-  const { session } = UserAuth();
+  const { session, signOut } = UserAuth();
 
   const openMobileNavbar = () => setMobileNavbar(!mobileNavbar);
+
+  const handleSignOut = async (event) => {
+    event.preventDefault();
+    await signOut();
+    navigate("/");
+  };
 
   useEffect(() => {
     const init = async () => {
@@ -73,11 +79,16 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
         setIsLoggedIn(true);
         const picture = await getProfilePicture(session.user.id);
         setProfilePicture(picture);
+      } else {
+        setIsLoggedIn(false);
+        setProfilePicture("");
       }
     };
 
-    init(); // Call the async function
+    init();
+  }, [session]);
 
+  useEffect(() => {
     // A function that sets the display state for the DefaultNavbarMobile.
     function displayMobileNavbar() {
       if (window.innerWidth < breakpoints.values.lg) {
@@ -161,36 +172,48 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
                     >
                       {col.name}
                     </MKTypography>
-                    {col.collapse.map((item) => (
-                      <MKTypography
-                        key={item.name}
-                        component={item.route ? Link : MuiLink}
-                        to={item.route ? item.route : ""}
-                        href={item.href ? item.href : (e) => e.preventDefault()}
-                        target={item.href ? "_blank" : ""}
-                        rel={item.href ? "noreferrer" : "noreferrer"}
-                        minWidth="11.25rem"
-                        display="block"
-                        variant="button"
-                        color="text"
-                        textTransform="capitalize"
-                        fontWeight="regular"
-                        py={0.625}
-                        px={2}
-                        sx={({ palette: { grey, dark }, borders: { borderRadius } }) => ({
-                          borderRadius: borderRadius.md,
-                          cursor: "pointer",
-                          transition: "all 300ms linear",
+                    {col.collapse
+                      .filter((l) => {
+                        // Remove the links that users shouldn't be able to see based on their login status
+                        if (isLoggedIn) return l.name != "sign in" && l.name != "register";
+                        else return l.name != "dashboard" && l.name != "sign out";
+                      })
+                      .map((item) => (
+                        <MKTypography
+                          key={item.name}
+                          component={item.route ? Link : MuiLink}
+                          to={item.route ? item.route : ""}
+                          href={item.href ? item.href : (e) => e.preventDefault()}
+                          target={item.href ? "_blank" : ""}
+                          rel={item.href ? "noreferrer" : "noreferrer"}
+                          minWidth="11.25rem"
+                          display="block"
+                          variant="button"
+                          color="text"
+                          textTransform="capitalize"
+                          fontWeight="regular"
+                          py={0.625}
+                          px={2}
+                          sx={({ palette: { grey, dark }, borders: { borderRadius } }) => ({
+                            borderRadius: borderRadius.md,
+                            cursor: "pointer",
+                            transition: "all 300ms linear",
 
-                          "&:hover": {
-                            backgroundColor: grey[200],
-                            color: dark.main,
-                          },
-                        })}
-                      >
-                        {item.name}
-                      </MKTypography>
-                    ))}
+                            "&:hover": {
+                              backgroundColor: grey[200],
+                              color: dark.main,
+                            },
+                          })}
+                          // Attach the signout function to the signout button
+                          onClick={(e) => {
+                            if (isLoggedIn && item.name == "sign out") {
+                              handleSignOut(e);
+                            }
+                          }}
+                        >
+                          {item.name}
+                        </MKTypography>
+                      ))}
                   </Fragment>
                 ))}
                 {key !== 0 && (
@@ -515,9 +538,16 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
           </MKBox>
           {/* Check if the user is logged in, if they are show the profile picture */}
           {isLoggedIn && (
-            <MKBox ml={{ xs: "auto", lg: 0 }} mr={2}>
-              <MKAvatar src={profilePicture} alt="Profile picture" size="md" shadow="xl"></MKAvatar>
-            </MKBox>
+            <Link to="/dashboard">
+              <MKBox ml={{ xs: "auto", lg: 0 }} mr={2}>
+                <MKAvatar
+                  src={profilePicture}
+                  alt="Profile picture"
+                  size="md"
+                  shadow="xl"
+                ></MKAvatar>
+              </MKBox>
+            </Link>
           )}
 
           <MKBox ml={{ xs: "auto", lg: 0 }}>
