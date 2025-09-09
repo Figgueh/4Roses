@@ -229,7 +229,7 @@ function ArticleGenerator() {
       )}
 
       <MKButton onClick={handleGenerate} variant="gradient" color="info" sx={{ my: 2 }}>
-        Generate Article
+        {status === "Done" ? "Regenerate" : "Generate"} article
       </MKButton>
 
       {article?.title && (

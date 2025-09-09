@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 // Base imports
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -8,6 +9,7 @@ import PropTypes from "prop-types";
 import Card from "@mui/material/Card";
 import ButtonBase from "@mui/material/ButtonBase";
 import { Add, Delete, Edit, Remove, Save } from "@mui/icons-material";
+import { Alert, AlertTitle } from "@mui/material";
 
 // Material Kit 2 React components
 import MKBox from "components/MKBox";
@@ -23,7 +25,7 @@ import { UserAuth } from "connection/auth/authContext";
 import { getAllUserInfo } from "connection/users/getAllUserInfo";
 
 // Utility
-// import { trimImagePathNoSize } from "utils";
+import { trimImagePathNoSize } from "utils";
 import { slugify } from "utils";
 import axios from "axios";
 
@@ -35,6 +37,7 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
   const [editedArticle, setEditedArticle] = useState([]);
   const [previewImage, setPreviewImage] = useState(null);
   const [openPicture, setOpenPicture] = useState();
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const defaultArticle = {
@@ -71,24 +74,26 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
     formData.append("title", updatedArticle.title);
     formData.append("rawContent", JSON.stringify(updatedArticle.content));
     formData.append("url", updatedArticle.url);
-    formData.append("image", updatedArticle.image);
+    formData.append("image", trimImagePathNoSize(updatedArticle.image) || updatedArticle.image);
     formData.append("description", updatedArticle.description);
 
-    var res;
-    if (item.isPreview) {
-      console.log("POST CALLED");
-      formData.append("activityId", item.activityId);
-      res = await axios.post(`${process.env.REACT_APP_BACKEND}/articles`, formData);
-    } else {
-      console.log("PUT CALLED");
-      res = await axios.put(`${process.env.REACT_APP_BACKEND}/articles/${item.id}`, formData);
-    }
+    try {
+      var res;
+      if (item.isPreview) {
+        formData.append("activityId", item.activityId);
+        res = await axios.post(`${process.env.REACT_APP_BACKEND}/articles`, formData);
+      } else {
+        res = await axios.put(`${process.env.REACT_APP_BACKEND}/articles/${item.id}`, formData);
+      }
 
-    if (res.status == 200) {
-      console.log("saved");
-      setItem(updatedArticle);
-      setPreviewImage(null);
-      setIsEditMode(false);
+      if (res.status == 200) {
+        console.log("saved");
+        setItem(updatedArticle);
+        setPreviewImage(null);
+        setIsEditMode(false);
+      }
+    } catch (err) {
+      setError(err.response.data.error);
     }
   };
 
@@ -172,10 +177,6 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
     }
   }, [authLoading, session?.user?.id]);
 
-  useEffect(() => {
-    console.log("Here", item);
-  }, []);
-
   // component renderer
   const renderComponent = () => (
     <>
@@ -253,7 +254,12 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
           </MKBox>
         )
       )}
-
+      {error != "" && (
+        <Alert sx={{ mt: 2 }} severity="error" onClose={() => setError("")}>
+          <AlertTitle>Article editor status</AlertTitle>
+          {error}
+        </Alert>
+      )}
       <Card
         sx={{
           alignItems: "flex-start",
