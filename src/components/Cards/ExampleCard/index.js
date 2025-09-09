@@ -14,16 +14,21 @@ Coded by www.creative-tim.com
 */
 
 // prop-types is a library for typechecking of props
+import { useState } from "react";
 import PropTypes from "prop-types";
 
 // @mui material components
 import Tooltip from "@mui/material/Tooltip";
+import Skeleton from "@mui/material/Skeleton";
 
 // Material Kit 2 React components
 import MKBox from "components/MKBox";
 import MKTypography from "components/MKTypography";
 
 function ExampleCard({ image, name, description, pro, ...rest }) {
+  const [imgLoaded, setImgLoaded] = useState(false);
+  const handleImgLoad = () => setImgLoaded(true);
+
   const imageTemplate = (
     <MKBox
       bgColor="white"
@@ -68,12 +73,21 @@ function ExampleCard({ image, name, description, pro, ...rest }) {
           </svg>
         </MKBox>
       )}
+      {!imgLoaded && (
+        <Skeleton
+          variant="rectangular"
+          width="100%"
+          height="10rem" // match minHeight
+          sx={{ borderRadius: "xl" }}
+        />
+      )}
       <MKBox
         component="img"
         src={image}
         alt={name}
         width="100%"
         my="auto"
+        onLoad={handleImgLoad}
         opacity={pro ? 0.6 : 1}
       />
     </MKBox>
@@ -116,6 +130,7 @@ ExampleCard.defaultProps = {
 // Typechecking props for the ExampleCard
 ExampleCard.propTypes = {
   image: PropTypes.string.isRequired,
+  imageSet: PropTypes.arrayOf(PropTypes.string),
   name: PropTypes.string,
   description: PropTypes.string,
   pro: PropTypes.bool,
