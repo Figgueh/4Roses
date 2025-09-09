@@ -2,11 +2,9 @@
 /* eslint-disable no-constant-condition */
 import supabase from "../config/supabaseClient.js";
 import { deletePhoto, uploadPhoto } from "../utils/helpers.js";
-import { JSDOM } from "jsdom";
-import { Readability } from "@mozilla/readability";
 import puppeteer from "puppeteer";
-import { slugify } from "../utils.js";
 import fs from "fs";
+
 // GET all articles
 // /
 export const getArticles = async (req, res, next) => {
@@ -51,8 +49,8 @@ export const getArticlesForActivity = async (req, res, next) => {
       image: article.image
         ? article.image.startsWith("http")
           ? article.image
-          : process.env.SUPABASE_IMAGE + article.image
-        : "/images/placeholder.png", // fallback if no image
+          : `${process.env.IMGIX}/${article.image}?w=200&h=200&fit=crop&auto=format`
+        : "/images/placeholder.png",
     }));
 
     res.json(articles);
@@ -83,9 +81,18 @@ export const createArticle = async (req, res, next) => {
       image: image,
       description: description,
     });
-    if (error) throw error;
+
+    if (error) {
+      if (error.code === "23505") {
+        // Unique violation (duplicate)
+        return res.status(400).json({ error: "An article with this title already exists." });
+      }
+      return res.status(400).json({ error: error.message || "Database error" });
+    }
+
     res.status(201).json(data);
   } catch (err) {
+    console.log(err);
     next(err);
   }
 };
@@ -125,9 +132,18 @@ export const updateArticle = async (req, res, next) => {
       .update({ title, content, image })
       .eq("id", id);
 
-    if (error) throw error;
+    if (error) {
+      if (error.code === "23505") {
+        // Unique violation (duplicate)
+        return res.status(400).json({ error: "An article with this title already exists." });
+      }
+      return res.status(400).json({ error: error.message || "Database error" });
+    }
+
     res.status(200).json({ message: "Article updated successfully", article: data });
   } catch (err) {
+    console.log(err);
+
     next(err);
   }
 };
@@ -313,6 +329,8 @@ Respond with valid JSON only.`;
     let sentMeta = false;
     let total = "";
     let buffer = "";
+    let firstMessage = true;
+
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
@@ -337,17 +355,25 @@ Respond with valid JSON only.`;
           }
 
           try {
+            // parse the response from OpenRouter
             const parsed = JSON.parse(json);
             const delta = parsed.choices?.[0]?.delta?.content;
+
             if (delta) {
               buffer += delta;
               total += delta;
               console.log(delta);
-              // Look for metadata if not sent yet
-              if (!sentMeta && delta.trim().includes("article")) {
-                if (!buffer.startsWith("```")) {
+
+              // All valid response starts with ```json
+              if (firstMessage) {
+                if (!delta.startsWith("```")) {
                   throw new Error("Response from OpenRouter wasn't sent in a proper format");
                 }
+                firstMessage = false;
+              }
+
+              // Look for metadata if not sent yet
+              if (!sentMeta && delta.trim().includes("article")) {
                 var lines = buffer.split("\n");
                 lines.pop(); // removes "```json"
                 lines.shift(); // removes "article:"

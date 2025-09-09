@@ -4,6 +4,7 @@ import { Modal, Box, TextField } from "@mui/material";
 import { Alert, AlertTitle } from "@mui/material";
 import axios from "axios";
 import { Add } from "@mui/icons-material";
+import MKBox from "components/MKBox";
 
 function ActivityEditor() {
   const [activities, setActivities] = useState([]);
@@ -79,13 +80,23 @@ function ActivityEditor() {
   };
 
   return (
-    <div>
-      {error && (
-        <Alert sx={{ mt: 2 }} severity="error" onClose={() => setError(null)}>
-          <AlertTitle>Error</AlertTitle>
-          {error}
-        </Alert>
-      )}
+    <MKBox>
+      <MKBox display="flex" flexDirection="column" gap={2}>
+        {error && (
+          <Alert sx={{ mt: 2 }} severity="error" onClose={() => setError(null)}>
+            <AlertTitle>Error</AlertTitle>
+            {error}
+          </Alert>
+        )}
+        <MKButton
+          color="success"
+          sx={{ float: "right", maxWidth: 250, mr: 5, mt: 2 }}
+          onClick={() => setOpenModal(true)}
+        >
+          <Add sx={{ mr: 1, mb: 0.3 }} />
+          Add new activity
+        </MKButton>
+      </MKBox>
 
       <div
         style={{
@@ -167,11 +178,7 @@ function ActivityEditor() {
           </MKButton>
         </Box>
       </Modal>
-      <MKButton color="success" sx={{ float: "right", mr: 5 }} onClick={() => setOpenModal(true)}>
-        <Add sx={{ mr: 1, mb: 0.3 }} />
-        Add new activity
-      </MKButton>
-    </div>
+    </MKBox>
   );
 }
 
