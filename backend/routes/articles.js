@@ -18,7 +18,7 @@ router.get("/", getArticles);
 router.get("/:title", getArticleByTitle);
 router.get("/activity/:activityId", getArticlesForActivity);
 router.post("/generateArticleFromUrls", generateArticleFromUrls);
-router.post("/", createArticle);
+router.post("/", upload.single("image"), createArticle);
 router.put("/:id", upload.single("image"), updateArticle);
 router.delete("/:id", deleteArticle);
 

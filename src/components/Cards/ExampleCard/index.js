@@ -116,6 +116,7 @@ ExampleCard.defaultProps = {
 // Typechecking props for the ExampleCard
 ExampleCard.propTypes = {
   image: PropTypes.string.isRequired,
+  imageSet: PropTypes.arrayOf(PropTypes.string),
   name: PropTypes.string,
   description: PropTypes.string,
   pro: PropTypes.bool,
