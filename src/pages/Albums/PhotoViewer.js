@@ -46,8 +46,8 @@ function PhotoViewer({ album, refreshFlag }) {
        */
       function imageLink(path, width, height, extension, newWidth, newHeight) {
         if (newWidth && newHeight)
-          return `https://fignet.imgix.net/${album}/${path}_${width}x${height}.${extension}?w=${newWidth}&h=${newHeight}&fit=max&auto=format&dpr=2`;
-        return `https://fignet.imgix.net/${album}/${path}_${width}x${height}.${extension}`;
+          return `${process.env.REACT_APP_IMGIX}/${album}/${path}_${width}x${height}.${extension}?w=${newWidth}&h=${newHeight}&fit=max&auto=format&dpr=2`;
+        return `${process.env.REACT_APP_IMGIX}/${album}/${path}_${width}x${height}.${extension}`;
       }
 
       const parsedPhotos = photoData.combinedData

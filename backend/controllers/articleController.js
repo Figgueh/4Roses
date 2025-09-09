@@ -5,7 +5,8 @@ import { deletePhoto, uploadPhoto } from "../utils/helpers.js";
 import { JSDOM } from "jsdom";
 import { Readability } from "@mozilla/readability";
 import puppeteer from "puppeteer";
-
+import { slugify } from "../utils.js";
+import fs from "fs";
 // GET all articles
 // /
 export const getArticles = async (req, res, next) => {
@@ -44,10 +45,14 @@ export const getArticlesForActivity = async (req, res, next) => {
 
     if (error) throw error;
 
-    // Add the supabase image url.
-    const articles = data.map((article) => ({
+    // Add the supabase image url if its in our database
+    var articles = data.map((article) => ({
       ...article,
-      image: process.env.SUPABASE_IMAGE + article.image,
+      image: article.image
+        ? article.image.startsWith("http")
+          ? article.image
+          : process.env.SUPABASE_IMAGE + article.image
+        : "/images/placeholder.png", // fallback if no image
     }));
 
     res.json(articles);
@@ -59,13 +64,22 @@ export const getArticlesForActivity = async (req, res, next) => {
 // POST a new article
 export const createArticle = async (req, res, next) => {
   try {
-    const { activityId, url, title, content, image, description } = req.body;
+    const { id, activityId, url, title, image, rawContent, description } = req.body;
+
     console.log(req.body);
+    var jsonContent;
+    try {
+      jsonContent = JSON.parse(rawContent);
+    } catch (err) {
+      jsonContent = [];
+    }
+
     const { data, error } = await supabase.from("articles").insert({
+      id: id,
       activity_id: activityId,
       url: url,
       title: title,
-      content: [content],
+      content: jsonContent,
       image: image,
       description: description,
     });
@@ -106,14 +120,10 @@ export const updateArticle = async (req, res, next) => {
     }
 
     // Update the title and content
-    // Update the title and content
     const { data, error } = await supabase
       .from("articles")
-      .upsert({ id, title, content, image }, { onConflict: "id" });
-    // const { data, error } = await supabase
-    //   .from("articles")
-    //   .update({ title, content, image })
-    //   .eq("id", id);
+      .update({ title, content, image })
+      .eq("id", id);
 
     if (error) throw error;
     res.status(200).json({ message: "Article updated successfully", article: data });
@@ -238,7 +248,7 @@ Generate me an article that includes things like the price, location, services o
 If the web pages don't include any information on the previously mentioned items, then don't include them and find something else that would be good to know.
 The article should follow this schema:
 {
-  "title": "Main title",
+  "title": "Main title, make sure to not include any special characters like @,:,",'...",
   "image": "Leave blank or provide a working link",
   "description": "a short description summarizing the article",
   "article": [{
@@ -248,6 +258,8 @@ The article should follow this schema:
   }]
 }
 
+the article section must also be in json format.
+I'd prefer if the price was listed in the details
 if they have services available, then list them in detail
 Don't feel obligated to add details in the article section.
 Only add the details section if necessary.
@@ -311,6 +323,14 @@ Respond with valid JSON only.`;
         if (line.startsWith("data:")) {
           const json = line.slice(5).trim();
           if (json === "[DONE]") {
+            // Write to file asynchronously
+            fs.writeFile("../notes/output.txt", total, "utf8", (err) => {
+              if (err) {
+                console.error("Error writing file:", err);
+              } else {
+                console.log("File written successfully!");
+              }
+            });
             res.write("event: done\ndata: [DONE]\n\n");
             res.end();
             return;
@@ -322,14 +342,12 @@ Respond with valid JSON only.`;
             if (delta) {
               buffer += delta;
               total += delta;
-
               console.log(delta);
               // Look for metadata if not sent yet
               if (!sentMeta && delta.trim().includes("article")) {
-                if (!buffer.trimStart().startsWith("```json")) {
+                if (!buffer.startsWith("```")) {
                   throw new Error("Response from OpenRouter wasn't sent in a proper format");
                 }
-
                 var lines = buffer.split("\n");
                 lines.pop(); // removes "```json"
                 lines.shift(); // removes "article:"
@@ -345,9 +363,11 @@ Respond with valid JSON only.`;
                 } catch (err) {
                   // still incomplete JSON, wait for more chunks
                 }
+
+                //Clear the buffer sent
+                buffer = "";
               }
 
-              // }
               // --- 2. Send article sections individually ---
               if (sentMeta) {
                 // look for complete section objects

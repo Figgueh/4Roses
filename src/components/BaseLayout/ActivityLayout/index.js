@@ -23,7 +23,7 @@ import { UserAuth } from "connection/auth/authContext";
 import { getAllUserInfo } from "connection/users/getAllUserInfo";
 
 // Utility
-import { trimImagePathNoSize } from "utils";
+// import { trimImagePathNoSize } from "utils";
 import { slugify } from "utils";
 import axios from "axios";
 
@@ -71,10 +71,18 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
     formData.append("title", updatedArticle.title);
     formData.append("rawContent", JSON.stringify(updatedArticle.content));
     formData.append("url", updatedArticle.url);
-    formData.append("image", trimImagePathNoSize(updatedArticle.image));
+    formData.append("image", updatedArticle.image);
     formData.append("description", updatedArticle.description);
 
-    const res = await axios.put(`${process.env.REACT_APP_BACKEND}/articles/${item.id}`, formData);
+    var res;
+    if (item.isPreview) {
+      console.log("POST CALLED");
+      formData.append("activityId", item.activityId);
+      res = await axios.post(`${process.env.REACT_APP_BACKEND}/articles`, formData);
+    } else {
+      console.log("PUT CALLED");
+      res = await axios.put(`${process.env.REACT_APP_BACKEND}/articles/${item.id}`, formData);
+    }
 
     if (res.status == 200) {
       console.log("saved");
@@ -165,7 +173,7 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
   }, [authLoading, session?.user?.id]);
 
   useEffect(() => {
-    console.log("Here", item.content);
+    console.log("Here", item);
   }, []);
 
   // component renderer
@@ -450,6 +458,7 @@ ActivityLayout.propTypes = {
     content: PropTypes.array,
     url: PropTypes.string,
     isPreview: PropTypes.bool,
+    activityId: PropTypes.string,
   }).isRequired,
   setItem: PropTypes.func.isRequired,
 };

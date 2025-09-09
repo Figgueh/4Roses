@@ -94,7 +94,7 @@ function ArticleGenerator() {
                 ...prev,
                 id: uuidv4(),
                 url: urls.join(", "),
-                isPreview: true,
+                activityId: section.id,
               }));
 
               setStatus("Done");
@@ -122,6 +122,7 @@ function ArticleGenerator() {
                 image: parsed.image,
                 description: parsed.description,
                 content: [],
+                isPreview: true,
               }));
 
               // Article content handling
@@ -155,7 +156,7 @@ function ArticleGenerator() {
   // Once the activities are loaded, select the first one.
   useEffect(() => {
     if (activities.length && !section) {
-      setSection(activities[0].title);
+      setSection(activities[0]);
     }
   }, [activities]);
 
@@ -175,7 +176,8 @@ function ArticleGenerator() {
 
       <MKTypography>Select the activity of the article:</MKTypography>
       <MKButton variant="gradient" color="info" onClick={openDropdown}>
-        {section} <Icon sx={dropdownIconStyles}>expand_more</Icon>
+        {section?.title}
+        <Icon sx={dropdownIconStyles}>expand_more</Icon>
       </MKButton>
 
       <Menu anchorEl={dropdown} open={Boolean(dropdown)} onClose={closeDropdown}>
@@ -183,11 +185,9 @@ function ArticleGenerator() {
           <MenuItem
             key={activity.id}
             onClick={() => {
-              setSection(activity.title);
+              setSection(activity);
               closeDropdown();
             }}
-            value={activity.title}
-            label="Select Activity"
           >
             {activity.title}
           </MenuItem>
@@ -222,11 +222,7 @@ function ArticleGenerator() {
         </Alert>
       )}
       {status && error == null && (
-        <Alert
-          sx={{ mt: 2 }}
-          severity="success" // or "success", "warning"
-          onClose={() => setStatus(null)}
-        >
+        <Alert sx={{ mt: 2 }} severity="success" onClose={() => setStatus(null)}>
           <AlertTitle>Article generator status</AlertTitle>
           {status}
         </Alert>
