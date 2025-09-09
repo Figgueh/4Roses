@@ -11,11 +11,17 @@ export const getActivities = async (req, res, next) => {
     if (error) throw error;
 
     // Add the supabase link to the path, and prepare the slug
-    const activities = data.map((activity) => ({
-      ...activity,
-      image: `${process.env.SUPABASE_IMAGE}${activity.image}`,
-      slug: "activities/" + slugify(activity.title),
-    }));
+    const activities = data.map((activity) => {
+      const generateUrl = (width, height) => {
+        return `${process.env.IMGIX}/${activity.image}?w=${width}&h=${height}&fit=crop&auto=format`;
+      };
+      return {
+        ...activity,
+        image: generateUrl(500, 500),
+        // image: `${process.env.SUPABASE_IMAGE}${activity.image}`,
+        slug: "activities/" + slugify(activity.title),
+      };
+    });
 
     res.json(activities);
   } catch (err) {

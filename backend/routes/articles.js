@@ -3,6 +3,7 @@ import {
   getArticles,
   getArticleByTitle,
   getArticlesForActivity,
+  generateArticleFromUrls,
   createArticle,
   updateArticle,
   deleteArticle,
@@ -16,7 +17,8 @@ const upload = multer({ storage });
 router.get("/", getArticles);
 router.get("/:title", getArticleByTitle);
 router.get("/activity/:activityId", getArticlesForActivity);
-router.post("/", createArticle);
+router.post("/generateArticleFromUrls", generateArticleFromUrls);
+router.post("/", upload.single("image"), createArticle);
 router.put("/:id", upload.single("image"), updateArticle);
 router.delete("/:id", deleteArticle);
 

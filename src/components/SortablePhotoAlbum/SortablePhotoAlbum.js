@@ -198,7 +198,7 @@ const SortablePhotoAlbum = ({ photos, setPhotos }) => {
 SortablePhotoAlbum.propTypes = {
   photos: PropTypes.array.isRequired,
   setPhotos: PropTypes.func.isRequired,
-  children: PropTypes.node.isRequired,
+  children: PropTypes.node,
 };
 
 export default SortablePhotoAlbum;

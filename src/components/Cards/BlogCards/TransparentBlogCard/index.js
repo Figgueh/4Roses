@@ -90,7 +90,7 @@ function TransparentBlogCard({ image, title, description, action }) {
           {imageTemplate}
         </MuiLink>
       )}
-      <MKBox pt={2} pb={3}>
+      <MKBox pt={2} pb={3} sx={{ display: "flex", flexDirection: "column", flex: 1 }}>
         {action.type === "internal" ? (
           <Link to={action.route} sx={cardActionStyles}>
             <MKTypography variant="h5" gutterBottom>
@@ -115,7 +115,7 @@ function TransparentBlogCard({ image, title, description, action }) {
             fontWeight="regular"
             color={action.color}
             textTransform="capitalize"
-            sx={cardActionStyles}
+            sx={{ display: "inline-flex", alignItems: "center", mt: "auto", gap: 0.5 }}
           >
             {action.label}
             <Icon sx={{ fontWeight: "bold" }}>arrow_forward</Icon>

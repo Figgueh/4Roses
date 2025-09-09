@@ -63,7 +63,7 @@ function ActivityPicker({ breadcrumb, title, items }) {
                 Check out all the latest {title.toLowerCase()} activities
               </MKTypography>
               {isAdmin && (
-                <MKBox pl={2}>
+                <MKBox pl={2} pb={2}>
                   <NewModal
                     activityTitle={title}
                     open={modalOpen}
@@ -72,12 +72,20 @@ function ActivityPicker({ breadcrumb, title, items }) {
                 </MKBox>
               )}
             </Grid>
-            <Grid container spacing={3}>
+            <Grid
+              container
+              spacing={3}
+              sx={{
+                display: "flex",
+                flexWrap: "wrap",
+                alignItems: "stretch", // ensures items in the same row stretch
+              }}
+            >
               {items.map(
                 (item) => (
                   console.log(item),
                   (
-                    <Grid item xs={12} sm={6} lg={3} key={item.id}>
+                    <Grid item xs={12} sm={6} lg={3} key={item.id} sx={{ display: "flex" }}>
                       <TransparentBlogCard
                         image={item.image}
                         title={item.title}
@@ -88,6 +96,7 @@ function ActivityPicker({ breadcrumb, title, items }) {
                           color: "info",
                           label: "read more",
                         }}
+                        sx={{ flex: 1, display: "flex", flexDirection: "column" }}
                       />
                     </Grid>
                   )
