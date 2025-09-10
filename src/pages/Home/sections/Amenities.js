@@ -25,20 +25,11 @@ function Amenities() {
 
   useEffect(() => {
     const loadData = async () => {
-      try {
-        const amenitiesRequest = await axios.get(`${process.env.REACT_APP_BACKEND}/amenities`);
-        const activitiesRequest = await axios.get(`${process.env.REACT_APP_BACKEND}/activities`);
-
-        // ⏳ artificial lag: 2 seconds
-        setTimeout(() => {
-          setAmenities(amenitiesRequest.data);
-          setActivities(activitiesRequest.data);
-          setLoading(false);
-        }, 20000);
-      } catch (error) {
-        console.error(error);
-        setLoading(false);
-      }
+      const amenitiesRequest = await axios.get(`${process.env.REACT_APP_BACKEND}/amenities`);
+      setAmenities(amenitiesRequest.data);
+      const activitiesRequest = await axios.get(`${process.env.REACT_APP_BACKEND}/activities`);
+      setActivities(activitiesRequest.data);
+      setLoading(false);
     };
 
     loadData();
@@ -91,7 +82,7 @@ function Amenities() {
       <Grid item xs={12} lg={9}>
         {loading ? (
           // Skeletons here are for when the server starts.
-          renderSkeletons(12)
+          renderSkeletons(6)
         ) : (
           <Grid container spacing={3}>
             {items.map(({ image, title, description, slug, pro }) => (
