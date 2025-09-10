@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 
 // @mui material components
 import Container from "@mui/material/Container";
+import Skeleton from "@mui/material/Skeleton";
 import Grid from "@mui/material/Grid";
 
 // Material Kit 2 React components
@@ -20,13 +21,24 @@ import { slugify } from "utils";
 function Amenities() {
   const [amenities, setAmenities] = useState([]);
   const [activities, setActivities] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadData = async () => {
-      const amenitiesRequest = await axios.get(`${process.env.REACT_APP_BACKEND}/amenities`);
-      setAmenities(amenitiesRequest.data);
-      const activitiesRequest = await axios.get(`${process.env.REACT_APP_BACKEND}/activities`);
-      setActivities(activitiesRequest.data);
+      try {
+        const amenitiesRequest = await axios.get(`${process.env.REACT_APP_BACKEND}/amenities`);
+        const activitiesRequest = await axios.get(`${process.env.REACT_APP_BACKEND}/activities`);
+
+        // ⏳ artificial lag: 2 seconds
+        setTimeout(() => {
+          setAmenities(amenitiesRequest.data);
+          setActivities(activitiesRequest.data);
+          setLoading(false);
+        }, 20000);
+      } catch (error) {
+        console.error(error);
+        setLoading(false);
+      }
     };
 
     loadData();
@@ -47,6 +59,23 @@ function Amenities() {
     },
   ];
 
+  const renderSkeletons = (count = 6) => (
+    <Grid container spacing={3}>
+      {Array.from(new Array(count)).map((_, idx) => (
+        <Grid item xs={12} md={4} key={idx}>
+          <Skeleton
+            variant="rectangular"
+            width="100%"
+            height={200}
+            sx={{ borderRadius: "0.75rem" }}
+          />
+          <Skeleton width="80%" sx={{ mt: 1 }} />
+          <Skeleton width="60%" />
+        </Grid>
+      ))}
+    </Grid>
+  );
+
   const renderData = data.map(({ title, description, items, smallItems }) => (
     <Grid container spacing={3} sx={{ mb: 10 }} key={title}>
       <Grid item xs={12} lg={3}>
@@ -60,15 +89,20 @@ function Amenities() {
         </MKBox>
       </Grid>
       <Grid item xs={12} lg={9}>
-        <Grid container spacing={3}>
-          {items.map(({ image, title, description, slug, pro }) => (
-            <Grid item xs={12} md={4} sx={{ mb: 2 }} id={slugify(title)} key={title}>
-              <Link to={slug}>
-                <ExampleCard image={image} name={title} description={description} pro={pro} />
-              </Link>
-            </Grid>
-          ))}
-        </Grid>
+        {loading ? (
+          // Skeletons here are for when the server starts.
+          renderSkeletons(12)
+        ) : (
+          <Grid container spacing={3}>
+            {items.map(({ image, title, description, slug, pro }) => (
+              <Grid item xs={12} md={4} sx={{ mb: 2 }} id={slugify(title)} key={title}>
+                <Link to={slug}>
+                  <ExampleCard image={image} name={title} description={description} pro={pro} />
+                </Link>
+              </Grid>
+            ))}
+          </Grid>
+        )}
       </Grid>
       <Grid container spacing={10} pt={4} pl={3}>
         {smallItems.map(({ image, title, sub }) => (

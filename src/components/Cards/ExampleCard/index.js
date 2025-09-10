@@ -74,12 +74,8 @@ function ExampleCard({ image, name, description, pro, ...rest }) {
         </MKBox>
       )}
       {!imgLoaded && (
-        <Skeleton
-          variant="rectangular"
-          width="100%"
-          height="10rem" // match minHeight
-          sx={{ borderRadius: "xl" }}
-        />
+        // Skeleton here is for once the server has started, accounts for normal time to load the image.
+        <Skeleton variant="rectangular" width="100%" height="10rem" sx={{ borderRadius: "xl" }} />
       )}
       <MKBox
         component="img"
@@ -88,6 +84,10 @@ function ExampleCard({ image, name, description, pro, ...rest }) {
         width="100%"
         my="auto"
         onLoad={handleImgLoad}
+        sx={{
+          display: imgLoaded ? "block" : "none",
+          borderRadius: "0.75rem",
+        }}
         opacity={pro ? 0.6 : 1}
       />
     </MKBox>
