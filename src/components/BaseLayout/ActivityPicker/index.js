@@ -78,7 +78,7 @@ function ActivityPicker({ breadcrumb, title, items }) {
               sx={{
                 display: "flex",
                 flexWrap: "wrap",
-                alignItems: "stretch", // ensures items in the same row stretch
+                alignItems: "stretch",
               }}
             >
               {items.map(

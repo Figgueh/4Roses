@@ -9,9 +9,6 @@ import MKButton from "components/MKButton";
 // Icons
 import { Delete } from "@mui/icons-material";
 
-// Database imports
-// import supabase from "connection/client";
-
 // Components imports
 import SortablePhotoAlbum from "components/SortablePhotoAlbum/SortablePhotoAlbum";
 // Modal imports
@@ -20,6 +17,7 @@ import EditView from "components/SortablePhotoAlbum/admin/EditView";
 
 // import { trimImagePath } from "utils";
 import axios from "axios";
+import { Skeleton } from "@mui/material";
 
 const breakpoints = [480, 768, 1024, 1280, 1600, 1920, 2560];
 
@@ -30,9 +28,11 @@ const breakpoints = [480, 768, 1024, 1280, 1600, 1920, 2560];
  */
 function PhotoViewer({ album, refreshFlag }) {
   const [photos, setPhotos] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchImages() {
+      setLoading(true);
       setPhotos([]);
 
       // Get the album images from the backend
@@ -87,6 +87,7 @@ function PhotoViewer({ album, refreshFlag }) {
         .filter(Boolean);
 
       setPhotos(parsedPhotos);
+      setLoading(false);
     }
 
     fetchImages();
@@ -156,10 +157,26 @@ function PhotoViewer({ album, refreshFlag }) {
         </MKBox>
       )}
 
-      <ModalProvider>
-        <SortablePhotoAlbum photos={photos} setPhotos={setPhotos} />
-        <EditView />
-      </ModalProvider>
+      <MKBox sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
+        {loading ? (
+          <MKBox
+            sx={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+              gap: 2,
+            }}
+          >
+            {Array.from({ length: 8 }).map((_, i) => (
+              <Skeleton key={i} variant="rectangular" width="100%" height={200} animation="wave" />
+            ))}
+          </MKBox>
+        ) : (
+          <ModalProvider>
+            <SortablePhotoAlbum photos={photos} setPhotos={setPhotos} />
+            <EditView />
+          </ModalProvider>
+        )}
+      </MKBox>
     </MKBox>
   );
 }
