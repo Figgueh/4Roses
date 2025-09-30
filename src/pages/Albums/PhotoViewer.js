@@ -166,7 +166,7 @@ function PhotoViewer({ album, refreshFlag }) {
               gap: 2,
             }}
           >
-            {Array.from({ length: 8 }).map((_, i) => (
+            {Array.from({ length: 12 }).map((_, i) => (
               <Skeleton key={i} variant="rectangular" width="100%" height={200} animation="wave" />
             ))}
           </MKBox>

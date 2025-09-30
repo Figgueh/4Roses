@@ -56,6 +56,7 @@ function TransparentBlogCard({ image, title, description, action }) {
         width="100%"
         position="relative"
         zIndex={1}
+        sx={{ maxHeight: "200px" }}
       />
       <MKBox
         borderRadius="lg"

@@ -265,7 +265,7 @@ If the web pages don't include any information on the previously mentioned items
 The article should follow this schema:
 {
   "title": "Main title, make sure to not include any special characters like @,:,",'...",
-  "image": "Leave blank or provide a working link",
+  "image": "Leave blank or provide a working link, try to find one that has at least 200px height",
   "description": "a short description summarizing the article",
   "article": [{
   "title": "Section 1",
