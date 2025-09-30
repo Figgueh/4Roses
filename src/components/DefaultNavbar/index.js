@@ -36,6 +36,8 @@ import MKBox from "components/MKBox";
 import MKTypography from "components/MKTypography";
 import MKButton from "components/MKButton";
 import MKAvatar from "components/MKAvatar";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
 
 // Material Kit 2 React example components
 import DefaultNavbarDropdown from "./DefaultNavbarDropdown";
@@ -47,6 +49,8 @@ import breakpoints from "assets/theme/base/breakpoints";
 //Images
 import MainLogo from "assets/images/small-logos/4RosesHeader.png";
 import { getProfilePicture } from "connection/users/getProfilePicture";
+
+import { useTranslation } from "react-i18next";
 
 function DefaultNavbar({ brand, routes, transparent, light, action, sticky, relative, center }) {
   const navigate = useNavigate();
@@ -63,8 +67,29 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [profilePicture, setProfilePicture] = useState("");
   const { session, signOut } = UserAuth();
+  const { i18n } = useTranslation();
+  const [dropdownLang, setDropdownLang] = useState(null);
+  const currentLang = i18n.language;
+
+  const openDropdownLang = ({ currentTarget }) => setDropdownLang(currentTarget);
+  const closeDropdownLang = () => setDropdownLang(null);
+
+  const iconStyles = {
+    ml: 1,
+    transition: "transform 200ms ease-in-out",
+  };
+
+  const dropdownIconStyles = {
+    transform: dropdown ? "rotate(180deg)" : "rotate(0)",
+    ...iconStyles,
+  };
 
   const openMobileNavbar = () => setMobileNavbar(!mobileNavbar);
+
+  const changeLanguage = (lang) => {
+    i18n.changeLanguage(lang);
+    closeDropdownLang();
+  };
 
   const handleSignOut = async (event) => {
     event.preventDefault();
@@ -550,7 +575,8 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
             </Link>
           )}
 
-          <MKBox ml={{ xs: "auto", lg: 0 }}>
+          <MKBox ml={{ xs: "auto", lg: 0 }} display="flex" alignItems="center" gap={1}>
+            {/* Action Button */}
             {action &&
               (action.type === "internal" ? (
                 <MKButton
@@ -583,7 +609,18 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
                   {action.label}
                 </MKButton>
               ))}
+
+            {/* Language Button */}
+            <MKButton variant="gradient" color="light" onClick={openDropdownLang} size="small">
+              {currentLang} <Icon sx={dropdownIconStyles}>expand_more</Icon>
+            </MKButton>
+
+            <Menu anchorEl={dropdownLang} open={Boolean(dropdownLang)} onClose={closeDropdownLang}>
+              <MenuItem onClick={() => changeLanguage("en")}>English</MenuItem>
+              <MenuItem onClick={() => changeLanguage("fr")}>Français</MenuItem>
+            </Menu>
           </MKBox>
+
           <MKBox
             display={{ xs: "inline-block", lg: "none" }}
             lineHeight={0}

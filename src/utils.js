@@ -22,7 +22,12 @@ export function trimImagePath(path) {
 // https://ywkadgkdgycsjuhllfau.supabase.co/storage/v1/object/images/articles/testimonial-6-3.jpg
 // returns articles/testimonial-6-3.jpg
 export function trimImagePathNoSize(path) {
-  const pathSplit = path?.split("/")[8] + "/" + path?.split("/")[9];
+  // Removes any parameters if there are any.
+  var lastPart = path?.split("/").at(-1);
+  if (lastPart.includes("?")) {
+    lastPart = lastPart.split("?")[0];
+  }
+  const pathSplit = path?.split("/").at(-2) + "/" + lastPart;
   if (pathSplit != "undefined/undefined") return pathSplit;
   else return undefined;
 }

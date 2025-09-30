@@ -10,6 +10,7 @@ import Box from "@mui/material/Box";
 import PhotoUploader from "./PhotoUploader";
 import ActivityEditor from "./ActivityEditor";
 import ArticleGenerator from "./ArticleGenerator";
+import AmenitiesEditor from "./AmenitiesEditor";
 
 function AdminDash() {
   const [activeTab, setActiveTab] = useState(0);
@@ -27,14 +28,16 @@ function AdminDash() {
           >
             <Tab label="Interior Photos" />
             <Tab label="Exterior Photos" />
+            <Tab label="Amenities Editor" />
             <Tab label="Activity Editor" />
             <Tab label="Article Generator" />
           </Tabs>
           <Box sx={{ flexGrow: 1 }}>
             {activeTab === 0 && <PhotoUploader album="interior" />}
             {activeTab === 1 && <PhotoUploader album="exterior" />}
-            {activeTab === 2 && <ActivityEditor />}
-            {activeTab === 3 && <ArticleGenerator />}
+            {activeTab === 2 && <AmenitiesEditor />}
+            {activeTab === 3 && <ActivityEditor />}
+            {activeTab === 4 && <ArticleGenerator />}
           </Box>
         </Box>
       </Container>
