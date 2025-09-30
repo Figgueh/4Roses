@@ -19,14 +19,21 @@ import axios from "axios";
 import { slugify } from "utils";
 
 function Amenities() {
-  const [amenities, setAmenities] = useState([]);
+  const [largeAmenities, setLargeAmenities] = useState([]);
+  const [smallAmenities, setSmallAmenities] = useState([]);
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadData = async () => {
-      const amenitiesRequest = await axios.get(`${process.env.REACT_APP_BACKEND}/amenities`);
-      setAmenities(amenitiesRequest.data);
+      const largeAmenitiesRequest = await axios.get(
+        `${process.env.REACT_APP_BACKEND}/amenities/big`
+      );
+      setLargeAmenities(largeAmenitiesRequest.data);
+      const smallAmenitiesRequest = await axios.get(
+        `${process.env.REACT_APP_BACKEND}/amenities/small`
+      );
+      setSmallAmenities(smallAmenitiesRequest.data);
       const activitiesRequest = await axios.get(`${process.env.REACT_APP_BACKEND}/activities`);
       setActivities(activitiesRequest.data);
       setLoading(false);
@@ -39,8 +46,8 @@ function Amenities() {
     {
       title: "Included Amenities",
       description: "All these amenities are included",
-      items: amenities,
-      smallItems: [],
+      items: largeAmenities,
+      smallItems: smallAmenities,
     },
     {
       title: "Nearby activities",
@@ -96,12 +103,12 @@ function Amenities() {
         )}
       </Grid>
       <Grid container spacing={10} pt={4} pl={3}>
-        {smallItems.map(({ image, title, sub }) => (
+        {smallItems.map(({ image, title, description }) => (
           <Grid item xs={12} md={3} sx={{ mb: 1 }} id={title} key={title}>
-            {image}
+            <MKBox component="img" src={image} alt={title} width="50px" />
             <MKTypography variant="h6">{title}</MKTypography>
             <MKTypography variant="h6" fontWeight="regular">
-              {sub}
+              {description}
             </MKTypography>
           </Grid>
         ))}
