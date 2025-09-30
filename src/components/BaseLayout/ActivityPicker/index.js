@@ -86,18 +86,31 @@ function ActivityPicker({ breadcrumb, title, items }) {
                   console.log(item),
                   (
                     <Grid item xs={12} sm={6} lg={3} key={item.id} sx={{ display: "flex" }}>
-                      <TransparentBlogCard
-                        image={item.image}
-                        title={item.title}
-                        description={item.description}
-                        action={{
-                          type: "internal",
-                          route: "/activities/" + slugify(title) + "/" + slugify(item.title),
-                          color: "info",
-                          label: "read more",
+                      <MKBox
+                        sx={{
+                          flex: 1,
+                          display: "flex",
+                          flexDirection: "column",
+                          borderRadius: 2,
+                          boxShadow: 1,
+                          bgcolor: "transparent",
+                          position: "relative",
+                          overflow: "hidden",
+                          p: 2,
                         }}
-                        sx={{ flex: 1, display: "flex", flexDirection: "column" }}
-                      />
+                      >
+                        <TransparentBlogCard
+                          image={item.image}
+                          title={item.title}
+                          description={item.description}
+                          action={{
+                            type: "internal",
+                            route: "/activities/" + slugify(title) + "/" + slugify(item.title),
+                            color: "info",
+                            label: "read more",
+                          }}
+                        />
+                      </MKBox>
                     </Grid>
                   )
                 )

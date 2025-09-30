@@ -37,7 +37,11 @@ import MainFeatures from "pages/Home/sections/MainFeatures";
 import Amenities from "pages/Home/sections/Amenities";
 import MediaCard from "components/Cards/BlogCards/CenteredBlogCard/MediaCard";
 
+import { useTranslation } from "react-i18next";
+
 function Home() {
+  const { t } = useTranslation();
+
   return (
     <>
       <DefaultNavbar
@@ -45,7 +49,7 @@ function Home() {
         action={{
           type: "external",
           route: "https://www.vrbo.com/en-ca/cottage-rental/p2905236vb",
-          label: "book now",
+          label: `${t("book")}`,
           color: "default",
         }}
         sticky
@@ -86,7 +90,7 @@ function Home() {
                 },
               })}
             >
-              Your Dream Rental Awaits!
+              {t("dreamRental")}
             </MKTypography>
             <MKTypography variant="body1" color="white" opacity={0.8} mt={1} mb={3}>
               Spacious, Scenic, and Ready for You — Book Today!
