@@ -1,4 +1,5 @@
 import supabase from "../config/supabaseClient.js";
+import { supportedLanguages, translateText } from "../middlewares/translate.js";
 import { deletePhoto, uploadPhoto } from "../utils/helpers.js";
 
 // GET all the amenities
@@ -70,6 +71,27 @@ export const addAmenity = async (req, res, next) => {
       .single();
 
     if (error) throw error;
+
+    // Translate and upload data to the database.
+    for (const language of supportedLanguages) {
+      const [transTitle, transDescription] = await Promise.all([
+        translateText(title, language),
+        translateText(description, language),
+      ]);
+
+      const { data: transData, error: transError } = await supabase
+        .from("amenities_translation")
+        .insert({
+          amenities_id: data.id,
+          language,
+          title: transTitle,
+          description: transDescription,
+        })
+        .select();
+      if (transError) throw transError;
+      console.log(transData);
+    }
+
     return res.status(201).json(data);
   } catch (err) {
     next(err);
