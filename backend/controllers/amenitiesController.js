@@ -24,6 +24,7 @@ export const getAllAmenities = async (req, res, next) => {
 // /:type -> type can be `big` or `small`
 export const getAmenities = async (req, res, next) => {
   try {
+    const { lang = "en" } = req.query;
     const { type } = req.params;
     var isSmall;
 
@@ -37,12 +38,38 @@ export const getAmenities = async (req, res, next) => {
       .eq("small", isSmall);
     if (error) throw error;
 
-    const amenities = amenitiesRequest.map((value) => ({
+    var amenities = amenitiesRequest.map((value) => ({
       ...value,
       image: !value.small
         ? `${process.env.IMGIX}/amenities/${value.image}?w=250&h=200&fit=crop&auto=format` // for big
         : `${process.env.IMGIX}/amenities/${value.image}?w=50`, // for small
     }));
+
+    if (lang !== "en") {
+      const translatedAmenities = await Promise.all(
+        amenities.map(async (amenity) => {
+          const { data: transRequest, error: transError } = await supabase
+            .from("amenities_translation")
+            .select("title, description")
+            .eq("language", lang)
+            .eq("amenities_id", amenity.id)
+            .single(); // ensures one row
+
+          if (transError) {
+            console.log("unable to find amenity translation in " + lang);
+            return amenity; // fallback to original
+          }
+
+          return {
+            ...amenity,
+            title: transRequest?.title || amenity.title,
+            description: transRequest?.description || amenity.description,
+          };
+        })
+      );
+
+      amenities = translatedAmenities;
+    }
 
     res.json(amenities);
   } catch (err) {
@@ -89,7 +116,9 @@ export const addAmenity = async (req, res, next) => {
         })
         .select();
       if (transError) throw transError;
-      console.log(transData);
+      if (transData) {
+        console.log("Translation data saved.");
+      }
     }
 
     return res.status(201).json(data);
@@ -137,6 +166,27 @@ export const updateAmenity = async (req, res, next) => {
       .single();
 
     if (error) throw error;
+
+    // Translate and upload data to the database.
+    for (const language of supportedLanguages) {
+      const [transTitle, transDescription] = await Promise.all([
+        translateText(title, language),
+        translateText(description, language),
+      ]);
+
+      const { data: transData, error: transError } = await supabase
+        .from("amenities_translation")
+        .update({
+          title: transTitle,
+          description: transDescription,
+        })
+        .eq("amenities_id", data.id)
+        .select();
+      if (transError) throw transError;
+      if (transData) {
+        console.log("Translation data saved.");
+      }
+    }
 
     return res.status(201).json(data);
   } catch (err) {

@@ -1,6 +1,5 @@
 import axios from "axios";
-
-export const supportedLanguages = ["fr", "es"];
+export const supportedLanguages = ["fr", "es", "de", "pt", "nl"];
 
 export async function translateText(text, targetLang, source = "en") {
   try {

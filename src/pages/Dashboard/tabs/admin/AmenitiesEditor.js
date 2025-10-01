@@ -60,7 +60,7 @@ function AmenitiesEditor() {
       });
     } else {
       setEditingAmenity(null);
-      setForm({ title: "", description: "", image_url: "", small: false });
+      setForm({ title: "", description: "", image_url: "", isSmall: false });
     }
     setOpen(true);
   };

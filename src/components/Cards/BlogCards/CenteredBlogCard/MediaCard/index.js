@@ -9,47 +9,52 @@ import MKBox from "components/MKBox";
 import MKTypography from "components/MKTypography";
 
 import CenteredBlogCard from "..";
-
-const mediaData = {
-  exterior: {
-    image: Exterior,
-    title: "Exterior",
-    description:
-      "The exterior of this stunning rental property features lush fruit trees, a sparkling salt water heated pool, and multiple balconies offering breathtaking views.",
-    action: {
-      type: "internal",
-      route: "/pages/albums/exterior",
-      color: "info",
-      label: "View more exterior pictures",
-    },
-  },
-  interior: {
-    image: Interior,
-    title: "Interior",
-    description:
-      "Step inside this beautifully designed home featuring elegant decor, spacious living areas, and luxurious amenities for ultimate comfort.",
-    action: {
-      type: "internal",
-      route: "/pages/albums/interior",
-      color: "info",
-      label: "View more interior pictures",
-    },
-  },
-  video: {
-    image: VideoThumbnail,
-    title: "Videos",
-    description:
-      "Watch stunning video walkthroughs of the property showcasing its beauty in full motion.",
-    action: {
-      type: "internal",
-      route: "/pages/albums/videos",
-      color: "info",
-      label: "Watch videos",
-    },
-  },
-};
+import { useTranslation } from "react-i18next";
 
 function MediaCard({ toDisplay, containsHeader }) {
+  const { t } = useTranslation();
+
+  const mediaData = {
+    exterior: {
+      image: Exterior,
+      title: `${t("Exterior")}`,
+      description: `${t(
+        "The exterior of this stunning rental property features lush fruit trees, a sparkling salt water heated pool, and multiple balconies offering breathtaking views."
+      )}`,
+      action: {
+        type: "internal",
+        route: "/pages/albums/exterior",
+        color: "info",
+        label: `${t("View more exterior pictures")}`,
+      },
+    },
+    interior: {
+      image: Interior,
+      title: `${t("Interior")}`,
+      description: `${t(
+        "Step inside this beautifully designed home featuring elegant decor, spacious living areas, and luxurious amenities for ultimate comfort."
+      )}`,
+      action: {
+        type: "internal",
+        route: "/pages/albums/interior",
+        color: "info",
+        label: `${t("View more interior pictures")}`,
+      },
+    },
+    video: {
+      image: VideoThumbnail,
+      title: "Videos",
+      description:
+        "Watch stunning video walkthroughs of the property showcasing its beauty in full motion.",
+      action: {
+        type: "internal",
+        route: "/pages/albums/videos",
+        color: "info",
+        label: "Watch videos",
+      },
+    },
+  };
+
   let message;
   if (toDisplay.includes("exterior") && toDisplay.includes("interior")) {
     message = "checkout our gallery featuring exquisite exteriors and stunning interior ";

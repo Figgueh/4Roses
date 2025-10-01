@@ -28,16 +28,18 @@ import Contact from "pages/AboutUs/sections/Contact";
 import Footer from "pages/AboutUs/sections/Footer";
 
 // Routes
-import routes from "routes";
+import { routes } from "routes";
+import { useTranslation } from "react-i18next";
 
 // Images
 import bgImage from "assets/images/beach/beach1.jpg";
-
 function AboutUs() {
+  const { t } = useTranslation();
+  const translatedRoutes = routes(t);
   return (
     <>
       <DefaultNavbar
-        routes={routes}
+        routes={translatedRoutes}
         action={{
           type: "external",
           route: "https://www.creative-tim.com/product/material-kit-react",
