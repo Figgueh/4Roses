@@ -1,4 +1,5 @@
 import supabase from "../config/supabaseClient.js";
+import { supportedLanguages, translateText } from "../middlewares/translate.js";
 import { slugify } from "../utils.js";
 import { deletePhoto, uploadPhoto } from "../utils/helpers.js";
 
@@ -6,12 +7,14 @@ import { deletePhoto, uploadPhoto } from "../utils/helpers.js";
 // /
 export const getActivities = async (req, res, next) => {
   try {
+    const { lang = "en" } = req.query;
+
     // Get the activities
     const { data, error } = await supabase.from("activities").select("*");
     if (error) throw error;
 
     // Add the supabase link to the path, and prepare the slug
-    const activities = data.map((activity) => {
+    var activities = data.map((activity) => {
       const generateUrl = (width, height) => {
         return `${process.env.IMGIX}/${activity.image}?w=${width}&h=${height}&fit=crop&auto=format`;
       };
@@ -22,6 +25,33 @@ export const getActivities = async (req, res, next) => {
         slug: "activities/" + slugify(activity.title),
       };
     });
+
+    if (lang !== "en") {
+      const translatedActivities = await Promise.all(
+        activities.map(async (activity) => {
+          const { data: transRequest, error: transError } = await supabase
+            .from("activities_translation")
+            .select("title")
+            .eq("language", lang)
+            .eq("activity_id", activity.id)
+            .single(); // ensures one row
+
+          if (transError) {
+            console.log(
+              "unable to find activity translation in " + lang + " for " + activity.title
+            );
+            return activity; // fallback to original
+          }
+
+          return {
+            ...activity,
+            title: transRequest?.title || activity.title,
+          };
+        })
+      );
+
+      activities = translatedActivities;
+    }
 
     res.json(activities);
   } catch (err) {
@@ -65,9 +95,32 @@ export const addActivity = async (req, res, next) => {
     const { data, error } = await supabase
       .from("activities")
       .insert({ title: title, image: imageUrl })
-      .select();
+      .select()
+      .single();
 
     if (error) throw error;
+
+    // Translate and upload data to the database.
+    for (const language of supportedLanguages) {
+      const [transTitle] = await Promise.all([translateText(title, language)]);
+
+      console.log(data.id);
+      const { data: transData, error: transError } = await supabase
+        .from("activities_translation")
+        .insert({
+          activity_id: data.id,
+          language,
+          title: transTitle,
+        })
+        .select();
+      if (transError) {
+        console.log(transError);
+        throw transError;
+      }
+      if (transData) {
+        console.log("Translation data saved.");
+      }
+    }
 
     res.status(201).json(data[0]);
   } catch (err) {
@@ -95,18 +148,34 @@ export const updateActivity = async (req, res, next) => {
       // If there was one, delete it and upload the new photo
       if (existingPhoto.image) await deletePhoto(existingPhoto.image);
       await uploadPhoto(imageUrl, image);
+    }
 
-      // Update the row in the database
-      const { error } = await supabase
-        .from("activities")
-        .update({ title, image: imageUrl })
-        .eq("id", id);
+    // Update the row in the database
+    const { data: updatedData, error } = await supabase
+      .from("activities")
+      .update({ title, image: imageUrl })
+      .eq("id", id)
+      .select()
+      .single();
 
-      if (error) throw error;
-    } else {
-      // If there wasn't a photo being uploaded, then just update the title
-      const { error } = await supabase.from("activities").update({ title }).eq("id", id);
-      if (error) throw error;
+    if (error) throw error;
+
+    // Translate and upload data to the database.
+    for (const language of supportedLanguages) {
+      const [transTitle, transDescription] = await Promise.all([translateText(title, language)]);
+
+      const { data: transData, error: transError } = await supabase
+        .from("activities_translation")
+        .update({
+          title: transTitle,
+          description: transDescription,
+        })
+        .eq("activity_id", updatedData.id)
+        .select();
+      if (transError) throw transError;
+      if (transData) {
+        console.log("Translation data saved.");
+      }
     }
 
     res.status(200).send();
