@@ -41,11 +41,13 @@ import DefaultNavbar from "components/DefaultNavbar";
 import SimpleFooter from "components/Footers/SimpleFooter";
 
 // Material Kit 2 React page layout routes
-import routes from "routes";
+import { routes } from "routes";
 
 // Images
 import bgImage from "assets/images/bg-sign-in-basic.jpeg";
 import { UserAuth } from "connection/auth/authContext";
+
+import { useTranslation } from "react-i18next";
 
 function SignInBasic() {
   const navigate = useNavigate();
@@ -54,6 +56,8 @@ function SignInBasic() {
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const { session, authLoading, signInUser } = UserAuth();
+  const { t } = useTranslation();
+  const translatedRoutes = routes(t);
 
   const handleSignInUser = async (event) => {
     event.preventDefault();
@@ -86,7 +90,7 @@ function SignInBasic() {
   return (
     <>
       <DefaultNavbar
-        routes={routes}
+        routes={translatedRoutes}
         action={{
           type: "external",
           route: "https://www.creative-tim.com/product/material-kit-react",

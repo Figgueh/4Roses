@@ -26,13 +26,18 @@ import CssBaseline from "@mui/material/CssBaseline";
 import theme from "assets/theme";
 
 // Material Kit 2 React routes
-import routes from "routes";
+import { routes } from "routes";
 import Home from "pages/Home";
 import { AuthContextProvider } from "connection/auth/authContext";
 import ActivityBuilder from "pages/ActivityBuilder";
+import { useTranslation } from "react-i18next";
 
 export default function App() {
   const { pathname } = useLocation();
+  const { t } = useTranslation();
+
+  // Build routes with translations
+  const translatedRoutes = routes(t);
 
   // Setting page scroll to 0 when changing the route
   useEffect(() => {
@@ -58,7 +63,7 @@ export default function App() {
       <CssBaseline />
       <AuthContextProvider>
         <Routes>
-          {getRoutes(routes)}
+          {getRoutes(translatedRoutes)}
           <Route path="/" element={<Home />} />
           <Route path="activities/:section/:slug" element={<ActivityBuilder />} />
           <Route path="activities/:section" element={<ActivityBuilder />} />

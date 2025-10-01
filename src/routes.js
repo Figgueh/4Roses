@@ -50,43 +50,43 @@ import Dashboard from "layouts/pages/authentication/dashboard";
 
 import PrivateRoute from "connection/users/PrivateRoute";
 
-const routes = [
+export const routes = (t) => [
   {
-    name: "pages",
+    name: t("pages"),
     icon: <Icon>dashboard</Icon>,
     columns: 1,
     rowsPerColumn: 2,
     collapse: [
       {
-        name: "landing pages",
+        name: t("landing pages"),
         collapse: [
           {
-            name: "home",
+            name: t("home"),
             route: "/",
             component: <Home />,
           },
           {
-            name: "About Us",
+            name: t("About Us"),
             route: "/pages/landing-pages/AboutUs",
             component: <AboutUs />,
           },
         ],
       },
       {
-        name: "account",
+        name: t("account"),
         collapse: [
           {
-            name: "sign in",
+            name: t("sign in"),
             route: "/sign-in",
             component: <SignIn />,
           },
           {
-            name: "register",
+            name: t("register"),
             route: "/register",
             component: <Register />,
           },
           {
-            name: "dashboard",
+            name: t("dashboard"),
             route: "/dashboard",
             component: (
               <PrivateRoute>
@@ -95,7 +95,7 @@ const routes = [
             ),
           },
           {
-            name: "sign out",
+            name: t("sign out"),
             route: "/",
             component: <></>,
           },
@@ -104,21 +104,21 @@ const routes = [
     ],
   },
   {
-    name: "sections",
+    name: t("sections"),
     icon: <Icon>view_day</Icon>,
     collapse: [
       {
-        name: "Album sections",
-        description: "See all sections",
+        name: t("Album sections"),
+        description: t("See all sections"),
         dropdown: true,
         collapse: [
           {
-            name: "Interior",
+            name: t("Interior"),
             route: "/pages/albums/interior",
             component: <Interior />,
           },
           {
-            name: "Exterior",
+            name: t("Exterior"),
             route: "/pages/albums/exterior",
             component: <Exterior />,
           },
@@ -127,5 +127,3 @@ const routes = [
     ],
   },
 ];
-
-export default routes;

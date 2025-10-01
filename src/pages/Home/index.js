@@ -26,7 +26,7 @@ import DefaultNavbar from "components/DefaultNavbar";
 import DefaultFooter from "components/Footers/DefaultFooter";
 
 // Routes
-import routes from "routes";
+import { routes } from "routes";
 import footerRoutes from "footer.routes";
 
 //Images
@@ -41,11 +41,12 @@ import { useTranslation } from "react-i18next";
 
 function Home() {
   const { t } = useTranslation();
+  const translatedRoutes = routes(t);
 
   return (
     <>
       <DefaultNavbar
-        routes={routes}
+        routes={translatedRoutes}
         action={{
           type: "external",
           route: "https://www.vrbo.com/en-ca/cottage-rental/p2905236vb",
@@ -93,7 +94,7 @@ function Home() {
               {t("dreamRental")}
             </MKTypography>
             <MKTypography variant="body1" color="white" opacity={0.8} mt={1} mb={3}>
-              Spacious, Scenic, and Ready for You — Book Today!
+              {t("Spacious, Scenic, and Ready for You — Book Today!")}
             </MKTypography>
           </Grid>
         </Container>

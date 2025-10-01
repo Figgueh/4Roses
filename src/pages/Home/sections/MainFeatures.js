@@ -23,8 +23,10 @@ import MKBox from "components/MKBox";
 
 // Material Kit 2 React examples
 import DefaultCounterCard from "components/Cards/CounterCards/DefaultCounterCard";
+import { useTranslation } from "react-i18next";
 
 function MainFeatures() {
+  const { t } = useTranslation();
   return (
     <MKBox component="section" py={3}>
       <Container>
@@ -32,8 +34,8 @@ function MainFeatures() {
           <Grid item xs={12} md={4}>
             <DefaultCounterCard
               count={5}
-              title="Bed rooms"
-              description="sleeps up to 10 people comfortably"
+              title={t("Bedrooms")}
+              description={t("sleeps up to 10 people comfortably")}
             />
           </Grid>
           <Grid item xs={12} md={4} display="flex">
@@ -41,8 +43,8 @@ function MainFeatures() {
             <DefaultCounterCard
               count={5}
               suffix="+"
-              title="Bathrooms"
-              description="Complete with poolside bathroom"
+              title={t("Bathrooms")}
+              description={t("Complete with poolside bathroom")}
             />
             <Divider orientation="vertical" sx={{ display: { xs: "none", md: "block" }, ml: 0 }} />
           </Grid>
@@ -50,8 +52,8 @@ function MainFeatures() {
             <DefaultCounterCard
               count={12}
               suffix="+"
-              title="Amenities"
-              description="From a washer and dryer to wifi, it's included."
+              title={t("Amenities")}
+              description={t("From a washer and dryer to wifi, it's included.")}
             />
           </Grid>
         </Grid>

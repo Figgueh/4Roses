@@ -51,6 +51,7 @@ import MainLogo from "assets/images/small-logos/4RosesHeader.png";
 import { getProfilePicture } from "connection/users/getProfilePicture";
 
 import { useTranslation } from "react-i18next";
+import { supportedLanguages } from "i18n";
 
 function DefaultNavbar({ brand, routes, transparent, light, action, sticky, relative, center }) {
   const navigate = useNavigate();
@@ -616,8 +617,11 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
             </MKButton>
 
             <Menu anchorEl={dropdownLang} open={Boolean(dropdownLang)} onClose={closeDropdownLang}>
-              <MenuItem onClick={() => changeLanguage("en")}>English</MenuItem>
-              <MenuItem onClick={() => changeLanguage("fr")}>Français</MenuItem>
+              {Object.entries(supportedLanguages).map(([code, name]) => (
+                <MenuItem key={code} onClick={() => changeLanguage(code)}>
+                  {name}
+                </MenuItem>
+              ))}
             </Menu>
           </MKBox>
 
