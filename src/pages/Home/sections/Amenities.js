@@ -29,14 +29,16 @@ function Amenities() {
   useEffect(() => {
     const loadData = async () => {
       const largeAmenitiesRequest = await axios.get(
-        `${process.env.REACT_APP_BACKEND}/amenities/big`
+        `${process.env.REACT_APP_BACKEND}/amenities/big?lang=${i18n.language}`
       );
       setLargeAmenities(largeAmenitiesRequest.data);
       const smallAmenitiesRequest = await axios.get(
-        `${process.env.REACT_APP_BACKEND}/amenities/small`
+        `${process.env.REACT_APP_BACKEND}/amenities/small?lang=${i18n.language}`
       );
       setSmallAmenities(smallAmenitiesRequest.data);
-      const activitiesRequest = await axios.get(`${process.env.REACT_APP_BACKEND}/activities`);
+      const activitiesRequest = await axios.get(
+        `${process.env.REACT_APP_BACKEND}/activities?lang=${i18n.language}`
+      );
       setActivities(activitiesRequest.data);
       setLoading(false);
     };
@@ -52,6 +54,9 @@ function Amenities() {
     axios
       .get(`${process.env.REACT_APP_BACKEND}/amenities/big?lang=${i18n.language}`)
       .then((res) => setLargeAmenities(res.data));
+    axios
+      .get(`${process.env.REACT_APP_BACKEND}/activities?lang=${i18n.language}`)
+      .then((res) => setActivities(res.data));
   }, [i18n.language]);
 
   const data = [
