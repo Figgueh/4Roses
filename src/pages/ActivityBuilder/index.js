@@ -7,6 +7,7 @@ import ActivityLayout from "components/BaseLayout/ActivityLayout";
 
 import ActivityPicker from "components/BaseLayout/ActivityPicker";
 import { unslugify } from "utils";
+import { useTranslation } from "react-i18next";
 
 import axios from "axios";
 const API_BASE = process.env.REACT_APP_BACKEND;
@@ -15,6 +16,7 @@ function ActivityBuilder() {
   const { section, slug } = useParams();
   const [listOfArticles, setListOfArticles] = useState([]);
   const [article, setArticle] = useState(null);
+  const { i18n } = useTranslation();
 
   useEffect(() => {
     // Functions that fetch data:
@@ -27,7 +29,7 @@ function ActivityBuilder() {
 
       if (slug) {
         const articleData = await axios.get(
-          `${process.env.REACT_APP_BACKEND}/articles/${unslugify(slug)}`
+          `${process.env.REACT_APP_BACKEND}/articles/${unslugify(slug)}?lang=${i18n.language}`
         );
         console.log(articleData);
         setArticle(articleData.data);
@@ -35,6 +37,23 @@ function ActivityBuilder() {
     };
     fetchData();
   }, [section, slug]);
+
+  useEffect(() => {
+    const fetchTranslatedArticle = async () => {
+      if (slug) {
+        try {
+          const articleData = await axios.get(
+            `${process.env.REACT_APP_BACKEND}/articles/${unslugify(slug)}?lang=${i18n.language}`
+          );
+          setArticle(articleData.data);
+        } catch (err) {
+          console.error("Failed to fetch translated article", err);
+        }
+      }
+    };
+
+    fetchTranslatedArticle();
+  }, [i18n.language, slug]);
 
   if (!slug) {
     return (

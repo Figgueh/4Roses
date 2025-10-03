@@ -4,6 +4,7 @@ import supabase from "../config/supabaseClient.js";
 import { deletePhoto, uploadPhoto } from "../utils/helpers.js";
 import puppeteer from "puppeteer";
 import fs from "fs";
+import { supportedLanguages, translateArticle, translateText } from "../middlewares/translate.js";
 
 // GET all articles
 // /
@@ -21,10 +22,49 @@ export const getArticles = async (req, res, next) => {
 // /:title
 export const getArticleByTitle = async (req, res, next) => {
   try {
+    const { lang = "en" } = req.query;
     const { title } = req.params;
-    const { data, error } = await supabase.from("articles").select("*").eq("title", title).single();
+    const { data: articleRequest, error } = await supabase
+      .from("articles")
+      .select("*")
+      .eq("title", title)
+      .single();
     if (error) throw error;
-    res.json(data);
+
+    // Add the supabase image url if its in our database
+    var article = {
+      ...articleRequest,
+      image: articleRequest.image
+        ? articleRequest.image.startsWith("http")
+          ? articleRequest.image
+          : `${process.env.IMGIX}/${articleRequest.image}`
+        : "/images/placeholder.png",
+    };
+
+    if (lang !== "en") {
+      const { data: transRequest, error: transError } = await supabase
+        .from("articles_translation")
+        .select("title, description, content")
+        .eq("language", lang)
+        .eq("articles_id", article.id)
+        .single();
+
+      console.log(transRequest);
+
+      if (transError) {
+        console.log("unable to find article translation in " + lang + " for " + article.title);
+        return article; // fallback to original
+      } else {
+        article = {
+          ...article,
+          title: transRequest?.title || article.title,
+          description: transRequest?.description || article.description,
+          content: transRequest?.content || article.content,
+        };
+      }
+    }
+
+    res.json(article);
   } catch (err) {
     next(err);
   }
@@ -34,6 +74,7 @@ export const getArticleByTitle = async (req, res, next) => {
 // /activity/:activityId
 export const getArticlesForActivity = async (req, res, next) => {
   try {
+    const { lang = "en" } = req.query;
     const { activityId } = req.params;
 
     const { data, error } = await supabase
@@ -52,6 +93,32 @@ export const getArticlesForActivity = async (req, res, next) => {
           : `${process.env.IMGIX}/${article.image}?w=200&h=200&fit=crop&auto=format`
         : "/images/placeholder.png",
     }));
+
+    if (lang !== "en") {
+      const translatedArticle = await Promise.all(
+        articles.map(async (article) => {
+          const { data: transRequest, error: transError } = await supabase
+            .from("articles_translation")
+            .select("title, description, content")
+            .eq("language", lang)
+            .eq("articles_id", article.id)
+            .single(); // ensures one row
+
+          if (transError) {
+            console.log("unable to find article translation in " + lang + " for " + article.title);
+            return article; // fallback to original
+          }
+
+          return {
+            ...article,
+            title: transRequest?.title || article.title,
+            description: transRequest?.title || article.description,
+            content: transRequest?.title || article.content,
+          };
+        })
+      );
+      articles = translatedArticle;
+    }
 
     res.json(articles);
   } catch (err) {
@@ -72,15 +139,19 @@ export const createArticle = async (req, res, next) => {
       jsonContent = [];
     }
 
-    const { data, error } = await supabase.from("articles").insert({
-      id: id,
-      activity_id: activityId,
-      url: url,
-      title: title,
-      content: jsonContent,
-      image: image,
-      description: description,
-    });
+    const { data, error } = await supabase
+      .from("articles")
+      .insert({
+        id: id,
+        activity_id: activityId,
+        url: url,
+        title: title,
+        content: jsonContent,
+        image: image,
+        description: description,
+      })
+      .select()
+      .single();
 
     if (error) {
       if (error.code === "23505") {
@@ -90,7 +161,31 @@ export const createArticle = async (req, res, next) => {
       return res.status(400).json({ error: error.message || "Database error" });
     }
 
-    res.status(201).json(data);
+    // Translate and upload data to the database.
+    for (const language of supportedLanguages) {
+      const [transTitle, transDescription, transArticle] = await Promise.all([
+        translateText(title, language),
+        translateText(description, language),
+        translateArticle(jsonContent, language),
+      ]);
+
+      const { data: transData, error: transError } = await supabase
+        .from("articles_translation")
+        .insert({
+          articles_id: data.id,
+          language: language,
+          title: transTitle,
+          description: transDescription,
+          content: transArticle,
+        })
+        .select();
+      if (transError) throw transError;
+      if (transData) {
+        console.log("Translation data saved.");
+      }
+    }
+
+    res.status(200).json(data);
   } catch (err) {
     console.log(err);
     next(err);
@@ -101,6 +196,7 @@ export const createArticle = async (req, res, next) => {
 export const updateArticle = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const { lang = "en" } = req.query;
     const { title, rawContent, image } = req.body;
     const file = req.file;
 
@@ -112,35 +208,53 @@ export const updateArticle = async (req, res, next) => {
       content = rawContent;
     }
 
+    // Get the old image path and title
+    const { data: articleData } = await supabase
+      .from("articles")
+      .select("image, title")
+      .eq("id", id)
+      .single();
+
     // If there is an image, update it
     if (file) {
-      // Get the old image path
-      const { data: articleData } = await supabase
-        .from("articles")
-        .select("image")
-        .eq("id", id)
-        .single();
-
       // Switch the photos
       await deletePhoto(articleData.image);
       await uploadPhoto("/articles/" + file.originalname, file);
     }
 
-    // Update the title and content
-    const { data, error } = await supabase
-      .from("articles")
-      .update({ title, content, image })
-      .eq("id", id);
+    if (lang == "en") {
+      // Update the title and content
+      const { data: result, error } = await supabase
+        .from("articles")
+        .update({ title, content, image })
+        .eq("id", id);
 
-    if (error) {
-      if (error.code === "23505") {
-        // Unique violation (duplicate)
-        return res.status(400).json({ error: "An article with this title already exists." });
+      articleData.title = title;
+
+      if (error) {
+        if (error.code === "23505") {
+          // Unique violation (duplicate)
+          return res.status(400).json({ error: "An article with this title already exists." });
+        }
+        return res.status(400).json({ error: error.message || "Database error" });
       }
-      return res.status(400).json({ error: error.message || "Database error" });
+      // Translation fetch
+    } else {
+      const { data: result, error } = await supabase
+        .from("articles_translation")
+        .update({ title, content })
+        .eq("language", lang)
+        .eq("articles_id", id);
+      if (error) {
+        if (error.code === "23505") {
+          // Unique violation (duplicate)
+          return res.status(400).json({ error: "An article with this title already exists." });
+        }
+        return res.status(400).json({ error: error.message || "Database error" });
+      }
     }
 
-    res.status(200).json({ message: "Article updated successfully", article: data });
+    res.status(200).json({ message: "Article updated successfully", title: articleData.title });
   } catch (err) {
     console.log(err);
 
@@ -265,7 +379,7 @@ If the web pages don't include any information on the previously mentioned items
 The article should follow this schema:
 {
   "title": "Main title, make sure to not include any special characters like @,:,",'...",
-  "image": "Leave blank or provide a working link, try to find one that has at least 200px height",
+  "image": "Leave blank or provide a working link, make sure I have the full url",
   "description": "a short description summarizing the article",
   "article": [{
   "title": "Section 1",
