@@ -24,3 +24,40 @@ export async function translateText(text, targetLang, source = "en") {
     throw err;
   }
 }
+
+export async function translateArticle(jsonArticle, targetLang) {
+  try {
+    const translated = await Promise.all(
+      jsonArticle.map(async (section) => {
+        const translatedSection = { ...section };
+
+        // translate title (string)
+        if (section.title) {
+          translatedSection.title = await translateText(section.title, targetLang);
+        }
+
+        // translate detail (string or array of strings)
+        if (Array.isArray(section.detail)) {
+          translatedSection.detail = await Promise.all(
+            section.detail.map(async (d) => await translateText(d, targetLang))
+          );
+        } else if (typeof section.detail === "string" && section.detail.trim()) {
+          translatedSection.detail = await translateText(section.detail, targetLang);
+        }
+
+        // translate content (string)
+        if (section.content) {
+          translatedSection.content = await translateText(section.content, targetLang);
+        }
+
+        return translatedSection;
+      })
+    );
+
+    console.log(translated);
+    return translated;
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+}

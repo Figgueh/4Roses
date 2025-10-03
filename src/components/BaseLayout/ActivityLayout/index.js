@@ -25,9 +25,9 @@ import { UserAuth } from "connection/auth/authContext";
 import { getAllUserInfo } from "connection/users/getAllUserInfo";
 
 // Utility
-import { trimImagePathNoSize } from "utils";
 import { slugify } from "utils";
 import axios from "axios";
+import { useTranslation } from "react-i18next";
 
 function ActivityLayout({ breadcrumb, title, item, setItem }) {
   const navigate = useNavigate();
@@ -38,6 +38,8 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
   const [previewImage, setPreviewImage] = useState(null);
   const [openPicture, setOpenPicture] = useState();
   const [error, setError] = useState("");
+  const [status, setStatus] = useState(null);
+  const { i18n } = useTranslation();
 
   useEffect(() => {
     const defaultArticle = {
@@ -46,6 +48,7 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
       article: [],
     };
     setEditedArticle(item || defaultArticle);
+    console.log(item.image);
   }, [item]);
 
   const handleEditMode = () => {
@@ -74,7 +77,7 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
     formData.append("title", updatedArticle.title);
     formData.append("rawContent", JSON.stringify(updatedArticle.content));
     formData.append("url", updatedArticle.url);
-    formData.append("image", trimImagePathNoSize(updatedArticle.image) || updatedArticle.image);
+    formData.append("image", updatedArticle.image);
     formData.append("description", updatedArticle.description);
 
     try {
@@ -83,7 +86,10 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
         formData.append("activityId", item.activityId);
         res = await axios.post(`${process.env.REACT_APP_BACKEND}/articles`, formData);
       } else {
-        res = await axios.put(`${process.env.REACT_APP_BACKEND}/articles/${item.id}`, formData);
+        res = await axios.put(
+          `${process.env.REACT_APP_BACKEND}/articles/${item.id}?lang=${i18n.language}`,
+          formData
+        );
       }
 
       if (res.status == 200) {
@@ -91,6 +97,7 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
         setItem(updatedArticle);
         setPreviewImage(null);
         setIsEditMode(false);
+        navigate(`${breadcrumb.at(1).route}/${slugify(res.data.title)}`);
       }
     } catch (err) {
       setError(err.response.data.error);
@@ -258,6 +265,12 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
         <Alert sx={{ mt: 2 }} severity="error" onClose={() => setError("")}>
           <AlertTitle>Article editor status</AlertTitle>
           {error}
+        </Alert>
+      )}
+      {status && error == null && (
+        <Alert sx={{ mt: 2 }} severity="success" onClose={() => setStatus(null)}>
+          <AlertTitle>Article editor status</AlertTitle>
+          {status}
         </Alert>
       )}
       <Card
