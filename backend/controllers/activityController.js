@@ -59,6 +59,42 @@ export const getActivities = async (req, res, next) => {
   }
 };
 
+// Get the translation of a particular activity ID
+// /translation/:activityID
+export const getActivityTranslation = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { lang = "en" } = req.query;
+
+    const { data, error } = await supabase
+      .from("activities_translation")
+      .select("*")
+      .eq("activity_id", id)
+      .eq("language", lang)
+      .single();
+    if (error) throw error;
+
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Get the data particular activity ID
+// /data/:activityID
+export const getActivityById = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const { data, error } = await supabase.from("activities").select("*").eq("id", id).single();
+    if (error) throw error;
+
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+};
+
 // GET the activity id of a named activity
 // /:activityName
 export const getActivityIdByName = async (req, res, next) => {
@@ -69,7 +105,10 @@ export const getActivityIdByName = async (req, res, next) => {
       .select("id")
       .eq("title", activityName)
       .single();
-    if (error) throw error;
+    if (error) {
+      console.log(error);
+      throw error;
+    }
 
     res.json(data);
   } catch (err) {

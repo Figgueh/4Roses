@@ -77,7 +77,7 @@ export const getArticlesForActivity = async (req, res, next) => {
     const { lang = "en" } = req.query;
     const { activityId } = req.params;
 
-    const { data, error } = await supabase
+    const { data: articlesReq, error } = await supabase
       .from("articles")
       .select("*")
       .eq("activity_id", activityId);
@@ -85,7 +85,7 @@ export const getArticlesForActivity = async (req, res, next) => {
     if (error) throw error;
 
     // Add the supabase image url if its in our database
-    var articles = data.map((article) => ({
+    var articles = articlesReq.map((article) => ({
       ...article,
       image: article.image
         ? article.image.startsWith("http")
@@ -111,9 +111,10 @@ export const getArticlesForActivity = async (req, res, next) => {
 
           return {
             ...article,
+            englishTitle: articlesReq.at(article).title,
             title: transRequest?.title || article.title,
-            description: transRequest?.title || article.description,
-            content: transRequest?.title || article.content,
+            description: transRequest?.description || article.description,
+            content: transRequest?.content || article.content,
           };
         })
       );

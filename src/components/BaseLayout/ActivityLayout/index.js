@@ -97,7 +97,15 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
         setItem(updatedArticle);
         setPreviewImage(null);
         setIsEditMode(false);
-        navigate(`${breadcrumb.at(1).route}/${slugify(res.data.title)}`);
+        console.log("Route type:", typeof breadcrumb.at(1)?.route, breadcrumb.at(1)?.route);
+
+        if (!breadcrumb.at(1).route.includes("[object Object]")) {
+          // Is from a regular update
+          navigate(`${breadcrumb.at(1).route}/${slugify(res.data.title)}`);
+        } else {
+          // Is coming from the article builder.
+          navigate(`/activities/${item.activityName}/${slugify(res.data.title)}`);
+        }
       }
     } catch (err) {
       setError(err.response.data.error);
@@ -478,6 +486,7 @@ ActivityLayout.propTypes = {
     url: PropTypes.string,
     isPreview: PropTypes.bool,
     activityId: PropTypes.string,
+    activityName: PropTypes.string,
   }).isRequired,
   setItem: PropTypes.func.isRequired,
 };
