@@ -53,5 +53,12 @@
   "Password": "Password",
   "Remember me": "Remember me",
   "Don't have an account?": "Don't have an account?",
-  "Sign up": "Sign up"
+  "Sign up": "Sign up",
+  "Account dashboard": "Account dashboard",
+  "Welcome": "Welcome",
+  "First name": "First name",
+  "Last name": "Last name",
+  "Update account": "Update account",
+  "Account was updated successfully": "Account was updated successfully",
+  "An error occurred": "An error occurred"
 }

@@ -21,12 +21,15 @@ import AdminDash from "./tabs/admin";
 import MKBox from "components/MKBox";
 import MKButton from "components/MKButton";
 
+import { useTranslation } from "react-i18next";
+
 function Dashboard() {
   const navigate = useNavigate();
   const { session, signOut } = UserAuth();
   const [activeTab, setActiveTab] = useState(0);
   const handleTabType = (tab, newValue) => setActiveTab(newValue);
   const [isAdmin, setIsAdmin] = useState();
+  const { t } = useTranslation();
 
   const handleSignOut = async (event) => {
     event.preventDefault();
@@ -45,7 +48,7 @@ function Dashboard() {
   }, []);
 
   return (
-    <BaseLayout title="Account dashboard">
+    <BaseLayout title={t("Account dashboard")}>
       <MKBox sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
         <MKBox
           display="flex"
@@ -59,10 +62,10 @@ function Dashboard() {
           }}
         >
           <span style={{ fontWeight: 500, fontSize: "1rem" }}>
-            Welcome, <strong>{session?.user?.email}</strong>
+            {t("Welcome")}, <strong>{session?.user?.email}</strong>
           </span>
           <MKButton variant="gradient" color="light" size="small" onClick={handleSignOut}>
-            Sign out
+            {t("sign out")}
           </MKButton>
         </MKBox>
 
@@ -71,14 +74,13 @@ function Dashboard() {
             <AppBar position="static">
               <Tabs sx={{ minWidth: "100%" }} value={activeTab} onChange={handleTabType}>
                 <Tab label="My Profile" />
-                <Tab label="My Posts" />
                 {isAdmin == true && <Tab label="Administration" />};
               </Tabs>
             </AppBar>
           </Grid>
         </Container>
         {activeTab === 0 && <ProfileTab />}
-        {activeTab === 2 && <AdminDash />}
+        {activeTab === 1 && <AdminDash />}
       </MKBox>
     </BaseLayout>
   );

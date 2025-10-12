@@ -53,5 +53,12 @@
   "Password": "Wachtwoord",
   "Remember me": "Onthoud mij",
   "Don't have an account?": "Heeft u nog geen account?",
-  "Sign up": "Registreren"
+  "Sign up": "Registreren",
+  "Account dashboard": "Accountdashboard",
+  "Welcome": "Welkom",
+  "First name": "Voornaam",
+  "Last name": "Achternaam",
+  "Update account": "Account bijwerken",
+  "Account was updated successfully": "Account succesvol bijgewerkt",
+  "An error occurred": "Er is een fout opgetreden"
 }

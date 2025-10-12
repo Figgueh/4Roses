@@ -53,5 +53,12 @@
   "Password": "Passwort",
   "Remember me": "Angemeldet bleiben",
   "Don't have an account?": "Sie haben noch kein Konto?",
-  "Sign up": "Registrieren"
+  "Sign up": "Registrieren",
+  "Account dashboard": "Kontodashboard",
+  "Welcome": "Willkommen",
+  "First name": "Vorname",
+  "Last name": "Nachname",
+  "Update account": "Konto aktualisieren",
+  "Account was updated successfully": "Konto erfolgreich aktualisiert",
+  "An error occurred": "Ein Fehler ist aufgetreten"
 }
