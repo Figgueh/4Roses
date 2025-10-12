@@ -53,5 +53,12 @@
   "Password": "Senha",
   "Remember me": "Lembrar-me",
   "Don't have an account?": "Não tem uma conta?",
-  "Sign up": "Registrar-se"
+  "Sign up": "Registrar-se",
+  "Account dashboard": "Painel da conta",
+  "Welcome": "Bem-vindo",
+  "First name": "Primeiro nome",
+  "Last name": "Último nome",
+  "Update account": "Atualizar conta",
+  "Account was updated successfully": "Conta atualizada com sucesso",
+  "An error occurred": "Ocorreu um erro"
 }
