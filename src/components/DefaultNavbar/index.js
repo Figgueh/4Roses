@@ -232,7 +232,7 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
                           })}
                           // Attach the signout function to the signout button
                           onClick={(e) => {
-                            if (isLoggedIn && item.name == "sign out") {
+                            if (isLoggedIn && item.id == "sign_out") {
                               handleSignOut(e);
                             }
                           }}

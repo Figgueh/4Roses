@@ -93,12 +93,10 @@ function SignInBasic() {
         routes={translatedRoutes}
         action={{
           type: "external",
-          route: "https://www.creative-tim.com/product/material-kit-react",
-          label: "free download",
+          route: "https://www.vrbo.com/en-ca/cottage-rental/p2905236vb",
+          label: t("book"),
           color: "info",
         }}
-        transparent
-        light
       />
       <MKBox
         position="absolute"
@@ -134,7 +132,7 @@ function SignInBasic() {
                 textAlign="center"
               >
                 <MKTypography variant="h4" fontWeight="medium" color="white" mt={1}>
-                  Sign in
+                  {t("Sign in")}
                 </MKTypography>
                 <Grid container spacing={2} justifyContent="center" sx={{ mt: 1, mb: 2 }}>
                   <Grid item xs={2}>
@@ -159,7 +157,7 @@ function SignInBasic() {
                   <MKBox mb={2}>
                     <MKInput
                       type="email"
-                      label="Email"
+                      label={t("Email")}
                       onChange={(e) => setUsername(e.target.value)}
                       fullWidth
                     />
@@ -167,7 +165,7 @@ function SignInBasic() {
                   <MKBox mb={2}>
                     <MKInput
                       type="password"
-                      label="Password"
+                      label={t("Password")}
                       onChange={(e) => setPassword(e.target.value)}
                       fullWidth
                     />
@@ -181,12 +179,12 @@ function SignInBasic() {
                       onClick={handleSetRememberMe}
                       sx={{ cursor: "pointer", userSelect: "none", ml: -1 }}
                     >
-                      &nbsp;&nbsp;Remember me
+                      &nbsp;&nbsp;{t("Remember me")}
                     </MKTypography>
                   </MKBox>
                   <MKBox mt={4} mb={1}>
                     <MKButton type="submit" variant="gradient" color="info" fullWidth>
-                      sign in
+                      {t("Sign in")}
                     </MKButton>
                   </MKBox>
                   <MKBox>
@@ -198,7 +196,7 @@ function SignInBasic() {
                   </MKBox>
                   <MKBox mt={3} mb={1} textAlign="center">
                     <MKTypography variant="button" color="text">
-                      Don&apos;t have an account?{" "}
+                      {t("Don't have an account?")}{" "}
                       <MKTypography
                         component={Link}
                         to="/register"
@@ -207,7 +205,7 @@ function SignInBasic() {
                         fontWeight="medium"
                         textGradient
                       >
-                        Sign up
+                        {t("Sign up")}
                       </MKTypography>
                     </MKTypography>
                   </MKBox>
