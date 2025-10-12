@@ -29,14 +29,17 @@ import CenteredFooter from "components/Footers/CenteredFooter";
 import Breadcrumbs from "components/Breadcrumbs";
 
 // Routes
-import routes from "routes";
+import { routes } from "routes";
+import { useTranslation } from "react-i18next";
 
 function BaseLayout({ breadcrumb, title, children }) {
+  const { t } = useTranslation();
+  const translatedRoutes = routes(t);
   return (
     <MKBox display="flex" flexDirection="column" bgColor="white" minHeight="100vh">
       <MKBox bgColor="white" shadow="sm" py={0.25}>
         <DefaultNavbar
-          routes={routes}
+          routes={translatedRoutes}
           action={{
             type: "external",
             route: "https://www.vrbo.com/en-ca/cottage-rental/p2905236vb",

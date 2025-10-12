@@ -51,6 +51,7 @@ import MainLogo from "assets/images/small-logos/4RosesHeader.png";
 import { getProfilePicture } from "connection/users/getProfilePicture";
 
 import { useTranslation } from "react-i18next";
+import { supportedLanguages } from "i18n";
 
 function DefaultNavbar({ brand, routes, transparent, light, action, sticky, relative, center }) {
   const navigate = useNavigate();
@@ -200,8 +201,8 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
                     {col.collapse
                       .filter((l) => {
                         // Remove the links that users shouldn't be able to see based on their login status
-                        if (isLoggedIn) return l.name != "sign in" && l.name != "register";
-                        else return l.name != "dashboard" && l.name != "sign out";
+                        if (isLoggedIn) return l.id !== "sign_in" && l.id !== "register";
+                        else return l.id !== "dashboard" && l.id !== "sign_out";
                       })
                       .map((item) => (
                         <MKTypography
@@ -231,7 +232,7 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
                           })}
                           // Attach the signout function to the signout button
                           onClick={(e) => {
-                            if (isLoggedIn && item.name == "sign out") {
+                            if (isLoggedIn && item.id == "sign_out") {
                               handleSignOut(e);
                             }
                           }}
@@ -616,8 +617,11 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
             </MKButton>
 
             <Menu anchorEl={dropdownLang} open={Boolean(dropdownLang)} onClose={closeDropdownLang}>
-              <MenuItem onClick={() => changeLanguage("en")}>English</MenuItem>
-              <MenuItem onClick={() => changeLanguage("fr")}>Français</MenuItem>
+              {Object.entries(supportedLanguages).map(([code, name]) => (
+                <MenuItem key={code} onClick={() => changeLanguage(code)}>
+                  {name}
+                </MenuItem>
+              ))}
             </Menu>
           </MKBox>
 

@@ -41,11 +41,13 @@ import DefaultNavbar from "components/DefaultNavbar";
 import SimpleFooter from "components/Footers/SimpleFooter";
 
 // Material Kit 2 React page layout routes
-import routes from "routes";
+import { routes } from "routes";
 
 // Images
 import bgImage from "assets/images/bg-sign-in-basic.jpeg";
 import { UserAuth } from "connection/auth/authContext";
+
+import { useTranslation } from "react-i18next";
 
 function SignInBasic() {
   const navigate = useNavigate();
@@ -54,6 +56,8 @@ function SignInBasic() {
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const { session, authLoading, signInUser } = UserAuth();
+  const { t } = useTranslation();
+  const translatedRoutes = routes(t);
 
   const handleSignInUser = async (event) => {
     event.preventDefault();
@@ -86,15 +90,13 @@ function SignInBasic() {
   return (
     <>
       <DefaultNavbar
-        routes={routes}
+        routes={translatedRoutes}
         action={{
           type: "external",
-          route: "https://www.creative-tim.com/product/material-kit-react",
-          label: "free download",
+          route: "https://www.vrbo.com/en-ca/cottage-rental/p2905236vb",
+          label: t("book"),
           color: "info",
         }}
-        transparent
-        light
       />
       <MKBox
         position="absolute"
@@ -130,7 +132,7 @@ function SignInBasic() {
                 textAlign="center"
               >
                 <MKTypography variant="h4" fontWeight="medium" color="white" mt={1}>
-                  Sign in
+                  {t("Sign in")}
                 </MKTypography>
                 <Grid container spacing={2} justifyContent="center" sx={{ mt: 1, mb: 2 }}>
                   <Grid item xs={2}>
@@ -155,7 +157,7 @@ function SignInBasic() {
                   <MKBox mb={2}>
                     <MKInput
                       type="email"
-                      label="Email"
+                      label={t("Email")}
                       onChange={(e) => setUsername(e.target.value)}
                       fullWidth
                     />
@@ -163,7 +165,7 @@ function SignInBasic() {
                   <MKBox mb={2}>
                     <MKInput
                       type="password"
-                      label="Password"
+                      label={t("Password")}
                       onChange={(e) => setPassword(e.target.value)}
                       fullWidth
                     />
@@ -177,12 +179,12 @@ function SignInBasic() {
                       onClick={handleSetRememberMe}
                       sx={{ cursor: "pointer", userSelect: "none", ml: -1 }}
                     >
-                      &nbsp;&nbsp;Remember me
+                      &nbsp;&nbsp;{t("Remember me")}
                     </MKTypography>
                   </MKBox>
                   <MKBox mt={4} mb={1}>
                     <MKButton type="submit" variant="gradient" color="info" fullWidth>
-                      sign in
+                      {t("Sign in")}
                     </MKButton>
                   </MKBox>
                   <MKBox>
@@ -194,7 +196,7 @@ function SignInBasic() {
                   </MKBox>
                   <MKBox mt={3} mb={1} textAlign="center">
                     <MKTypography variant="button" color="text">
-                      Don&apos;t have an account?{" "}
+                      {t("Don't have an account?")}{" "}
                       <MKTypography
                         component={Link}
                         to="/register"
@@ -203,7 +205,7 @@ function SignInBasic() {
                         fontWeight="medium"
                         textGradient
                       >
-                        Sign up
+                        {t("Sign up")}
                       </MKTypography>
                     </MKTypography>
                   </MKBox>

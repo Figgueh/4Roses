@@ -22,11 +22,15 @@ import { UserAuth } from "connection/auth/authContext";
 import { slugify } from "utils";
 import { checkAdmin } from "connection/users/checkAdmin";
 import NewModal from "./modal/NewModal";
+import { useTranslation } from "react-i18next";
+import axios from "axios";
 
-function ActivityPicker({ breadcrumb, title, items }) {
+function ActivityPicker({ breadcrumb, title, items, id }) {
   const { session, authLoading } = UserAuth();
   const [isAdmin, setIsAdmin] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const [translatedTitle, setTranslatedTitle] = useState(title);
+  const { i18n, t } = useTranslation();
 
   useEffect(() => {
     // check to see if the user is signed in as admin.
@@ -42,6 +46,21 @@ function ActivityPicker({ breadcrumb, title, items }) {
       adminCheck();
     }
   }, [authLoading, session?.user?.id]);
+
+  useEffect(() => {
+    if (!id) return;
+    if (i18n.language != "en") {
+      axios
+        .get(`${process.env.REACT_APP_BACKEND}/activities/translation/${id}?lang=${i18n.language}`)
+        .then((res) => {
+          if (res.data?.title) setTranslatedTitle(res.data.title);
+        });
+    } else {
+      axios.get(`${process.env.REACT_APP_BACKEND}/activities/data/${id}`).then((res) => {
+        if (res.data?.title) setTranslatedTitle(res.data.title);
+      });
+    }
+  }, [i18n.language, id]);
 
   return (
     <BaseLayout breadcrumb={breadcrumb} title={title}>
@@ -60,7 +79,9 @@ function ActivityPicker({ breadcrumb, title, items }) {
           <Container>
             <Grid container item xs={12} lg={12}>
               <MKTypography variant="h3" mb={6}>
-                Check out all the latest {title.toLowerCase()} activities
+                {t("Check out all the latest {{activity}} activities", {
+                  activity: translatedTitle.toLowerCase(),
+                })}
               </MKTypography>
               {isAdmin && (
                 <MKBox pl={2} pb={2}>
@@ -81,40 +102,39 @@ function ActivityPicker({ breadcrumb, title, items }) {
                 alignItems: "stretch",
               }}
             >
-              {items.map(
-                (item) => (
-                  console.log(item),
-                  (
-                    <Grid item xs={12} sm={6} lg={3} key={item.id} sx={{ display: "flex" }}>
-                      <MKBox
-                        sx={{
-                          flex: 1,
-                          display: "flex",
-                          flexDirection: "column",
-                          borderRadius: 2,
-                          boxShadow: 1,
-                          bgcolor: "transparent",
-                          position: "relative",
-                          overflow: "hidden",
-                          p: 2,
-                        }}
-                      >
-                        <TransparentBlogCard
-                          image={item.image}
-                          title={item.title}
-                          description={item.description}
-                          action={{
-                            type: "internal",
-                            route: "/activities/" + slugify(title) + "/" + slugify(item.title),
-                            color: "info",
-                            label: "read more",
-                          }}
-                        />
-                      </MKBox>
-                    </Grid>
-                  )
-                )
-              )}
+              {items.map((item) => (
+                <Grid item xs={12} sm={6} lg={3} key={item.id} sx={{ display: "flex" }}>
+                  <MKBox
+                    sx={{
+                      flex: 1,
+                      display: "flex",
+                      flexDirection: "column",
+                      borderRadius: 2,
+                      boxShadow: 1,
+                      bgcolor: "transparent",
+                      position: "relative",
+                      overflow: "hidden",
+                      p: 2,
+                    }}
+                  >
+                    <TransparentBlogCard
+                      image={item.image}
+                      title={item.title}
+                      description={item.description}
+                      action={{
+                        type: "internal",
+                        route:
+                          "/activities/" +
+                          slugify(title) +
+                          "/" +
+                          slugify(item.englishTitle ?? item.title),
+                        color: "info",
+                        label: t("read more"),
+                      }}
+                    />
+                  </MKBox>
+                </Grid>
+              ))}
             </Grid>
           </Container>
         </MKBox>
@@ -128,6 +148,7 @@ ActivityPicker.propTypes = {
   breadcrumb: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.object])).isRequired,
   title: PropTypes.string.isRequired,
   items: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.object])).isRequired,
+  id: PropTypes.string.isRequired,
 };
 
 export default ActivityPicker;

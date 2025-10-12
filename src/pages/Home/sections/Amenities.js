@@ -15,10 +15,12 @@ import MKTypography from "components/MKTypography";
 import ExampleCard from "components/Cards/ExampleCard";
 
 import axios from "axios";
-
 import { slugify } from "utils";
+import { useTranslation } from "react-i18next";
 
 function Amenities() {
+  const { t } = useTranslation();
+  const { i18n } = useTranslation();
   const [largeAmenities, setLargeAmenities] = useState([]);
   const [smallAmenities, setSmallAmenities] = useState([]);
   const [activities, setActivities] = useState([]);
@@ -27,14 +29,16 @@ function Amenities() {
   useEffect(() => {
     const loadData = async () => {
       const largeAmenitiesRequest = await axios.get(
-        `${process.env.REACT_APP_BACKEND}/amenities/big`
+        `${process.env.REACT_APP_BACKEND}/amenities/big?lang=${i18n.language}`
       );
       setLargeAmenities(largeAmenitiesRequest.data);
       const smallAmenitiesRequest = await axios.get(
-        `${process.env.REACT_APP_BACKEND}/amenities/small`
+        `${process.env.REACT_APP_BACKEND}/amenities/small?lang=${i18n.language}`
       );
       setSmallAmenities(smallAmenitiesRequest.data);
-      const activitiesRequest = await axios.get(`${process.env.REACT_APP_BACKEND}/activities`);
+      const activitiesRequest = await axios.get(
+        `${process.env.REACT_APP_BACKEND}/activities?lang=${i18n.language}`
+      );
       setActivities(activitiesRequest.data);
       setLoading(false);
     };
@@ -42,16 +46,29 @@ function Amenities() {
     loadData();
   }, []);
 
+  // When the language changes, fetch the translations.
+  useEffect(() => {
+    axios
+      .get(`${process.env.REACT_APP_BACKEND}/amenities/small?lang=${i18n.language}`)
+      .then((res) => setSmallAmenities(res.data));
+    axios
+      .get(`${process.env.REACT_APP_BACKEND}/amenities/big?lang=${i18n.language}`)
+      .then((res) => setLargeAmenities(res.data));
+    axios
+      .get(`${process.env.REACT_APP_BACKEND}/activities?lang=${i18n.language}`)
+      .then((res) => setActivities(res.data));
+  }, [i18n.language]);
+
   const data = [
     {
-      title: "Included Amenities",
-      description: "All these amenities are included",
+      title: `${t("Included Amenities")}`,
+      description: `${t("All these amenities are included")}`,
       items: largeAmenities,
       smallItems: smallAmenities,
     },
     {
-      title: "Nearby activities",
-      description: "All of these activities are offered",
+      title: `${t("Nearby activities")}`,
+      description: `${t("All of these activities are offered")}`,
       items: activities,
       smallItems: [],
     },
@@ -129,10 +146,10 @@ function Amenities() {
           sx={{ textAlign: "center", my: 6, mx: "auto", px: 0.75 }}
         >
           <MKTypography variant="h2" fontWeight="bold">
-            All the amenities and activities
+            {t("All the amenities and activities")}
           </MKTypography>
           <MKTypography variant="body1" color="text">
-            We got everything you could want and enough to keep busy
+            {t("We got everything you could want and enough to keep busy")}
           </MKTypography>
         </Grid>
       </Container>

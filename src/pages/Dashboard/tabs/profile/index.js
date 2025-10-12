@@ -13,11 +13,14 @@ import MKButton from "components/MKButton";
 import Alert from "@mui/material/Alert";
 import { getAllUserInfo } from "connection/users/getAllUserInfo";
 
+import { useTranslation } from "react-i18next";
+
 function ProfileTab() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [message, setMessage] = useState("");
+  const { t } = useTranslation();
 
   const { session } = UserAuth();
 
@@ -49,9 +52,9 @@ function ProfileTab() {
     }
 
     if (status) {
-      setMessage("Account was updated successfully");
+      setMessage(t("Account was updated successfully"));
     } else {
-      setMessage("An error occurred");
+      setMessage(t("An error occurred"));
     }
   };
 
@@ -120,14 +123,14 @@ function ProfileTab() {
         <MKBox xl={4} ml={3} pt={2}>
           <MKInput
             type="first name"
-            label="First name"
+            label={t("First name")}
             value={firstName}
             onChange={(e) => setFirstName(e.target.value)}
           />
           <MKBox pt={2}>
             <MKInput
               type="last name"
-              label="Last name"
+              label={t("Last name")}
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
             />
@@ -135,7 +138,7 @@ function ProfileTab() {
         </MKBox>
         <Grid display="flex" justifyContent={"end"} mt={2}>
           <MKButton type="submit" variant="outlined" color="info" onClick={handleAccountUpdate}>
-            Update account
+            {t("Update account")}
           </MKButton>
         </Grid>
       </Grid>

@@ -95,6 +95,7 @@ function ArticleGenerator() {
                 id: uuidv4(),
                 url: urls.join(", "),
                 activityId: section.id,
+                activityName: section.title,
               }));
 
               setStatus("Done");
