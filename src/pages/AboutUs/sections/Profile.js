@@ -25,8 +25,10 @@ import MKTypography from "components/MKTypography";
 
 // Images
 import profilePicture from "assets/images/profile/owners.c1.avif";
+import { useTranslation } from "react-i18next";
 
 function Profile() {
+  const { t } = useTranslation();
   return (
     <MKBox component="section" py={{ xs: 6, sm: 12 }}>
       <Container>
@@ -40,9 +42,8 @@ function Profile() {
                 <MKTypography variant="h3">Joaquim & Maria Figueiras</MKTypography>
               </MKBox>
               <MKTypography variant="body1" fontWeight="light" color="text">
-                We are Portuguese by birth but Canadian residents. <br />
-                We love this part of Portugal and are planning to spend much more time there to
-                enjoy all that is offered.
+                {t("about1")} <br />
+                {t("about2")}
                 <MKTypography
                   component="a"
                   href="#"
@@ -65,7 +66,8 @@ function Profile() {
                     },
                   }}
                 >
-                  Follow our facebook page <Icon sx={{ fontWeight: "bold" }}>arrow_forward</Icon>
+                  {t("Follow our facebook page")}{" "}
+                  <Icon sx={{ fontWeight: "bold" }}>arrow_forward</Icon>
                 </MKTypography>
               </MKTypography>
             </Grid>

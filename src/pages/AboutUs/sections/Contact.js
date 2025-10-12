@@ -26,7 +26,9 @@ import MKTypography from "components/MKTypography";
 // Images
 import bgImage from "assets/images/castel/contactUs.jpg";
 
+import { useTranslation } from "react-i18next";
 function Contact() {
+  const { t } = useTranslation();
   return (
     <MKBox component="section" py={{ xs: 0, lg: 6 }}>
       <Container>
@@ -67,10 +69,12 @@ function Contact() {
                 >
                   <MKBox py={6} pr={6} pl={{ xs: 6, sm: 12 }} my="auto">
                     <MKTypography variant="h3" color="white" mb={1}>
-                      Contact Information
+                      {t("Contact Information")}
                     </MKTypography>
                     <MKTypography variant="body2" color="white" opacity={0.8} mb={3}>
-                      Fill up the form and our Team will get back to you as soon as possible.
+                      {t(
+                        "Fill out the form and our Team will get back to you as soon as possible."
+                      )}
                     </MKTypography>
                     <MKBox display="flex" p={1}>
                       <MKTypography variant="button" color="white">
@@ -138,10 +142,10 @@ function Contact() {
                 <MKBox component="form" p={2} method="post">
                   <MKBox px={3} py={{ xs: 2, sm: 6 }}>
                     <MKTypography variant="h2" mb={1}>
-                      Say Hi!
+                      {t("Say Hi!")}
                     </MKTypography>
                     <MKTypography variant="body1" color="text" mb={2}>
-                      We&apos;d like to talk with you.
+                      {t("We'd like to talk with you.")}
                     </MKTypography>
                   </MKBox>
                   <MKBox pt={0.5} pb={3} px={3}>
@@ -149,8 +153,8 @@ function Contact() {
                       <Grid item xs={12} pr={1} mb={6}>
                         <MKInput
                           variant="standard"
-                          label="My name is"
-                          placeholder="Full Name"
+                          label={t("My name is")}
+                          placeholder={t("Full Name")}
                           InputLabelProps={{ shrink: true }}
                           fullWidth
                         />
@@ -158,8 +162,8 @@ function Contact() {
                       <Grid item xs={12} pr={1} mb={6}>
                         <MKInput
                           variant="standard"
-                          label="I'm looking for"
-                          placeholder="What you love"
+                          label={t("I'm looking for")}
+                          placeholder={t("how can we help")}
                           InputLabelProps={{ shrink: true }}
                           fullWidth
                         />
@@ -167,8 +171,8 @@ function Contact() {
                       <Grid item xs={12} pr={1} mb={6}>
                         <MKInput
                           variant="standard"
-                          label="Your message"
-                          placeholder="I want to say that..."
+                          label={t("Your message")}
+                          placeholder={t("I want to say that...")}
                           InputLabelProps={{ shrink: true }}
                           fullWidth
                           multiline
@@ -186,7 +190,7 @@ function Contact() {
                       ml="auto"
                     >
                       <MKButton variant="gradient" color="info">
-                        Send Message
+                        {t("Send Message")}
                       </MKButton>
                     </Grid>
                   </MKBox>

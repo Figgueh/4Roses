@@ -42,8 +42,8 @@ function AboutUs() {
         routes={translatedRoutes}
         action={{
           type: "external",
-          route: "https://www.creative-tim.com/product/material-kit-react",
-          label: "free download",
+          route: "https://www.vrbo.com/en-ca/cottage-rental/p2905236vb",
+          label: t("book"),
           color: "info",
         }}
         transparent
