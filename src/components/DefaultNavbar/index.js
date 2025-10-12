@@ -201,8 +201,8 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
                     {col.collapse
                       .filter((l) => {
                         // Remove the links that users shouldn't be able to see based on their login status
-                        if (isLoggedIn) return l.name != "sign in" && l.name != "register";
-                        else return l.name != "dashboard" && l.name != "sign out";
+                        if (isLoggedIn) return l.id !== "sign_in" && l.id !== "register";
+                        else return l.id !== "dashboard" && l.id !== "sign_out";
                       })
                       .map((item) => (
                         <MKTypography

@@ -77,16 +77,19 @@ export const routes = (t) => [
         collapse: [
           {
             name: t("sign in"),
+            id: "sign_in",
             route: "/sign-in",
             component: <SignIn />,
           },
           {
             name: t("register"),
+            id: "register",
             route: "/register",
             component: <Register />,
           },
           {
             name: t("dashboard"),
+            id: "dashboard",
             route: "/dashboard",
             component: (
               <PrivateRoute>
@@ -96,6 +99,7 @@ export const routes = (t) => [
           },
           {
             name: t("sign out"),
+            id: "sign_out",
             route: "/",
             component: <></>,
           },
