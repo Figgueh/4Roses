@@ -313,7 +313,24 @@ export const generateArticleFromUrls = async (req, res, next) => {
     res.flushHeaders();
 
     const scrapePage = async (url) => {
-      const browser = await puppeteer.launch({ headless: true });
+      const browser = await puppeteer.launch({
+        headless: true,
+        args: [
+          "--no-sandbox",
+          "--disable-setuid-sandbox",
+          "--disable-dev-shm-usage",
+          "--disable-gpu",
+          "--disable-software-rasterizer",
+          "--disable-extensions",
+          "--disable-background-networking",
+          "--disable-sync",
+          "--hide-scrollbars",
+          "--mute-audio",
+          "--no-first-run",
+          "--no-zygote",
+          "--single-process",
+        ],
+      });
       const page = await browser.newPage();
 
       await page.setUserAgent(
