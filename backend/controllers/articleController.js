@@ -2,9 +2,11 @@
 /* eslint-disable no-constant-condition */
 import supabase from "../config/supabaseClient.js";
 import { deletePhoto, uploadPhoto } from "../utils/helpers.js";
-import puppeteer from "puppeteer";
 import fs from "fs";
 import { supportedLanguages, translateArticle, translateText } from "../middlewares/translate.js";
+import { buildPrompt } from "../middlewares/promptBuilder.js";
+import { generateArticle } from "../middlewares/articleGenerator.js";
+import { scrapeMultiple } from "../middlewares/scraper.js";
 
 // GET all articles
 // /
@@ -302,7 +304,6 @@ export const deleteArticle = async (req, res, next) => {
 // Body: {urls}
 export const generateArticleFromUrls = async (req, res, next) => {
   try {
-    const apiKey = process.env.OPENROUTER_KEY;
     const { urls } = req.body;
 
     console.log("RECEIVED: ", urls);
@@ -312,247 +313,18 @@ export const generateArticleFromUrls = async (req, res, next) => {
     res.setHeader("Connection", "keep-alive");
     res.flushHeaders();
 
-    const scrapePage = async (url) => {
-      const browser = await puppeteer.launch({
-        headless: true,
-        args: [
-          "--no-sandbox",
-          "--disable-setuid-sandbox",
-          "--disable-dev-shm-usage",
-          "--disable-gpu",
-          "--disable-software-rasterizer",
-          "--disable-extensions",
-          "--disable-background-networking",
-          "--disable-sync",
-          "--hide-scrollbars",
-          "--mute-audio",
-          "--no-first-run",
-          "--no-zygote",
-          "--single-process",
-        ],
-      });
-      const page = await browser.newPage();
+    const allHtmlContent = await scrapeMultiple(urls, res);
+    res.write(`event: preProcessing\ndata: Scraping complete.\n\n`);
 
-      await page.setUserAgent(
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
-      );
-      await page.setRequestInterception(true);
+    const prompt = buildPrompt(allHtmlContent);
+    res.write(`event: preProcessing\ndata: Prompt assembled.\n\n`);
 
-      page.on("request", (req) => {
-        const resourceType = req.resourceType();
-        if (["stylesheet", "font", "media"].includes(resourceType)) {
-          req.abort(); // skip loading
-        } else {
-          req.continue();
-        }
-      });
+    console.log(prompt);
 
-      await page.goto(url, { waitUntil: "domcontentloaded" });
+    const article = await generateArticle(prompt, res);
 
-      const pageData = await page.evaluate(() => {
-        const text = document.body.innerText;
-
-        const images = Array.from(document.body.querySelectorAll("img"))
-          .map((img) => img.src)
-          .filter((src) => src && src.startsWith("http"));
-
-        return { text, images };
-      });
-
-      await browser.close();
-
-      return pageData;
-    };
-
-    const scrapeMultiple = async (urls) => {
-      const results = [];
-      for (const url of urls) {
-        try {
-          const { text, images } = await scrapePage(url);
-          console.log(url, "Has been downloaded successfully.");
-          res.write(`event: preProcessing\ndata: ${url} was downloaded successfully\n`);
-          results.push({ page: url, text, images });
-        } catch (err) {
-          console.error(`Failed to scrape ${url}:`, err);
-        }
-      }
-      return results;
-    };
-
-    const allHtmlContent = await scrapeMultiple(urls);
-
-    const prompt = `Here are parts of a webpage: \n
-          ${allHtmlContent
-            .map(
-              (value, index) => `Page ${index + 1} content:
-  -------------------
-  ${Object.entries(value).map(([key, value]) => {
-    return key + ": " + value + "\n";
-  })}
-  -------------------`
-            )
-            .join("\n\n")}
-Generate me an article that includes things like the price, location, services offered, values and give a good reason why it would be a good place to visit without sounding generic.
-If the web pages don't include any information on the previously mentioned items, then don't include them and find something else that would be good to know.
-The article should follow this schema:
-{
-  "title": "Main title, make sure to not include any special characters like @,:,",'...",
-  "image": "Leave blank or provide a working link, make sure I have the full url",
-  "description": "a short description summarizing the article",
-  "article": [{
-  "title": "Section 1",
-  "content": "Text...",
-  "detail": ["Item 1", "Item 2"]
-  }]
-}
-
-the article section must also be in json format.
-I'd prefer if the price was listed in the details
-if they have services available, then list them in detail
-Don't feel obligated to add details in the article section.
-Only add the details section if necessary.
-Respond with valid JSON only.`;
-
-    res.write(`event: preProcessing\ndata: prompt was successfully assembled.\n`);
-    let response;
-    try {
-      response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "deepseek/deepseek-chat-v3.1:free",
-          messages: [
-            {
-              role: "system",
-              content:
-                "You are a helpful assistant who generates structured articles based on web content.",
-            },
-            {
-              role: "user",
-              content: prompt,
-            },
-          ],
-          stream: true,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        if (response.status == 429)
-          throw new Error(`OpenRouter rate limit reached. Try again tomorrow`);
-        throw new Error(`OpenRouter request failed (${response.status}): ${errorText}`);
-      }
-    } catch (err) {
-      res.write(
-        `event: error\ndata: ${JSON.stringify({
-          message: "Failed to generate article",
-          error: err.message,
-        })}\n\n`
-      );
-      return res.end();
-    }
-    res.write(`event: preProcessing\ndata: request was sent successfully.\n\n`);
-
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder("utf-8");
-    let sentMeta = false;
-    let total = "";
-    let buffer = "";
-    let firstMessage = true;
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      const chunk = decoder.decode(value, { stream: true });
-
-      chunk.split("\n").forEach((line) => {
-        if (line.startsWith("data:")) {
-          const json = line.slice(5).trim();
-          if (json === "[DONE]") {
-            // Write to file asynchronously
-            fs.writeFile("../notes/output.txt", total, "utf8", (err) => {
-              if (err) {
-                console.error("Error writing file:", err);
-              } else {
-                console.log("File written successfully!");
-              }
-            });
-            res.write("event: done\ndata: [DONE]\n\n");
-            res.end();
-            return;
-          }
-
-          try {
-            // parse the response from OpenRouter
-            const parsed = JSON.parse(json);
-            const delta = parsed.choices?.[0]?.delta?.content;
-
-            if (delta) {
-              buffer += delta;
-              total += delta;
-              console.log(delta);
-
-              // All valid response starts with ```json
-              if (firstMessage) {
-                if (!delta.startsWith("```")) {
-                  throw new Error("Response from OpenRouter wasn't sent in a proper format");
-                }
-                firstMessage = false;
-              }
-
-              // Look for metadata if not sent yet
-              if (!sentMeta && delta.trim().includes("article")) {
-                var lines = buffer.split("\n");
-                lines.pop(); // removes "```json"
-                lines.shift(); // removes "article:"
-                lines.push("}"); // adds closing json tag
-                var metaStr = lines.join("\n");
-                metaStr = metaStr.replace(/,\s*}$/, "}"); // removes comma before the closing brace
-
-                try {
-                  const parsedMeta = JSON.parse(metaStr);
-                  console.log(parsedMeta);
-                  res.write(`event: metadata\ndata: ${JSON.stringify(parsedMeta)}\n\n`);
-                  sentMeta = true;
-                } catch (err) {
-                  // still incomplete JSON, wait for more chunks
-                }
-
-                //Clear the buffer sent
-                buffer = "";
-              }
-
-              // --- 2. Send article sections individually ---
-              if (sentMeta) {
-                // look for complete section objects
-                const sectionRegex = /{[\s\S]*?}(?=|])/g;
-                let match;
-                while ((match = sectionRegex.exec(buffer)) !== null) {
-                  try {
-                    const sectionObj = JSON.parse(match[0]);
-                    res.write(`event: section\ndata: ${JSON.stringify(sectionObj)}\n\n`);
-                  } catch (err) {
-                    console.error("Failed to parse section:", err);
-                  }
-                }
-
-                // keep only trailing incomplete part in buffer
-                const lastBracket = buffer.lastIndexOf("}");
-                if (lastBracket !== -1) {
-                  buffer = buffer.slice(lastBracket + 1);
-                }
-              }
-            }
-          } catch (err) {
-            console.error("Parse error", err);
-          }
-        }
-      });
-    }
+    res.write(`event: done\ndata: ${JSON.stringify(article)}\n\n`);
+    res.end();
   } catch (err) {
     next(err);
   }
