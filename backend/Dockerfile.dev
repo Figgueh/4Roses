@@ -3,7 +3,7 @@ FROM ghcr.io/puppeteer/puppeteer:latest
 
 # Set Puppeteer to use system Chromium
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-ENV PUPPETEER_EXECUTABLE_PATH=/home/pptruser/.cache/puppeteer/chrome-headless-shell/linux-141.0.7390.78/chrome-headless-shell-linux64
+ENV PUPPETEER_EXECUTABLE_PATH=/home/pptruser/.cache/puppeteer
 
 # Create app directory
 WORKDIR /usr/src/app
@@ -19,6 +19,10 @@ COPY . .
 
 # Expose port (change if your app uses a different one)
 EXPOSE 3001
+
+# Fix permissions for Chromium
+RUN chmod -R 755 /home/pptruser/.cache/puppeteer || true && \
+    chown -R pptruser:pptruser /home/pptruser/.cache/puppeteer || true
 
 RUN echo "=== Puppeteer debug info ===" && \
     ls -R /home/pptruser/.cache/puppeteer || true
