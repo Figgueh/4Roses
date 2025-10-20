@@ -25,7 +25,7 @@ const scrapePage = async (url) => {
   });
 
   await page.goto(url, { waitUntil: "domcontentloaded" });
-  await page.waitForTimeout(7000); // wait for Cloudflare to complete
+  await new Promise((r) => setTimeout(r, 7000));
 
   const pageData = await page.evaluate(() => {
     const text = document.body.innerText;
