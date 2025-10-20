@@ -1,30 +1,18 @@
-# Use an official Node image with Debian (needed for Chrome deps)
+# Use official Puppeteer image (includes Chromium deps)
 FROM ghcr.io/puppeteer/puppeteer:latest
 
-# Set Puppeteer to use system Chromium
+# Set Puppeteer to use downloaded Chromium
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-ENV PUPPETEER_EXECUTABLE_PATH=/home/pptruser/.cache/puppeteer
+ENV PUPPETEER_EXECUTABLE_PATH=/home/pptruser/.cache/puppeteer/chrome-headless-shell/linux-141.0.7390.78/chrome-headless-shell-linux64/chrome-headless-shell
 
-# Create app directory
 WORKDIR /usr/src/app
 
-# Copy package.json first (for better caching)
 COPY package*.json ./
-
-# Install dependencies
 RUN npm install
 
-# Copy rest of the app
 COPY . .
 
-# Expose port (change if your app uses a different one)
 EXPOSE 3001
 
-# Fix permissions for Chromium
-RUN chmod -R 755 /home/pptruser/.cache/puppeteer || true && \
-    chown -R pptruser:pptruser /home/pptruser/.cache/puppeteer || true
-
-RUN echo "=== Puppeteer debug info ===" && \
-    ls -R /home/pptruser/.cache/puppeteer || true
-
-CMD ["npm", "run", "dev"]
+# Ensure permissions and launch
+CMD ["sh", "-c", "chmod -R 755 /home/pptruser/.cache/puppeteer && ls -R /home/pptruser/.cache/puppeteer && npm run dev"]
