@@ -3,7 +3,7 @@ FROM ghcr.io/puppeteer/puppeteer:latest
 
 # Set Puppeteer to use system Chromium
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
+ENV PUPPETEER_EXECUTABLE_PATH=/home/pptruser/.cache/puppeteer
 
 # Create app directory
 WORKDIR /usr/src/app
@@ -21,6 +21,7 @@ COPY . .
 EXPOSE 3001
 
 RUN echo "=== Puppeteer debug info ===" && \
+    ls -R /home/pptruser/.cache/puppeteer || true && \
     ls -R /usr/bin || true && \
     ls -R /usr/lib/chromium || true
 
