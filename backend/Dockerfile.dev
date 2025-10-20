@@ -3,7 +3,7 @@ FROM ghcr.io/puppeteer/puppeteer:latest
 
 # Set Puppeteer to use system Chromium
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
+ENV PUPPETEER_EXECUTABLE_PATH=/opt/render/.cache/puppeteer
 
 # Create app directory
 WORKDIR /usr/src/app
