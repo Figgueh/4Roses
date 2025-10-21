@@ -3,6 +3,7 @@ import Container from "@mui/material/Container";
 import Modal from "@mui/material/Modal";
 import Divider from "@mui/material/Divider";
 import Slide from "@mui/material/Slide";
+import TextField from "@mui/material/TextField";
 
 // @mui icons
 import CloseIcon from "@mui/icons-material/Close";
@@ -19,19 +20,51 @@ import axios from "axios";
 function EditView() {
   const { open, closeModal, data } = useModal();
   const [imageData, setImageData] = useState({});
+  const [loading, setLoading] = useState(false);
 
+  // Fetch image data
   useEffect(() => {
     setImageData({});
     async function getDatabaseData() {
       if (data) {
-        const databaseData = await axios.get(
-          `${process.env.REACT_APP_BACKEND}/images/imageData/${data}`
-        );
-        if (databaseData != false) setImageData(databaseData.data);
+        try {
+          const response = await axios.get(
+            `${process.env.REACT_APP_BACKEND}/images/imageData/${data}`
+          );
+          // Since Supabase returns an array, we take the first element
+          if (response.data && response.data.length > 0) {
+            setImageData(response.data[0]);
+          }
+        } catch (err) {
+          console.error("Error fetching image data:", err);
+        }
       }
     }
     getDatabaseData();
   }, [data]);
+
+  // Update database with edited info
+  const handleSave = async () => {
+    if (!imageData?.id) return;
+
+    try {
+      setLoading(true);
+      await axios.put(`${process.env.REACT_APP_BACKEND}/images/imageData/${imageData.id}`, {
+        title: imageData.title,
+        alt: imageData.alt,
+      });
+      closeModal();
+    } catch (err) {
+      console.error("Error saving image data:", err);
+      alert("Failed to save changes.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleChange = (field) => (event) => {
+    setImageData((prev) => ({ ...prev, [field]: event.target.value }));
+  };
 
   return (
     <MKBox component="section" py={6}>
@@ -50,29 +83,42 @@ function EditView() {
               {Object.keys(imageData).length > 0 ? (
                 <>
                   <MKBox display="flex" justifyContent="space-between" p={2}>
-                    <MKTypography variant="h5">{imageData?.image_path}</MKTypography>
+                    <MKTypography variant="h5">{imageData.image_path}</MKTypography>
                     <CloseIcon fontSize="medium" sx={{ cursor: "pointer" }} onClick={closeModal} />
                   </MKBox>
+
                   <Divider sx={{ my: 0 }} />
-                  <MKBox p={2}>
-                    <MKTypography variant="body2" color="secondary" fontWeight="regular">
-                      Society has put up so many boundaries, so many limitations on what&apos;s
-                      right and wrong that it&apos;s almost impossible to get a pure thought out.
-                      <br />
-                      <br />
-                      It&apos;s like a little kid, a little boy, looking at colors, and no one told
-                      him what colors are good, before somebody tells you you shouldn&apos;t like
-                      pink because that&apos;s for girls, or you&apos;d instantly become a gay
-                      two-year-old.
-                    </MKTypography>
+
+                  <MKBox p={2} display="flex" flexDirection="column" gap={2}>
+                    <TextField
+                      label="Title"
+                      variant="outlined"
+                      fullWidth
+                      value={imageData.title || ""}
+                      onChange={handleChange("title")}
+                    />
+                    <TextField
+                      label="Alt Text"
+                      variant="outlined"
+                      fullWidth
+                      value={imageData.alt || ""}
+                      onChange={handleChange("alt")}
+                    />
                   </MKBox>
+
                   <Divider sx={{ my: 0 }} />
+
                   <MKBox display="flex" justifyContent="space-between" p={1.5}>
                     <MKButton variant="gradient" color="dark" onClick={closeModal}>
                       close
                     </MKButton>
-                    <MKButton variant="gradient" color="info">
-                      save changes
+                    <MKButton
+                      variant="gradient"
+                      color="info"
+                      onClick={handleSave}
+                      disabled={loading}
+                    >
+                      {loading ? "Saving..." : "Save changes"}
                     </MKButton>
                   </MKBox>
                 </>

@@ -220,6 +220,27 @@ export const reorderImages = async (req, res, next) => {
   }
 };
 
+// PUT /images/:id
+export const updateImageData = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { title, alt } = req.body;
+
+    const { data, error } = await supabase
+      .from("image_data")
+      .update({ title, alt })
+      .eq("id", id)
+      .select("*");
+
+    if (error) throw error;
+
+    res.status(200).json({ success: true, data: data[0] });
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
+};
+
 // POST delete all given id.
 // /
 // Body: { ids: [ "uuid1", "uuid2", ... ] }

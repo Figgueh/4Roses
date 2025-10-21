@@ -195,7 +195,7 @@ function ArticleGenerator() {
         ))}
       </Menu>
 
-      <MKTypography>Data points for context:</MKTypography>
+      <MKTypography sx={{ mt: 2 }}>Data points for context:</MKTypography>
       {urls.map((url, index) => (
         <div key={index} style={{ display: "flex", gap: "0.5rem", marginBottom: "0.5rem" }}>
           <input

@@ -7,6 +7,7 @@ import {
   getLargestDisplayOrder,
   uploadImage,
   reorderImages,
+  updateImageData,
   deleteImageById,
   deleteImagesByIds,
 } from "../controllers/imageController.js";
@@ -23,6 +24,7 @@ router.get("/data/:album", getImageDataForAlbum);
 router.get("/largestDisplayOrder/:album", getLargestDisplayOrder);
 router.post("/", upload.single("image"), uploadImage);
 router.put("/reorder", reorderImages);
+router.put("/imageData/:id", updateImageData);
 router.delete("/:id", deleteImageById);
 router.post("/deleteMany", deleteImagesByIds);
 
