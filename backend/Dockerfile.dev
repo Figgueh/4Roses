@@ -15,4 +15,4 @@ COPY . .
 EXPOSE 3001
 
 # Ensure permissions and launch
-CMD ["sh", "-c", "chmod -R 755 /home/pptruser/.cache/puppeteer && ls -R /home/pptruser/.cache/puppeteer && npm run dev"]
+CMD ["sh", "-c", "chmod -R 755 /home/pptruser/.cache/puppeteer && npm run dev"]
