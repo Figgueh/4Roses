@@ -12,7 +12,7 @@
 /build
 
 # media
-\src\assets\videos
+/src/assets/videos
 
 # misc
 .DS_Store
