@@ -11,6 +11,9 @@
 # production
 /build
 
+# media
+\src\assets\videos
+
 # misc
 .DS_Store
 .env.development
