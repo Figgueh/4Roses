@@ -2,7 +2,6 @@
 /* eslint-disable no-constant-condition */
 import supabase from "../config/supabaseClient.js";
 import { deletePhoto, uploadPhoto } from "../utils/helpers.js";
-import fs from "fs";
 import { supportedLanguages, translateArticle, translateText } from "../middlewares/translate.js";
 import { buildPrompt } from "../middlewares/promptBuilder.js";
 import { generateArticle } from "../middlewares/articleGenerator.js";
