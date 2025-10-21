@@ -19,6 +19,7 @@ import MKButton from "components/MKButton";
 import { Check } from "@mui/icons-material";
 import MKProgress from "components/MKProgress";
 import axios from "axios";
+import { slugify } from "utils";
 
 function PhotoUploader({ album }) {
   const [images, setImages] = useState([]);
@@ -75,7 +76,9 @@ function PhotoUploader({ album }) {
       const dimensions = await getImageDimensions(img.preview);
       const fileExt = img.file.name.split(".").pop();
       const fileName = img.name || img.file.name.split(".").slice(0, -1).join("");
-      const newFileName = `${fileName}_${dimensions.width}x${dimensions.height}.${fileExt}`;
+      const newFileName = `${slugify(fileName)}_${dimensions.width}x${
+        dimensions.height
+      }.${fileExt}`;
       const filePath = `${album}/${newFileName}`;
 
       // Upload file
