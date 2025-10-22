@@ -57,7 +57,16 @@ function CenteredBlogCard({ image, title, description, action }) {
           }}
         />
       </MKBox>
-      <MKBox p={3} mt={-1} textAlign="center">
+      <MKBox
+        p={3}
+        mt={-1}
+        textAlign="center"
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          flex: 1, // takes all available space
+        }}
+      >
         <MKTypography display="inline" variant="h5" textTransform="capitalize" fontWeight="regular">
           {title}
         </MKTypography>
@@ -75,19 +84,26 @@ function CenteredBlogCard({ image, title, description, action }) {
             variant="gradient"
             size="small"
             color={action.color ? action.color : "dark"}
+            sx={{ mt: "auto" }}
           >
             {action.label}
           </MKButton>
         ) : (
-          <MKButton
-            component={Link}
-            to={action.route}
-            variant="gradient"
-            size="small"
-            color={action.color ? action.color : "dark"}
-          >
-            {action.label}
-          </MKButton>
+          <MKBox mt="auto" display="flex" justifyContent="center">
+            <MKButton
+              component={action.type === "external" ? MuiLink : Link}
+              to={action.type === "internal" ? action.route : undefined}
+              href={action.type === "external" ? action.route : undefined}
+              target={action.type === "external" ? "_blank" : undefined}
+              rel={action.type === "external" ? "noreferrer" : undefined}
+              variant="gradient"
+              size="small"
+              color={action.color || "dark"}
+              sx={{ maxWidth: 250, width: "100%" }}
+            >
+              {action.label}
+            </MKButton>
+          </MKBox>
         )}
       </MKBox>
     </Card>

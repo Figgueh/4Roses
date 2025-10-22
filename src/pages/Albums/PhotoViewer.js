@@ -7,7 +7,7 @@ import MKBox from "components/MKBox";
 import MKButton from "components/MKButton";
 
 // Icons
-import { Delete } from "@mui/icons-material";
+import { Delete, Favorite } from "@mui/icons-material";
 
 // Components imports
 import SortablePhotoAlbum from "components/SortablePhotoAlbum/SortablePhotoAlbum";
@@ -122,6 +122,17 @@ function PhotoViewer({ album, refreshFlag }) {
     }
   };
 
+  const setDisplayPhoto = async (id) => {
+    try {
+      await axios
+        .put(`${process.env.REACT_APP_BACKEND}/images/display/${album}/${id}`)
+        .then((res) => console.log(res));
+      window.location.reload();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   return (
     <MKBox sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
       {photos.filter((photo) => photo.selected).length > 0 && (
@@ -144,6 +155,22 @@ function PhotoViewer({ album, refreshFlag }) {
           >
             Unselect all photos
           </MKButton>
+          {/* Make the only selected photo the album picture */}
+          {photos.filter((photo) => photo.selected).length === 1 &&
+            (() => {
+              const selectedPhoto = photos.find((photo) => photo.selected);
+              return (
+                <MKButton
+                  size="medium"
+                  color="success"
+                  variant="gradient"
+                  sx={{ marginLeft: "auto", maxWidth: "250px" }}
+                  onClick={() => setDisplayPhoto(selectedPhoto?.id)}
+                >
+                  <Favorite sx={{ mr: 1 }} /> Make display photo
+                </MKButton>
+              );
+            })()}
           <MKButton
             size="medium"
             color="error"

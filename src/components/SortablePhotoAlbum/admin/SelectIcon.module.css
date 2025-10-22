@@ -19,3 +19,11 @@
   display: block;
   filter: drop-shadow(2px 2px 2px rgba(0, 0, 0, 0.8));
 }
+
+.fav {
+  position: relative;
+  right: 60px;
+  display: block;
+  filter: drop-shadow(2px 2px 2px rgba(0, 0, 0, 0.8));
+  top: 4px;
+}

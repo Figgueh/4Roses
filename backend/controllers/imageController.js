@@ -119,7 +119,7 @@ const fetchFilesFromAlbum = async (album) => {
 const fetchImageDataForAlbum = async (album) => {
   const { data: imageData, error } = await supabase
     .from("image_data")
-    .select("id, image_path, display_order")
+    .select("id, image_path, display_order, is_display")
     .like("image_path", `${album}/%`)
     .order("display_order", { ascending: true });
   if (error) throw new Error(error.message);
@@ -143,6 +143,51 @@ export const getLargestDisplayOrder = async (req, res, next) => {
     const largestOrder = latest?.[0]?.display_order ?? 0;
 
     return res.json(largestOrder);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// GET album display image
+// display/:album
+export const getDisplayImage = async (req, res, next) => {
+  try {
+    const { album } = req.params;
+
+    const { data: imageData, error: fetchError } = await supabase
+      .from("image_data")
+      .select("*")
+      .eq("is_display", true)
+      .like("image_path", `%${album}%`)
+      .single();
+
+    if (fetchError) throw fetchError;
+
+    const image = {
+      ...imageData,
+      image_path: `${process.env.IMGIX}/${imageData.image_path}?w=600&h=600&fit=crop&auto=format`,
+    };
+    console.log(image);
+
+    return res.json(image);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// GET album display image
+// Gets both interior and exterior
+export const getDisplayImages = async (req, res, next) => {
+  try {
+    const { data: imagesData, error: fetchError } = await supabase
+      .from("image_data")
+      .select("*")
+      .eq("is_display", true)
+      .limit(2);
+
+    if (fetchError) throw fetchError;
+
+    return res.json(imagesData);
   } catch (err) {
     next(err);
   }
@@ -220,7 +265,8 @@ export const reorderImages = async (req, res, next) => {
   }
 };
 
-// PUT /images/:id
+// Update the meta data for an image
+// PUT /imageData/:id
 export const updateImageData = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -237,6 +283,44 @@ export const updateImageData = async (req, res, next) => {
     res.status(200).json({ success: true, data: data[0] });
   } catch (err) {
     console.error(err);
+    next(err);
+  }
+};
+
+// update album display image
+// PUT /display/:album/:id
+export const updateDisplayImage = async (req, res, next) => {
+  try {
+    const { album, id } = req.params;
+
+    // Get the current display image
+    const { data: image, error: fetchError } = await supabase
+      .from("image_data")
+      .select("*")
+      .eq("is_display", true)
+      .like("image_path", `%${album}%`)
+      .single();
+    if (fetchError) console.warn("Was unable to find a display photo.");
+
+    // Set it to false
+    if (image) {
+      const { error: oldToggleError } = await supabase
+        .from("image_data")
+        .update({ is_display: false })
+        .eq("id", image.id);
+      if (oldToggleError) throw oldToggleError;
+    }
+
+    // Set the new image to be the display image.
+    const { error: newToggleError } = await supabase
+      .from("image_data")
+      .update({ is_display: true })
+      .eq("id", id);
+    if (newToggleError) throw newToggleError;
+
+    return res.status(200).json({ success: true });
+  } catch (err) {
+    console.error("Error updating display image:", err);
     next(err);
   }
 };

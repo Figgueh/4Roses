@@ -118,11 +118,15 @@ const SortablePhotoAlbum = ({ photos, setPhotos }) => {
         };
 
         if (isAdmin) {
+          const displayPhotos = await axios.get(
+            `${process.env.REACT_APP_BACKEND}/images/display/both`
+          );
           setAlbumRender({
             // Adds the edit Icon and the select circle.
             extras: (_, { photo, index }) => (
               <SelectIcon
                 selected={photo.selected}
+                isDisplay={displayPhotos.data.some((img) => img.id === photo.id)}
                 onClickEdit={(event) => {
                   console.log(photo);
                   openModal(photo.id);
