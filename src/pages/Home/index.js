@@ -109,7 +109,7 @@ function Home() {
         }}
       >
         <MainFeatures />
-        <MediaCard toDisplay={["exterior", "interior"]} containsHeader={false} />
+        <MediaCard toDisplay={["exterior", "interior"]} containsHeader={true} />
         <Amenities />
       </Card>
       <MKBox pt={6} px={1} mt={6}>

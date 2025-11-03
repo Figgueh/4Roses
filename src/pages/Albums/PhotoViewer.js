@@ -18,6 +18,7 @@ import EditView from "components/SortablePhotoAlbum/admin/EditView";
 // import { trimImagePath } from "utils";
 import axios from "axios";
 import { Skeleton } from "@mui/material";
+import MediaCard from "components/Cards/BlogCards/CenteredBlogCard/MediaCard";
 
 const breakpoints = [480, 768, 1024, 1280, 1600, 1920, 2560];
 
@@ -204,6 +205,10 @@ function PhotoViewer({ album, refreshFlag }) {
           </ModalProvider>
         )}
       </MKBox>
+      <MediaCard
+        toDisplay={["exterior", "interior", "video"].filter((item) => item !== album)}
+        containsHeader={true}
+      />
     </MKBox>
   );
 }
