@@ -25,5 +25,7 @@ EXPOSE 3001
 # Use a non-root user (good security practice)
 # USER pptruser
 
+RUN which chromium-browser || which google-chrome || which chrome || ls -la /home
+
 # Run your app in production mode
-CMD ["npm", "run", "start"]
+CMD ["sh", "-c", "npm run start"]
