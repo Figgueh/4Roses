@@ -7,14 +7,7 @@ const scrapePage = async (url) => {
   const browser = await puppeteer.launch({
     headless: true,
     executablePath: puppeteer.executablePath(),
-    args: [
-      "--no-sandbox",
-      "--disable-setuid-sandbox",
-      "--disable-dev-shm-usage",
-      "--disable-gpu",
-      "--no-zygote",
-      "--single-process",
-    ],
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
   });
 
   // Create a browser context with a custom user agent
