@@ -1,5 +1,5 @@
 # Use official Puppeteer image (includes Chromium deps)
-FROM ghcr.io/puppeteer/puppeteer:latest AS base
+FROM ghcr.io/puppeteer/puppeteer:latest
 
 # Disable Puppeteer auto Chromium download
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
