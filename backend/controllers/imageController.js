@@ -161,13 +161,19 @@ export const getDisplayImage = async (req, res, next) => {
       .like("image_path", `%${album}%`)
       .single();
 
-    if (fetchError) throw fetchError;
+    // If the image doesn't exist then just return a placeholder
+    if (fetchError) {
+      return res.json({
+        image_path: `https://placehold.co/600x600?text=${
+          album.charAt(0).toUpperCase() + album.slice(1)
+        } placeholder`,
+      });
+    }
 
     const image = {
       ...imageData,
       image_path: `${process.env.IMGIX}/${imageData.image_path}?w=600&h=600&fit=crop&auto=format`,
     };
-    console.log(image);
 
     return res.json(image);
   } catch (err) {
