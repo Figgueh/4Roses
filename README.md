@@ -26,6 +26,8 @@
   - [🤖 AI Integration](#-ai-integration)
 - [🧠 Future Improvements](#-future-improvements)
 - [👨‍💻 Developer Information](#-developer-information)
+  - [⚙️ .env setup](https://github.com/Figgueh/4Roses/blob/8c245c1f0a261d64602d53f0a0c7da83e032a8c6/README.md#L227)
+  - [🔗 Website Links](#-website-links)
 
 
 ## 🚀 Project Summary
@@ -222,7 +224,7 @@ Respond with valid JSON only.
 
 ## 👨‍💻 Developer Information
 
-### .env setup
+### ⚙️ .env setup
 **Frontend:**
 ```.env
 REACT_APP_SUPABASE_URL=
@@ -243,7 +245,7 @@ TRANSLATE_KEY=
 TRANSLATE_URL=
 ```
 
-### Website links
+### 🔗 Website links
 
 - **Production link:** https://4roses.fignet.ca/
 - **Staging link:** https://4roses.dev.fignet.ca/
