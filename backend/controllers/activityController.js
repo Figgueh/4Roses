@@ -201,20 +201,19 @@ export const updateActivity = async (req, res, next) => {
 
     // Translate and upload data to the database.
     for (const language of supportedLanguages) {
-      const [transTitle, transDescription] = await Promise.all([translateText(title, language)]);
+      const transTitle = await translateText(title, language);
 
-      const { data: transData, error: transError } = await supabase
+      const { error: transError } = await supabase
         .from("activities_translation")
         .update({
           title: transTitle,
-          description: transDescription,
         })
         .eq("activity_id", updatedData.id)
-        .select();
+        .eq("language", language);
+
       if (transError) throw transError;
-      if (transData) {
-        console.log("Translation data saved.");
-      }
+
+      console.log(`Translated ${title} in ${language} to: ${transTitle}`);
     }
 
     res.status(200).send();
