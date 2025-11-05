@@ -6,6 +6,7 @@ const scrapePage = async (url) => {
 
   const browser = await puppeteer.launch({
     headless: true,
+    executablePath: puppeteer.executablePath(),
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
   });
 
