@@ -26,7 +26,7 @@
   - [🤖 AI Integration](#-ai-integration)
 - [🧠 Future Improvements](#-future-improvements)
 - [👨‍💻 Developer Information](#-developer-information)
-  - [⚙️ .env setup](https://github.com/Figgueh/4Roses/blob/8c245c1f0a261d64602d53f0a0c7da83e032a8c6/README.md#L227)
+  - [⚙️ .env setup](#-developer-information)
   - [🔗 Website Links](#-website-links)
 
 
