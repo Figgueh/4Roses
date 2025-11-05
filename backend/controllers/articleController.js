@@ -7,6 +7,21 @@ import { buildPrompt } from "../middlewares/promptBuilder.js";
 import { generateArticle } from "../middlewares/articleGenerator.js";
 import { scrapeMultiple } from "../middlewares/scraper.js";
 
+import { SSEConnection } from "../utils/sse.js";
+
+const activeConnections = new Map();
+export const connectSSE = (req, res) => {
+  const id = req.query.id;
+  if (!id) return res.status(400).send("Missing id");
+
+  const sse = new SSEConnection(res);
+  activeConnections.set(id, sse);
+
+  req.on("close", () => {
+    activeConnections.delete(id);
+  });
+};
+
 // GET all articles
 // /
 export const getArticles = async (req, res, next) => {
@@ -131,7 +146,7 @@ export const getArticlesForActivity = async (req, res, next) => {
 // POST a new article
 export const createArticle = async (req, res, next) => {
   try {
-    const { id, activityId, url, title, image, rawContent, description } = req.body;
+    const { id, activityId, url, title, image, rawContent, description, clientId } = req.body;
 
     console.log(req.body);
     var jsonContent;
@@ -163,6 +178,11 @@ export const createArticle = async (req, res, next) => {
       return res.status(400).json({ error: error.message || "Database error" });
     }
 
+    // Send progress via SSE
+    const sse = activeConnections.get(clientId);
+    if (sse) sse.send("status", { message: "Article saved. Starting translations..." });
+    let completed = 0;
+
     // Translate and upload data to the database.
     for (const language of supportedLanguages) {
       const [transTitle, transDescription, transArticle] = await Promise.all([
@@ -182,11 +202,14 @@ export const createArticle = async (req, res, next) => {
         })
         .select();
       if (transError) throw transError;
-      if (transData) {
-        console.log("Translation data saved.");
-      }
+
+      completed++;
+      const progress = Math.round((completed / supportedLanguages.length) * 100);
+      if (sse)
+        sse.send("progress", { language, message: `${language} translation completed`, progress });
     }
 
+    if (sse) sse.send("done", { message: "All translations completed!" });
     res.status(200).json(data);
   } catch (err) {
     console.log(err);

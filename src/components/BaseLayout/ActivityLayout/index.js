@@ -16,6 +16,7 @@ import MKBox from "components/MKBox";
 import MKTypography from "components/MKTypography";
 import MKButton from "components/MKButton";
 import MKInput from "components/MKInput";
+import MKProgress from "components/MKProgress";
 
 // Custom components
 import BaseLayout from "..";
@@ -39,6 +40,7 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
   const [openPicture, setOpenPicture] = useState();
   const [error, setError] = useState("");
   const [status, setStatus] = useState(null);
+  const [progress, setProgress] = useState(0);
   const { i18n } = useTranslation();
 
   useEffect(() => {
@@ -83,7 +85,35 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
     try {
       var res;
       if (item.isPreview) {
+        const clientId = crypto.randomUUID();
+        const eventSource = new EventSource(
+          `${process.env.REACT_APP_BACKEND}/articles/events?id=${clientId}`
+        );
+
+        eventSource.addEventListener("status", (e) => {
+          const data = JSON.parse(e.data);
+          setStatus(data.message);
+        });
+
+        eventSource.addEventListener("progress", (e) => {
+          const data = JSON.parse(e.data);
+          setProgress(data.progress);
+          setStatus(`${data.message}`);
+        });
+
+        eventSource.addEventListener("done", () => {
+          setProgress(100);
+          setStatus("All translations done!");
+          eventSource.close();
+        });
+
+        eventSource.onerror = () => {
+          setError("Connection lost");
+          eventSource.close();
+        };
+
         formData.append("activityId", item.activityId);
+        formData.append("clientId", clientId);
         res = await axios.post(`${process.env.REACT_APP_BACKEND}/articles`, formData);
       } else {
         res = await axios.put(
@@ -275,10 +305,32 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
           {error}
         </Alert>
       )}
-      {status && error == null && (
-        <Alert sx={{ mt: 2 }} severity="success" onClose={() => setStatus(null)}>
+      {status && (
+        <Alert
+          sx={{
+            mt: 2,
+            "& .MuiAlert-message": {
+              width: "100%",
+            },
+          }}
+          severity="success"
+          onClose={() => setStatus(null)}
+        >
           <AlertTitle>Article editor status</AlertTitle>
           {status}
+
+          <MKProgress
+            sx={{
+              mt: 2,
+              mb: 2,
+              width: "100%",
+              display: "block",
+              "& .MuiLinearProgress-bar": { borderRadius: "6px", height: 10 },
+              height: 10,
+            }}
+            color="info"
+            value={progress}
+          />
         </Alert>
       )}
       <Card
