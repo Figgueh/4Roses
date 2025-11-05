@@ -1,6 +1,6 @@
 # 🏡 4 Roses Rental Property Website — Alvor, Portugal
 [![Website](https://img.shields.io/badge/Website-Live-brightgreen?logo=cloudflare)](https://4roses.fignet.ca/)
-[![Staging](https://img.shields.io/badge/Staging-4roses.dev.fignet.ca-blue?logo=cloudflare)](https://staging.4rosesalvor.com)  
+[![Staging](https://img.shields.io/badge/Staging-4roses.dev.fignet.ca-blue?logo=cloudflare)](https://4roses.dev.fignet.ca/)  
 ![React](https://img.shields.io/badge/Frontend-React.js-61DAFB?logo=react&logoColor=white)
 ![Cloudflare Pages](https://img.shields.io/badge/Hosting-Cloudflare%20Pages-F38020?logo=cloudflare&logoColor=white)
 ![Render](https://img.shields.io/badge/Backend-Render.com-46E3B7?logo=render&logoColor=white)
@@ -180,12 +180,12 @@ A simple root route (`/`) serves a redirect to the frontend and keeps the backen
 
 Used for generating activity-related articles via structured JSON prompts.
 
-**Prompt Example:**
-Here are parts of a webpage:
-Page 'x' content:
-'content found in URLs provided'
-
-
+**Prompt Example:**  
+Here are parts of a webpage:  
+Page 'x' content:  
+'content found in URLs provided'  
+  
+  
 Generate me an article that includes things like the price, location, services offered, values and give a good reason why it would be a good place to visit without sounding generic.
 If the web pages don't include any information on the previously mentioned items, then don't include them and find something else that would be good to know.
 The article should follow this schema:
@@ -222,5 +222,28 @@ Respond with valid JSON only.
 
 ## 👨‍💻 Developer Information
 
-**Production link:** https://4roses.fignet.ca/ 
-**Staging link:** https://4roses.dev.fignet.ca/
+### .env setup
+**Frontend:**
+```.env
+REACT_APP_SUPABASE_URL=
+REACT_APP_SUPABASE_PUBLISHABLE_DEFAULT_KEY=
+REACT_APP_SUPABASE_IMAGE=
+REACT_APP_BACKEND=
+REACT_APP_IMGIX=
+```
+**Backend:**
+```.env
+PORT=
+SUPABASE_URL=
+SUPABASE_SERVICE_ROLE_KEY=
+SUPABASE_IMAGE=
+OPENROUTER_KEY=
+IMGIX=
+TRANSLATE_KEY=
+TRANSLATE_URL=
+```
+
+### Website links
+
+- **Production link:** https://4roses.fignet.ca/
+- **Staging link:** https://4roses.dev.fignet.ca/
