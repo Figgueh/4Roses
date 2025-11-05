@@ -1,11 +1,31 @@
 # 🏡 4 Roses Rental Property Website — Alvor, Portugal
 [![Website](https://img.shields.io/badge/Website-Live-brightgreen?logo=cloudflare)](https://4roses.fignet.ca/)
+[![Staging](https://img.shields.io/badge/Staging-4roses.dev.fignet.ca-blue?logo=cloudflare)](https://staging.4rosesalvor.com)  
 ![React](https://img.shields.io/badge/Frontend-React.js-61DAFB?logo=react&logoColor=white)
 ![Cloudflare Pages](https://img.shields.io/badge/Hosting-Cloudflare%20Pages-F38020?logo=cloudflare&logoColor=white)
 ![Render](https://img.shields.io/badge/Backend-Render.com-46E3B7?logo=render&logoColor=white)
 ![Supabase](https://img.shields.io/badge/Database-Supabase-3ECF8E?logo=supabase&logoColor=white)
 ![LibreTranslate](https://img.shields.io/badge/Translation-LibreTranslate-0081CB?logo=docker&logoColor=white)
 ![OpenRouter](https://img.shields.io/badge/AI-OpenRouter%20API-6C63FF?logo=openai&logoColor=white)
+
+## 📚 Table of Contents
+
+- [🚀 Project Summary](#-project-summary)
+- [✨ Features](#-features)
+  - [📝 Article Generator](#-article-generator)
+  - [🌐 Translation System](#-translation-system)
+  - [🖼️ Photo Album Viewer](#-photo-album-viewer)
+  - [🔑 Customer Login](#-customer-login)
+  - [🛠️ Administration Dashboard](#-administration-dashboard)
+- [🧩 Technologies & Services](#-technologies--services)
+  - [🧭 Abstract](#-abstract)
+  - [🌐 Domain](#-domain)
+  - [🎨 Frontend](#-frontend)
+  - [⚙️ Backend](#-backend)
+  - [🗄️ Database](#-database)
+  - [🤖 AI Integration](#-ai-integration)
+- [🧠 Future Improvements](#-future-improvements)
+- [👨‍💻 Developer Information](#-developer-information)
 
 
 ## 🚀 Project Summary
@@ -202,5 +222,5 @@ Respond with valid JSON only.
 
 ## 👨‍💻 Developer Information
 
-**Production link:** https://4roses.fignet.ca/
+**Production link:** https://4roses.fignet.ca/ 
 **Staging link:** https://4roses.dev.fignet.ca/
