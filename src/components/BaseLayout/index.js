@@ -15,6 +15,7 @@ Coded by www.creative-tim.com
 
 // prop-types is a library for typechecking of props
 import PropTypes from "prop-types";
+import { useState, useEffect } from "react";
 
 // @mui material components
 import Container from "@mui/material/Container";
@@ -32,9 +33,31 @@ import Breadcrumbs from "components/Breadcrumbs";
 import { routes } from "routes";
 import { useTranslation } from "react-i18next";
 
+import axios from "axios";
+
 function BaseLayout({ breadcrumb, title, children }) {
+  const [translation, setTranslation] = useState("");
+  const { i18n } = useTranslation();
   const { t } = useTranslation();
   const translatedRoutes = routes(t);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (i18n.language != "en") {
+        const activityRes = await axios.get(`${process.env.REACT_APP_BACKEND}/activities/${title}`);
+        const activityId = activityRes.data.id;
+
+        const transRequest = await axios.get(
+          `${process.env.REACT_APP_BACKEND}/activities/translation/${activityId}?lang=${i18n.language}`
+        );
+        setTranslation(transRequest.data.title);
+      } else {
+        setTranslation(title);
+      }
+    };
+    fetchData();
+  }, [i18n.language]);
+
   return (
     <MKBox display="flex" flexDirection="column" bgColor="white" minHeight="100vh">
       <MKBox bgColor="white" shadow="sm" py={0.25}>
@@ -61,7 +84,7 @@ function BaseLayout({ breadcrumb, title, children }) {
             {breadcrumb && <Breadcrumbs routes={breadcrumb} />}
           </MKBox>
           <MKTypography variant="h3" mb={1}>
-            {title}
+            {translation || title}
           </MKTypography>
           {/* This ensures children grow and allow footer push-down */}
           <MKBox sx={{ flex: 1 }}>{children}</MKBox>
