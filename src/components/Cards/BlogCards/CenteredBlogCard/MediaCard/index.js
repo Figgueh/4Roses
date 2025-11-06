@@ -66,13 +66,14 @@ function MediaCard({ toDisplay, containsHeader }) {
     video: {
       image: VideoThumbnail,
       title: "Videos",
-      description:
-        "Watch stunning video walkthroughs of the property showcasing its beauty in full motion.",
+      description: t(
+        "Watch stunning video walkthroughs of the property showcasing its beauty in full motion."
+      ),
       action: {
         type: "internal",
         route: "/pages/albums/videos",
         color: "info",
-        label: "Watch videos",
+        label: t("Watch videos"),
       },
     },
   };

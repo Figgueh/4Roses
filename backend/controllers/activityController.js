@@ -105,12 +105,14 @@ export const getActivityIdByName = async (req, res, next) => {
       .select("id")
       .eq("title", activityName)
       .single();
-    if (error) {
-      console.log(error);
-      throw error;
-    }
 
-    res.json(data);
+    if (error) {
+      // This function will get called for other parts of the website that aren't related to activities
+      res.json("No activity found by the name of: ", activityName);
+    } else {
+      // If there is no error, then return the activity ID
+      res.json(data);
+    }
   } catch (err) {
     next(err);
   }

@@ -14,8 +14,9 @@ Coded by www.creative-tim.com
 */
 
 // prop-types is a library for typechecking of props
-import PropTypes from "prop-types";
 import { useState, useEffect } from "react";
+import PropTypes from "prop-types";
+import { useParams } from "react-router-dom";
 
 // @mui material components
 import Container from "@mui/material/Container";
@@ -36,6 +37,7 @@ import { useTranslation } from "react-i18next";
 import axios from "axios";
 
 function BaseLayout({ breadcrumb, title, children }) {
+  const { section } = useParams();
   const [translation, setTranslation] = useState("");
   const { i18n } = useTranslation();
   const { t } = useTranslation();
@@ -47,15 +49,19 @@ function BaseLayout({ breadcrumb, title, children }) {
         const activityRes = await axios.get(`${process.env.REACT_APP_BACKEND}/activities/${title}`);
         const activityId = activityRes.data.id;
 
-        const transRequest = await axios.get(
-          `${process.env.REACT_APP_BACKEND}/activities/translation/${activityId}?lang=${i18n.language}`
-        );
-        setTranslation(transRequest.data.title);
-      } else {
-        setTranslation(title);
+        // Only load the translation if it is for the activities.
+        if (activityId) {
+          const transRequest = await axios.get(
+            `${process.env.REACT_APP_BACKEND}/activities/translation/${activityId}?lang=${i18n.language}`
+          );
+          setTranslation(transRequest.data.title);
+        } else {
+          setTranslation(title);
+        }
       }
     };
     fetchData();
+    console.log(section);
   }, [i18n.language]);
 
   return (
