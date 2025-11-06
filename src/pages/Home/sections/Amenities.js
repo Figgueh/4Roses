@@ -111,9 +111,21 @@ function Amenities() {
           <Grid container spacing={3}>
             {items.map(({ image, title, description, slug, pro }) => (
               <Grid item xs={12} md={4} sx={{ mb: 2 }} id={slugify(title)} key={title}>
-                <Link to={slug}>
-                  <ExampleCard image={image} name={title} description={description} pro={pro} />
-                </Link>
+                {slug ? (
+                  // Cards for the activities
+                  <Link to={slug}>
+                    <ExampleCard image={image} name={title} description={description} pro={pro} />
+                  </Link>
+                ) : (
+                  // Cards for the amenities
+                  <ExampleCard
+                    image={image}
+                    name={title}
+                    description={description}
+                    pro={pro}
+                    sx={{ transform: "none" }}
+                  />
+                )}
               </Grid>
             ))}
           </Grid>
