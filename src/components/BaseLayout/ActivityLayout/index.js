@@ -123,18 +123,16 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
       }
 
       if (res.status == 200) {
-        console.log("saved");
         setItem(updatedArticle);
         setPreviewImage(null);
         setIsEditMode(false);
-        console.log("Route type:", typeof breadcrumb.at(1)?.route, breadcrumb.at(1)?.route);
 
         if (!breadcrumb.at(1).route.includes("[object Object]")) {
           // Is from a regular update
           navigate(`${breadcrumb.at(1).route}/${slugify(res.data.title)}`);
         } else {
           // Is coming from the article builder.
-          navigate(`/activities/${item.activityName}/${slugify(res.data.title)}`);
+          navigate(`/activities/${slugify(item.activityName)}/${slugify(res.data.title)}`);
         }
       }
     } catch (err) {

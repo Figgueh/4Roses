@@ -177,6 +177,7 @@ export const updateActivity = async (req, res, next) => {
     const { id } = req.params;
     const { title, imageUrl } = req.body;
     const image = req.file;
+    const { lang = "en" } = req.query;
 
     if (image && imageUrl) {
       // Get the current photo
@@ -192,33 +193,31 @@ export const updateActivity = async (req, res, next) => {
     }
 
     // Update the row in the database
-    const { data: updatedData, error } = await supabase
-      .from("activities")
-      .update({ title, image: imageUrl })
-      .eq("id", id)
-      .select()
-      .single();
+    let updatedData;
+    if (lang == "en") {
+      const { data, error } = await supabase
+        .from("activities")
+        .update({ title, image: imageUrl })
+        .eq("id", id)
+        .select()
+        .single();
 
-    if (error) throw error;
-
-    // Translate and upload data to the database.
-    for (const language of supportedLanguages) {
-      const transTitle = await translateText(title, language);
-
-      const { error: transError } = await supabase
+      if (error) throw error;
+      updatedData = data;
+    } else {
+      // If the language isn't english, update the translation table instead.
+      const { data, error } = await supabase
         .from("activities_translation")
-        .update({
-          title: transTitle,
-        })
-        .eq("activity_id", updatedData.id)
-        .eq("language", language);
-
-      if (transError) throw transError;
-
-      console.log(`Translated ${title} in ${language} to: ${transTitle}`);
+        .update({ title })
+        .eq("language", lang)
+        .eq("activity_id", id)
+        .select()
+        .single();
+      if (error) throw error;
+      updatedData = data;
     }
 
-    res.status(200).send();
+    res.status(200).send(updatedData);
   } catch (err) {
     next(err);
   }

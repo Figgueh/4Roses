@@ -6,6 +6,8 @@ import axios from "axios";
 import { Add } from "@mui/icons-material";
 import MKBox from "components/MKBox";
 
+import { useTranslation } from "react-i18next";
+
 function ActivityEditor() {
   const [activities, setActivities] = useState([]);
   const [openModal, setOpenModal] = useState(false);
@@ -14,15 +16,18 @@ function ActivityEditor() {
   const [uploading, setUploading] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [error, setError] = useState(null);
+  const { i18n } = useTranslation();
 
   const loadActivities = async () => {
-    const databaseActivities = await axios.get(`${process.env.REACT_APP_BACKEND}/activities`);
+    const databaseActivities = await axios.get(
+      `${process.env.REACT_APP_BACKEND}/activities?lang=${i18n.language}`
+    );
     setActivities(databaseActivities.data);
   };
 
   useEffect(() => {
     loadActivities();
-  }, []);
+  }, [i18n.language]);
 
   const handleSave = async () => {
     if (!title || (editingId === null && !imageFile)) return;
@@ -36,7 +41,10 @@ function ActivityEditor() {
     }
 
     if (editingId) {
-      await axios.put(`${process.env.REACT_APP_BACKEND}/activities/${editingId}`, formData);
+      await axios.put(
+        `${process.env.REACT_APP_BACKEND}/activities/${editingId}?lang=${i18n.language}`,
+        formData
+      );
     } else {
       const addActivity = await axios.post(
         `${process.env.REACT_APP_BACKEND}/activities`,
