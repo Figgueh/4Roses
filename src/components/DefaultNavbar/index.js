@@ -88,7 +88,7 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
   const openMobileNavbar = () => setMobileNavbar(!mobileNavbar);
 
   const changeLanguage = (lang) => {
-    i18n.changeLanguage(lang);
+    i18n.changeLanguage(lang.split("-")[0].toLowerCase());
     closeDropdownLang();
   };
 
