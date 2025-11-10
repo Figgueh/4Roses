@@ -66,30 +66,31 @@ function MediaCard({ toDisplay, containsHeader }) {
     video: {
       image: VideoThumbnail,
       title: "Videos",
-      description:
-        "Watch stunning video walkthroughs of the property showcasing its beauty in full motion.",
+      description: t(
+        "Watch stunning video walkthroughs of the property showcasing its beauty in full motion."
+      ),
       action: {
         type: "internal",
         route: "/pages/albums/videos",
         color: "info",
-        label: "Watch videos",
+        label: t("Watch videos"),
       },
     },
   };
 
   let message;
   if (toDisplay.includes("exterior") && toDisplay.includes("interior")) {
-    message = "checkout our gallery featuring exquisite exteriors and stunning interior ";
+    message = t("checkout our gallery featuring exquisite exteriors and stunning interior");
   } else {
     if (toDisplay.includes("exterior")) {
-      message = "checkout our gallery featuring exquisite exteriors";
+      message = t("checkout our gallery featuring exquisite exteriors");
     }
     if (toDisplay.includes("interior")) {
-      message = "checkout our gallery featuring stunning interior";
+      message = t("checkout our gallery featuring stunning interior");
     }
   }
   if (toDisplay.includes("video")) {
-    message += " and immersive videos.";
+    message += t(" and immersive videos.");
   } else {
     message += ".";
   }
@@ -98,7 +99,7 @@ function MediaCard({ toDisplay, containsHeader }) {
       {containsHeader && (
         <MKBox>
           <MKTypography align="center" mt={2} variant="h2" fontWeight="regular">
-            Experience the beauty of our property
+            {t("Experience the beauty of our property")}
           </MKTypography>
           <MKTypography align="center" mt={2} variant="h4" fontWeight="regular">
             {message}

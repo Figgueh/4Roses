@@ -1,5 +1,6 @@
 import express from "express";
 import {
+  connectSSE,
   getArticles,
   getArticleByTitle,
   getArticlesForActivity,
@@ -14,6 +15,7 @@ const router = express.Router();
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
+router.get("/events", connectSSE);
 router.get("/", getArticles);
 router.get("/:title", getArticleByTitle);
 router.get("/activity/:activityId", getArticlesForActivity);

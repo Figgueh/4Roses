@@ -53,8 +53,6 @@ export async function translateArticle(jsonArticle, targetLang) {
         return translatedSection;
       })
     );
-
-    console.log(translated);
     return translated;
   } catch (err) {
     console.error(err);

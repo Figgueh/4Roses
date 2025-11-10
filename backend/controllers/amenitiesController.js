@@ -6,13 +6,35 @@ import { deletePhoto, uploadPhoto } from "../utils/helpers.js";
 // /
 export const getAllAmenities = async (req, res, next) => {
   try {
+    const { lang = "en" } = req.query;
+
     const { data: amenitiesRequest, error } = await supabase.from("amenities").select("*");
     if (error) throw error;
 
-    const amenities = amenitiesRequest.map((value) => ({
+    let amenities = amenitiesRequest.map((value) => ({
       ...value,
       image: `${process.env.IMGIX}/amenities/${value.image}?w=150&h=100fit=crop&auto=format`,
     }));
+
+    if (lang != "en") {
+      const { data: translationData, error } = await supabase
+        .from("amenities_translation")
+        .select("*")
+        .eq("language", lang);
+      if (error) throw error;
+
+      // Merge translations by matching amenities_id
+      amenities = amenities.map((amenity) => {
+        const translation = translationData.find((t) => t.amenities_id === amenity.id);
+        return translation
+          ? {
+              ...amenity,
+              title: translation.title || amenity.title,
+              description: translation.description || amenity.description,
+            }
+          : amenity;
+      });
+    }
 
     res.json(amenities);
   } catch (err) {
@@ -134,6 +156,7 @@ export const updateAmenity = async (req, res, next) => {
     const { id } = req.params;
     const { title, description, isSmall } = req.body;
     const file = req.file;
+    const { lang = "en" } = req.query;
 
     const updateData = {
       title,
@@ -157,38 +180,32 @@ export const updateAmenity = async (req, res, next) => {
       updateData.image = `${req.file.filename}`;
     }
 
-    // upload data to database
-    const { data, error } = await supabase
-      .from("amenities")
-      .update(updateData)
-      .eq("id", id)
-      .select()
-      .single();
+    let updatedData;
+    if (lang == "en") {
+      // upload data to database
+      const { data, error } = await supabase
+        .from("amenities")
+        .update(updateData)
+        .eq("id", id)
+        .select()
+        .single();
 
-    if (error) throw error;
-
-    // Translate and upload data to the database.
-    for (const language of supportedLanguages) {
-      const [transTitle, transDescription] = await Promise.all([
-        translateText(title, language),
-        translateText(description, language),
-      ]);
-
-      const { data: transData, error: transError } = await supabase
+      if (error) throw error;
+      updatedData = data;
+    } else {
+      // If the language isn't english, update the translation table instead.
+      const { data, error } = await supabase
         .from("amenities_translation")
-        .update({
-          title: transTitle,
-          description: transDescription,
-        })
-        .eq("amenities_id", data.id)
-        .select();
-      if (transError) throw transError;
-      if (transData) {
-        console.log("Translation data saved.");
-      }
+        .update({ title, description })
+        .eq("language", lang)
+        .eq("amenities_id", id)
+        .select()
+        .single();
+      if (error) throw error;
+      updatedData = data;
     }
 
-    return res.status(201).json(data);
+    return res.status(201).json(updatedData);
   } catch (err) {
     next(err);
   }
