@@ -70,7 +70,9 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
   const { session, signOut } = UserAuth();
   const { i18n } = useTranslation();
   const [dropdownLang, setDropdownLang] = useState(null);
-  const currentLang = i18n.language;
+
+  const normalizeLang = (lang) => lang.split("-")[0].toLowerCase();
+  const currentLang = normalizeLang(i18n.language);
 
   const openDropdownLang = ({ currentTarget }) => setDropdownLang(currentTarget);
   const closeDropdownLang = () => setDropdownLang(null);
