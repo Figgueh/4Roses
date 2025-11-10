@@ -23,7 +23,8 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import MKBox from "components/MKBox";
 import MKTypography from "components/MKTypography";
 import MKButton from "components/MKButton";
-// import { trimImagePathNoSize } from "utils";
+
+import { useTranslation } from "react-i18next";
 
 function AmenitiesEditor() {
   const [amenities, setAmenities] = useState([]);
@@ -35,19 +36,22 @@ function AmenitiesEditor() {
     image: null,
     isSmall: false,
   });
+  const { i18n } = useTranslation();
 
   // Fetch amenities
   useEffect(() => {
     const fetchAmenities = async () => {
       try {
-        const { data } = await axios.get(`${process.env.REACT_APP_BACKEND}/amenities`);
+        const { data } = await axios.get(
+          `${process.env.REACT_APP_BACKEND}/amenities?lang=${i18n.language}`
+        );
         setAmenities(data);
       } catch (err) {
         console.error("Error fetching amenities:", err);
       }
     };
     fetchAmenities();
-  }, []);
+  }, [i18n.language]);
 
   const handleOpen = (amenity = null) => {
     if (amenity) {
@@ -111,7 +115,7 @@ function AmenitiesEditor() {
 
       if (editingAmenity) {
         const res = await axios.put(
-          `${process.env.REACT_APP_BACKEND}/amenities/${editingAmenity.id}`,
+          `${process.env.REACT_APP_BACKEND}/amenities/${editingAmenity.id}?lang=${i18n.language}`,
           formData,
           { headers: { "Content-Type": "multipart/form-data" } }
         );
