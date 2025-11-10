@@ -117,6 +117,10 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
   }, [session]);
 
   useEffect(() => {
+    //Force the language to be normalized
+    const lang = normalizeLang(i18n.language);
+    if (i18n.language !== lang) i18n.changeLanguage(lang);
+
     // A function that sets the display state for the DefaultNavbarMobile.
     function displayMobileNavbar() {
       if (window.innerWidth < breakpoints.values.lg) {
