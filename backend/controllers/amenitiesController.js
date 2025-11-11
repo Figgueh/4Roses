@@ -8,7 +8,10 @@ export const getAllAmenities = async (req, res, next) => {
   try {
     const { lang = "en" } = req.query;
 
-    const { data: amenitiesRequest, error } = await supabase.from("amenities").select("*");
+    const { data: amenitiesRequest, error } = await supabase
+      .from("amenities")
+      .select("*")
+      .order("display_order", { ascending: true });
     if (error) throw error;
 
     let amenities = amenitiesRequest.map((value) => ({
@@ -57,7 +60,8 @@ export const getAmenities = async (req, res, next) => {
     const { data: amenitiesRequest, error } = await supabase
       .from("amenities")
       .select("*")
-      .eq("small", isSmall);
+      .eq("small", isSmall)
+      .order("display_order", { ascending: true });
     if (error) throw error;
 
     var amenities = amenitiesRequest.map((value) => ({
@@ -103,7 +107,7 @@ export const getAmenities = async (req, res, next) => {
 // /
 export const addAmenity = async (req, res, next) => {
   try {
-    const { title, description, isSmall } = req.body;
+    const { title, description, isSmall, display_order } = req.body;
     const file = req.file;
 
     if (!file) {
@@ -113,9 +117,9 @@ export const addAmenity = async (req, res, next) => {
     // Upload the image
     await uploadPhoto(`amenities/${file.originalname}`, file);
 
-    const { data, error } = await supabase
+    const { data: newData, error } = await supabase
       .from("amenities")
-      .insert({ title, description, small: isSmall, image: file.originalname })
+      .insert({ title, description, small: isSmall, image: file.originalname, display_order })
       .select()
       .single();
 
@@ -128,22 +132,19 @@ export const addAmenity = async (req, res, next) => {
         translateText(description, language),
       ]);
 
-      const { data: transData, error: transError } = await supabase
+      const { error: transError } = await supabase
         .from("amenities_translation")
         .insert({
-          amenities_id: data.id,
+          amenities_id: newData.id,
           language,
           title: transTitle,
           description: transDescription,
         })
         .select();
       if (transError) throw transError;
-      if (transData) {
-        console.log("Translation data saved.");
-      }
     }
 
-    return res.status(201).json(data);
+    return res.status(201).json(newData);
   } catch (err) {
     next(err);
   }
@@ -154,14 +155,15 @@ export const addAmenity = async (req, res, next) => {
 export const updateAmenity = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { title, description, isSmall } = req.body;
+    const { title, description, isSmall, display_order } = req.body;
     const file = req.file;
     const { lang = "en" } = req.query;
 
     const updateData = {
       title,
       description,
-      small: isSmall === "true", // force boolean
+      small: isSmall,
+      display_order,
     };
 
     if (file) {
@@ -180,10 +182,9 @@ export const updateAmenity = async (req, res, next) => {
       updateData.image = `${req.file.filename}`;
     }
 
-    let updatedData;
     if (lang == "en") {
       // upload data to database
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from("amenities")
         .update(updateData)
         .eq("id", id)
@@ -191,10 +192,9 @@ export const updateAmenity = async (req, res, next) => {
         .single();
 
       if (error) throw error;
-      updatedData = data;
     } else {
       // If the language isn't english, update the translation table instead.
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from("amenities_translation")
         .update({ title, description })
         .eq("language", lang)
@@ -202,10 +202,9 @@ export const updateAmenity = async (req, res, next) => {
         .select()
         .single();
       if (error) throw error;
-      updatedData = data;
     }
 
-    return res.status(201).json(updatedData);
+    return res.status(201).json();
   } catch (err) {
     next(err);
   }
