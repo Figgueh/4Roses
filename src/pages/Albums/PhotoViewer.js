@@ -11,6 +11,7 @@ import { Delete, Favorite } from "@mui/icons-material";
 
 // Components imports
 import SortablePhotoAlbum from "components/SortablePhotoAlbum/SortablePhotoAlbum";
+import SortableVideoAlbum from "components/video";
 // Modal imports
 import { ModalProvider } from "components/SortablePhotoAlbum/admin/ModalProvider";
 import EditView from "components/SortablePhotoAlbum/admin/EditView";
@@ -29,6 +30,7 @@ const breakpoints = [480, 768, 1024, 1280, 1600, 1920, 2560];
  */
 function PhotoViewer({ album, refreshFlag }) {
   const [photos, setPhotos] = useState([]);
+  const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -91,7 +93,21 @@ function PhotoViewer({ album, refreshFlag }) {
       setLoading(false);
     }
 
-    fetchImages();
+    async function fetchVideos() {
+      try {
+        const res = await axios.get(`${process.env.REACT_APP_BACKEND}/videos`);
+        const parsed = res.data;
+        setVideos(parsed);
+      } catch (err) {
+        console.error("Error fetching videos:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    if (album == "interior" || album == "exterior") fetchImages();
+
+    if (album == "video") fetchVideos();
   }, [album, refreshFlag]);
 
   const handleDelete = async () => {
@@ -198,11 +214,13 @@ function PhotoViewer({ album, refreshFlag }) {
               <Skeleton key={i} variant="rectangular" width="100%" height={200} animation="wave" />
             ))}
           </MKBox>
-        ) : (
+        ) : album != "video" ? (
           <ModalProvider>
             <SortablePhotoAlbum photos={photos} setPhotos={setPhotos} />
             <EditView />
           </ModalProvider>
+        ) : (
+          <SortableVideoAlbum videos={videos} setVideos={setVideos} showDragHandle={true} />
         )}
       </MKBox>
       <MediaCard

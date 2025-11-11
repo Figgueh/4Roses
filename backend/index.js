@@ -7,6 +7,7 @@ import articlesRoutes from "./routes/articles.js";
 import activityRoutes from "./routes/activities.js";
 import amenitiesRoutes from "./routes/amenities.js";
 import imageRoutes from "./routes/images.js";
+import videoRoutes from "./routes/videos.js";
 
 // Addons
 import { errorHandler } from "./middlewares/errorHandler.js";
@@ -23,6 +24,7 @@ app.use("/api/articles", articlesRoutes);
 app.use("/api/activities", activityRoutes);
 app.use("/api/amenities", amenitiesRoutes);
 app.use("/api/images", imageRoutes);
+app.use("/api/videos", videoRoutes);
 
 // Error handling
 app.use(errorHandler);
