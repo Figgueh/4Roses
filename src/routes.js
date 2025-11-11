@@ -128,8 +128,8 @@ export const routes = (t) => [
             component: <Exterior />,
           },
           {
-            name: t("Video"),
-            route: "/pages/albums/video",
+            name: t("Videos"),
+            route: "/pages/albums/videos",
             component: <Videos />,
           },
         ],

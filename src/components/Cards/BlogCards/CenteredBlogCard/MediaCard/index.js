@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 
-import VideoThumbnail from "assets/images/property/interior/washroom1A.jpg";
-
 import { Skeleton, Grid } from "@mui/material";
 import MKBox from "components/MKBox";
 import MKTypography from "components/MKTypography";
@@ -25,7 +23,9 @@ function MediaCard({ toDisplay, containsHeader }) {
         const interiorResponse = await axios.get(
           `${process.env.REACT_APP_BACKEND}/images/display/interior`
         );
-        setDisplayPhotos([exteriorResponse.data, interiorResponse.data]);
+        const videoResponse = await axios.get(`${process.env.REACT_APP_BACKEND}/videos/display`);
+
+        setDisplayPhotos([exteriorResponse.data, interiorResponse.data, videoResponse.data]);
       } catch (error) {
         console.error("Failed to fetch display photos:", error);
       } finally {
@@ -64,7 +64,7 @@ function MediaCard({ toDisplay, containsHeader }) {
       },
     },
     video: {
-      image: VideoThumbnail,
+      image: displayPhotos[2]?.thumbnail,
       title: "Videos",
       description: t(
         "Watch stunning video walkthroughs of the property showcasing its beauty in full motion."
