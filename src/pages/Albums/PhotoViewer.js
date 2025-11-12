@@ -11,6 +11,7 @@ import { Delete, Favorite } from "@mui/icons-material";
 
 // Components imports
 import SortablePhotoAlbum from "components/SortablePhotoAlbum/SortablePhotoAlbum";
+import SortableVideoAlbum from "components/SortablePhotoAlbum/SortableVideoAlbum";
 // Modal imports
 import { ModalProvider } from "components/SortablePhotoAlbum/admin/ModalProvider";
 import EditView from "components/SortablePhotoAlbum/admin/EditView";
@@ -29,6 +30,7 @@ const breakpoints = [480, 768, 1024, 1280, 1600, 1920, 2560];
  */
 function PhotoViewer({ album, refreshFlag }) {
   const [photos, setPhotos] = useState([]);
+  const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -91,10 +93,24 @@ function PhotoViewer({ album, refreshFlag }) {
       setLoading(false);
     }
 
-    fetchImages();
+    async function fetchVideos() {
+      try {
+        const res = await axios.get(`${process.env.REACT_APP_BACKEND}/videos`);
+        const parsed = res.data;
+        setVideos(parsed);
+      } catch (err) {
+        console.error("Error fetching videos:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    if (album == "interior" || album == "exterior") fetchImages();
+
+    if (album == "video") fetchVideos();
   }, [album, refreshFlag]);
 
-  const handleDelete = async () => {
+  const handleDeletePhotos = async () => {
     const selectedPhotos = photos.filter((photo) => photo.selected);
 
     if (selectedPhotos.length < 1) return;
@@ -123,6 +139,35 @@ function PhotoViewer({ album, refreshFlag }) {
     }
   };
 
+  const handleDeleteVideos = async () => {
+    const selectedVideos = videos.filter((video) => video.selected);
+
+    if (selectedVideos.length < 1) return;
+
+    //TODO:: Make it a model
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete ${selectedVideos.length} videos?`
+    );
+
+    if (!confirmDelete) return;
+
+    // Get all the selected images ids
+    const toDeleteIds = selectedVideos.map((video) => video.id);
+
+    // Send request to backend
+    try {
+      await axios.post(`${process.env.REACT_APP_BACKEND}/videos/deleteMany`, {
+        ids: toDeleteIds,
+      });
+
+      // Update UI only if all deletes succeeded
+      setVideos((prev) => prev.filter((video) => !video.selected));
+    } catch (err) {
+      console.error("Error deleting videos:", err);
+      alert("Some videos could not be deleted.");
+    }
+  };
+
   const setDisplayPhoto = async (id) => {
     try {
       await axios
@@ -134,16 +179,33 @@ function PhotoViewer({ album, refreshFlag }) {
     }
   };
 
+  const setDisplayVideo = async (id) => {
+    try {
+      await axios
+        .put(`${process.env.REACT_APP_BACKEND}/videos/display/${id}`)
+        .then((res) => console.log(res));
+      window.location.reload();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   return (
     <MKBox sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
-      {photos.filter((photo) => photo.selected).length > 0 && (
+      {/* If one or more photo/video is selected */}
+      {(photos.filter((photo) => photo.selected).length > 0 ||
+        videos.filter((video) => video.selected).length > 0) && (
         <MKBox sx={{ mb: 2, display: "flex" }}>
           <MKButton
             size="medium"
             color="secondary"
             variant="gradient"
             sx={{ mr: 1, maxWidth: "200px" }}
-            onClick={() => setPhotos((prev) => prev.map((img) => ({ ...img, selected: true })))}
+            onClick={() => {
+              if (photos.length > 0)
+                setPhotos((prev) => prev.map((img) => ({ ...img, selected: true })));
+              else setVideos((prev) => prev.map((img) => ({ ...img, selected: true })));
+            }}
           >
             Select all photos
           </MKButton>
@@ -152,21 +214,30 @@ function PhotoViewer({ album, refreshFlag }) {
             color="secondary"
             variant="gradient"
             sx={{ maxWidth: "200px" }}
-            onClick={() => setPhotos((prev) => prev.map((img) => ({ ...img, selected: false })))}
+            onClick={() => {
+              if (photos.length > 0)
+                setPhotos((prev) => prev.map((img) => ({ ...img, selected: false })));
+              else setVideos((prev) => prev.map((img) => ({ ...img, selected: false })));
+            }}
           >
             Unselect all photos
           </MKButton>
-          {/* Make the only selected photo the album picture */}
-          {photos.filter((photo) => photo.selected).length === 1 &&
+          {/* If exactly one video OR photo is selected */}
+          {(photos.filter((photo) => photo.selected).length === 1 ||
+            videos.filter((video) => video.selected).length === 1) &&
             (() => {
               const selectedPhoto = photos.find((photo) => photo.selected);
+              const selectedVideo = videos.find((video) => video.selected);
               return (
                 <MKButton
                   size="medium"
                   color="success"
                   variant="gradient"
                   sx={{ marginLeft: "auto", maxWidth: "250px" }}
-                  onClick={() => setDisplayPhoto(selectedPhoto?.id)}
+                  onClick={() => {
+                    if (photos.length > 0) setDisplayPhoto(selectedPhoto?.id);
+                    else setDisplayVideo(selectedVideo?.id);
+                  }}
                 >
                   <Favorite sx={{ mr: 1 }} /> Make display photo
                 </MKButton>
@@ -177,10 +248,16 @@ function PhotoViewer({ album, refreshFlag }) {
             color="error"
             variant="gradient"
             sx={{ marginLeft: "auto", maxWidth: "250px" }}
-            onClick={handleDelete}
+            onClick={() => {
+              if (photos.length > 0) handleDeletePhotos();
+              else handleDeleteVideos();
+            }}
           >
             <Delete sx={{ mr: 1 }}>Delete</Delete> Delete Selected (
-            {photos.filter((photo) => photo.selected).length})
+            {photos.length > 0
+              ? photos.filter((photo) => photo.selected).length
+              : videos.filter((video) => video.selected).length}
+            )
           </MKButton>
         </MKBox>
       )}
@@ -198,11 +275,13 @@ function PhotoViewer({ album, refreshFlag }) {
               <Skeleton key={i} variant="rectangular" width="100%" height={200} animation="wave" />
             ))}
           </MKBox>
-        ) : (
+        ) : album != "video" ? (
           <ModalProvider>
             <SortablePhotoAlbum photos={photos} setPhotos={setPhotos} />
             <EditView />
           </ModalProvider>
+        ) : (
+          <SortableVideoAlbum videos={videos} setVideos={setVideos} />
         )}
       </MKBox>
       <MediaCard

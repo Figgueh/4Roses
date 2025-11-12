@@ -70,7 +70,9 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
   const { session, signOut } = UserAuth();
   const { i18n } = useTranslation();
   const [dropdownLang, setDropdownLang] = useState(null);
-  const currentLang = i18n.language;
+
+  const normalizeLang = (lang) => lang.split("-")[0].toLowerCase();
+  const currentLang = normalizeLang(i18n.language);
 
   const openDropdownLang = ({ currentTarget }) => setDropdownLang(currentTarget);
   const closeDropdownLang = () => setDropdownLang(null);
@@ -115,6 +117,10 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
   }, [session]);
 
   useEffect(() => {
+    //Force the language to be normalized
+    const lang = normalizeLang(i18n.language);
+    if (i18n.language !== lang) i18n.changeLanguage(lang);
+
     // A function that sets the display state for the DefaultNavbarMobile.
     function displayMobileNavbar() {
       if (window.innerWidth < breakpoints.values.lg) {

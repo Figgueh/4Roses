@@ -45,6 +45,7 @@ import AboutUs from "layouts/pages/aboutUs";
 import SignIn from "layouts/pages/authentication/sign-in";
 import Interior from "layouts/pages/albums/interior";
 import Exterior from "layouts/pages/albums/exterior";
+import Videos from "layouts/pages/albums/videos";
 import Register from "layouts/pages/authentication/register";
 import Dashboard from "layouts/pages/authentication/dashboard";
 
@@ -125,6 +126,11 @@ export const routes = (t) => [
             name: t("Exterior"),
             route: "/pages/albums/exterior",
             component: <Exterior />,
+          },
+          {
+            name: t("Videos"),
+            route: "/pages/albums/videos",
+            component: <Videos />,
           },
         ],
       },
