@@ -13,6 +13,9 @@ Coded by www.creative-tim.com
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 */
 
+import React, { useState } from "react";
+import axios from "axios";
+
 // @mui material components
 import Container from "@mui/material/Container";
 import Grid from "@mui/material/Grid";
@@ -28,7 +31,32 @@ import bgImage from "assets/images/castel/contactUs.jpg";
 
 import { useTranslation } from "react-i18next";
 function Contact() {
+  const [loading, setLoading] = useState(false);
+  const [response, setResponse] = useState("");
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    subject: "",
+    message: "",
+  });
   const { t } = useTranslation();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setResponse("");
+    try {
+      await axios.post(`${process.env.REACT_APP_BACKEND}/email/contact`, formData);
+      setResponse("Message sent successfully!");
+      setFormData({ name: "", email: "", subject: "", message: "" });
+    } catch (err) {
+      console.log(err.response.data.error);
+      setResponse("Failed to send message. " + err.response.data.error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <MKBox component="section" py={{ xs: 0, lg: 6 }}>
       <Container>
@@ -156,6 +184,23 @@ function Contact() {
                           label={t("My name is")}
                           placeholder={t("Full Name")}
                           InputLabelProps={{ shrink: true }}
+                          value={formData.name}
+                          onChange={(e) =>
+                            setFormData((prev) => ({ ...prev, name: e.target.value }))
+                          }
+                          fullWidth
+                        />
+                      </Grid>
+                      <Grid item xs={12} pr={1} mb={6}>
+                        <MKInput
+                          variant="standard"
+                          label={t("Your email")}
+                          placeholder={t("Who should I send my response to")}
+                          InputLabelProps={{ shrink: true }}
+                          value={formData.email}
+                          onChange={(e) =>
+                            setFormData((prev) => ({ ...prev, email: e.target.value }))
+                          }
                           fullWidth
                         />
                       </Grid>
@@ -165,6 +210,10 @@ function Contact() {
                           label={t("I'm looking for")}
                           placeholder={t("how can we help")}
                           InputLabelProps={{ shrink: true }}
+                          value={formData.subject}
+                          onChange={(e) =>
+                            setFormData((prev) => ({ ...prev, subject: e.target.value }))
+                          }
                           fullWidth
                         />
                       </Grid>
@@ -174,6 +223,10 @@ function Contact() {
                           label={t("Your message")}
                           placeholder={t("I want to say that...")}
                           InputLabelProps={{ shrink: true }}
+                          value={formData.message}
+                          onChange={(e) =>
+                            setFormData((prev) => ({ ...prev, message: e.target.value }))
+                          }
                           fullWidth
                           multiline
                           rows={6}
@@ -189,10 +242,27 @@ function Contact() {
                       textAlign="right"
                       ml="auto"
                     >
-                      <MKButton variant="gradient" color="info">
-                        {t("Send Message")}
+                      <MKButton
+                        variant="gradient"
+                        color="info"
+                        onClick={handleSubmit}
+                        disabled={loading}
+                      >
+                        {loading ? t("Sending...") : t("Send Message")}
                       </MKButton>
                     </Grid>
+                    {response && (
+                      <MKTypography
+                        variant="body2"
+                        mt={2}
+                        textAlign="center"
+                        color={
+                          response ? (response.startsWith("Failed") ? "error" : "success") : "text"
+                        }
+                      >
+                        {response}
+                      </MKTypography>
+                    )}
                   </MKBox>
                 </MKBox>
               </Grid>
