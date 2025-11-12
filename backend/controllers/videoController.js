@@ -39,7 +39,7 @@ export const addVideo = async (req, res, next) => {
       .order("display_order", { ascending: false })
       .limit(1);
 
-    const order = latest?.[0]?.display_order + 1 ?? 0;
+    const order = latest?.[0]?.display_order + 1 ?? 1;
 
     const { data, error: insertError } = await supabase
       .from("videos")
