@@ -182,17 +182,18 @@ function ArticleGenerator() {
       </MKButton>
 
       <Menu anchorEl={dropdown} open={Boolean(dropdown)} onClose={closeDropdown}>
-        {activities.map((activity) => (
-          <MenuItem
-            key={activity.id}
-            onClick={() => {
-              setSection(activity);
-              closeDropdown();
-            }}
-          >
-            {activity.title}
-          </MenuItem>
-        ))}
+        {activities.length > 0 &&
+          activities.map((activity) => (
+            <MenuItem
+              key={activity.id}
+              onClick={() => {
+                setSection(activity);
+                closeDropdown();
+              }}
+            >
+              {activity.title}
+            </MenuItem>
+          ))}
       </Menu>
 
       <MKTypography sx={{ mt: 2 }}>Data points for context:</MKTypography>

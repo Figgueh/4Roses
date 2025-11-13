@@ -1,6 +1,5 @@
-/* eslint-disable no-unused-vars */
-/* eslint-disable react/prop-types */
 import React, { useState, useEffect } from "react";
+import PropTypes from "prop-types";
 import axios from "axios";
 import {
   Table,
@@ -73,6 +72,20 @@ function SortableRow({ amenity, handleOpen, handleDelete }) {
   );
 }
 
+SortableRow.propTypes = {
+  amenity: PropTypes.shape({
+    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+    title: PropTypes.string,
+    description: PropTypes.string,
+    image: PropTypes.string,
+    image_url: PropTypes.string,
+    small: PropTypes.bool,
+    display_order: PropTypes.number,
+  }).isRequired,
+  handleOpen: PropTypes.func.isRequired,
+  handleDelete: PropTypes.func.isRequired,
+};
+
 function AmenitiesEditor() {
   const [amenities, setAmenities] = useState([]);
   const [open, setOpen] = useState(false);
@@ -141,13 +154,6 @@ function AmenitiesEditor() {
     }));
   };
 
-  // const resizeAmenityImage = (amenity) => ({
-  //   ...amenity,
-  //   image_url: !amenity.small
-  //     ? `${process.env.REACT_APP_IMGIX}/amenities/${amenity.image_url}?w=250&h=200&fit=crop&auto=format`
-  //     : `${process.env.REACT_APP_IMGIX}/amenities/${amenity.image_url}?w=50`,
-  // });
-
   const updateAmenityState = (data, isEdit) => {
     const amenity = {
       id: data.id,
@@ -172,6 +178,7 @@ function AmenitiesEditor() {
       }
     });
   };
+
   const handleSave = async () => {
     try {
       const formData = new FormData();
@@ -181,7 +188,7 @@ function AmenitiesEditor() {
       if (form.image) formData.append("image", form.image);
 
       if (editingAmenity) {
-        const res = await axios.put(
+        await axios.put(
           `${process.env.REACT_APP_BACKEND}/amenities/${editingAmenity.id}?lang=${i18n.language}`,
           formData,
           { headers: { "Content-Type": "multipart/form-data" } }

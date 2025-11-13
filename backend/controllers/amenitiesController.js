@@ -135,10 +135,10 @@ export const addAmenity = async (req, res, next) => {
 
     // Translate and upload data to the database.
     for (const language of supportedLanguages) {
-      const [transTitle, transDescription] = await Promise.all([
-        translateText(title, language),
-        translateText(description, language),
-      ]);
+      const transTitle = await translateText(title, language);
+
+      // Only translate the description if it's provided
+      const transDescription = description ? await translateText(description, language) : null;
 
       const { error: transError } = await supabase
         .from("amenities_translation")
@@ -146,7 +146,7 @@ export const addAmenity = async (req, res, next) => {
           amenities_id: newData.id,
           language,
           title: transTitle,
-          description: transDescription,
+          ...(transDescription !== null && { description: transDescription }),
         })
         .select();
       if (transError) throw transError;
