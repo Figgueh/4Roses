@@ -10,7 +10,10 @@ export const getActivities = async (req, res, next) => {
     const { lang = "en" } = req.query;
 
     // Get the activities
-    const { data, error } = await supabase.from("activities").select("*");
+    const { data, error } = await supabase
+      .from("activities")
+      .select("*")
+      .order("display_order", { ascending: true });
     if (error) {
       console.error("Supabase error:", error.message);
       return res.status(500).json({ error: error.message });
@@ -182,7 +185,7 @@ export const addActivity = async (req, res, next) => {
 export const updateActivity = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { title, imageUrl } = req.body;
+    const { title, imageUrl, display_order } = req.body;
     const image = req.file;
     const { lang = "en" } = req.query;
 
@@ -204,7 +207,7 @@ export const updateActivity = async (req, res, next) => {
     if (lang == "en") {
       const { data, error } = await supabase
         .from("activities")
-        .update({ title, image: imageUrl })
+        .update({ title, image: imageUrl, display_order })
         .eq("id", id)
         .select()
         .single();

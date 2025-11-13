@@ -25,6 +25,7 @@
 # database dumps
 /src/connection/database/images
 /src/connection/database/full_backup.dump
+/src/assets/database
 
 npm-debug.log*
 yarn-debug.log*
