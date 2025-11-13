@@ -17,7 +17,7 @@ export const getActivities = async (req, res, next) => {
     }
 
     if (!data || data.length === 0) {
-      return res.status(404).json({ message: "No activities found." });
+      return res.json({ message: "No activities found." });
     }
 
     // Add the supabase link to the path, and prepare the slug
