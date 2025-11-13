@@ -62,7 +62,15 @@ export const getAmenities = async (req, res, next) => {
       .select("*")
       .eq("small", isSmall)
       .order("display_order", { ascending: true });
-    if (error) throw error;
+
+    if (error) {
+      console.error("Supabase error:", error.message);
+      return res.status(500).json({ error: error.message });
+    }
+
+    if (!amenitiesRequest || amenitiesRequest.length === 0) {
+      return res.json({ message: "No amenities found." });
+    }
 
     var amenities = amenitiesRequest.map((value) => ({
       ...value,
