@@ -6,6 +6,7 @@ create table amenities (
   description text not null,
   image text not null,
   small boolean not null,
+  display_order integer not null,
   create_at timestamptz default now()
 );
 

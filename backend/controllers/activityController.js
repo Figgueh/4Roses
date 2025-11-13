@@ -11,7 +11,14 @@ export const getActivities = async (req, res, next) => {
 
     // Get the activities
     const { data, error } = await supabase.from("activities").select("*");
-    if (error) throw error;
+    if (error) {
+      console.error("Supabase error:", error.message);
+      return res.status(500).json({ error: error.message });
+    }
+
+    if (!data || data.length === 0) {
+      return res.status(404).json({ message: "No activities found." });
+    }
 
     // Add the supabase link to the path, and prepare the slug
     var activities = data.map((activity) => {
