@@ -49,6 +49,8 @@ SortableItem.propTypes = {
   children: PropTypes.node.isRequired,
 };
 
+const containsSpecialChars = (str) => /[^a-zA-Z0-9\s-]/.test(str);
+
 function ActivityEditor() {
   const [activities, setActivities] = useState([]);
   const [openModal, setOpenModal] = useState(false);
@@ -74,6 +76,9 @@ function ActivityEditor() {
 
   const handleSave = async () => {
     if (!title || (editingId === null && !imageFile)) return;
+    if (error) {
+      return;
+    }
     const formData = new FormData();
     formData.append("title", title);
 
@@ -169,7 +174,12 @@ function ActivityEditor() {
         <MKButton
           color="success"
           sx={{ float: "right", maxWidth: 250, mr: 5, mt: 2 }}
-          onClick={() => setOpenModal(true)}
+          onClick={() => {
+            setTitle("");
+            setImageFile(null);
+            setEditingId(null);
+            setOpenModal(true);
+          }}
         >
           <Add sx={{ mr: 1, mb: 0.3 }} />
           Add new activity
@@ -217,10 +227,25 @@ function ActivityEditor() {
                       <h4 style={{ margin: "0 0 0.5rem", textAlign: "center" }}>{a.title}</h4>
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-between" }}>
-                      <MKButton color="secondary" onClick={() => handleEdit(a)}>
+                      <MKButton
+                        color="secondary"
+                        onPointerDown={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                        }}
+                        onClick={() => handleEdit(a)}
+                      >
                         Edit
                       </MKButton>
-                      <MKButton color="error" onClick={() => handleDelete(a.id)}>
+
+                      <MKButton
+                        color="error"
+                        onPointerDown={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                        }}
+                        onClick={() => handleDelete(a.id)}
+                      >
                         Delete
                       </MKButton>
                     </div>
@@ -253,7 +278,17 @@ function ActivityEditor() {
           <TextField
             label="Title"
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (containsSpecialChars(value)) {
+                setError(
+                  "Special characters are not allowed in the title (only letters, numbers, spaces, and dashes)."
+                );
+              } else {
+                setError(null);
+                setTitle(value);
+              }
+            }}
             fullWidth
           />
           <input type="file" accept="image/*" onChange={(e) => setImageFile(e.target.files[0])} />
