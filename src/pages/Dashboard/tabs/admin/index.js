@@ -22,7 +22,7 @@ function AdminDash() {
       <Container maxWidth="lg">
         <Box sx={{ display: "flex", gap: 2 }}>
           <Tabs
-            sx={{ maxHeight: "200px", borderColor: "divider", minWidth: "150px" }}
+            sx={{ maxHeight: "220px", borderColor: "divider", minWidth: "150px" }}
             orientation="vertical"
             value={activeTab}
             onChange={handleTabType}

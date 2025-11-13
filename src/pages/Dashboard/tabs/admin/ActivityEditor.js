@@ -28,7 +28,17 @@ function SortableItem({ id, children }) {
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+    <div
+      ref={setNodeRef}
+      style={style}
+      role={attributes.role}
+      tabIndex={attributes.tabIndex}
+      aria-pressed={attributes["aria-pressed"]}
+      onKeyDown={listeners.onKeyDown}
+      onMouseDown={listeners.onMouseDown}
+      onTouchStart={listeners.onTouchStart}
+      onPointerDown={listeners.onPointerDown}
+    >
       {children}
     </div>
   );
