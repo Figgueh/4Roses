@@ -24,12 +24,14 @@ import { checkAdmin } from "connection/users/checkAdmin";
 import NewModal from "./modal/NewModal";
 import { useTranslation } from "react-i18next";
 import axios from "axios";
+import ActivityLayout from "../ActivityLayout";
+import { Paper } from "@mui/material";
 
 function ActivityPicker({ breadcrumb, title, items, id }) {
   const { session, authLoading } = UserAuth();
   const [isAdmin, setIsAdmin] = useState(false);
-  const [modalOpen, setModalOpen] = useState(false);
   const [translatedTitle, setTranslatedTitle] = useState(title);
+  const [article, setArticle] = useState(null);
   const { i18n, t } = useTranslation();
 
   useEffect(() => {
@@ -84,13 +86,30 @@ function ActivityPicker({ breadcrumb, title, items, id }) {
                 })}
               </MKTypography>
               {isAdmin && (
-                <MKBox pl={2} pb={2}>
-                  <NewModal
-                    activityTitle={title}
-                    open={modalOpen}
-                    onClose={() => setModalOpen(false)}
-                  />
-                </MKBox>
+                <>
+                  <MKBox pl={2} pb={2}>
+                    <NewModal
+                      activityTitle={title}
+                      onCreate={(newArticle) => setArticle(newArticle)}
+                    />
+                  </MKBox>
+
+                  {article && (
+                    <Paper
+                      elevation={6}
+                      sx={{
+                        mt: 2,
+                        mb: 2,
+                        p: 4,
+                        borderRadius: 4,
+                        width: "100%",
+                        minWidth: "100%",
+                      }}
+                    >
+                      <ActivityLayout title={title} item={article} setItem={setArticle} />
+                    </Paper>
+                  )}
+                </>
               )}
             </Grid>
             <Grid
