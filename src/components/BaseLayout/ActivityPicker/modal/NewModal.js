@@ -1,37 +1,104 @@
 import PropTypes from "prop-types";
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { v4 as uuidv4 } from "uuid";
 
-import { Button, Dialog, DialogTitle, DialogContent } from "@mui/material";
-import { Add } from "@mui/icons-material";
+import { Button, Dialog, DialogTitle, DialogContent, IconButton } from "@mui/material";
+import { Add, Delete } from "@mui/icons-material";
 
 import MKButton from "components/MKButton";
 import MKInput from "components/MKInput";
 import MKBox from "components/MKBox";
 
 import axios from "axios";
-import { slugify } from "utils";
 
-function NewModal({ activityTitle }) {
+function NewModal({ activityTitle, onCreate }) {
   const [title, setTitle] = useState("");
+  const [titleError, setTitleError] = useState("");
+  const [description, setDescription] = useState("");
+  const [urls, setUrls] = useState([""]);
   const [open, setOpen] = useState(false);
-  const navigate = useNavigate();
+  const [activityId, setActivityId] = useState("");
+
+  const handleUrlChange = (index, value) => {
+    const newUrls = [...urls];
+    newUrls[index] = value;
+    setUrls(newUrls);
+  };
+  const addUrlField = () => setUrls([...urls, ""]);
+  const handleRemoveUrl = (index) => {
+    const newUrls = urls.filter((_, i) => i !== index);
+    setUrls(newUrls);
+  };
+
+  const validateTitle = (value) => {
+    const illegal = /[^a-zA-Z0-9 ]/;
+
+    if (illegal.test(value)) {
+      setTitleError(
+        "Title contains invalid characters. Only letters, numbers and spaces are allowed."
+      );
+      return false;
+    }
+
+    setTitleError("");
+    return true;
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const activityRes = await axios.get(
+        `${process.env.REACT_APP_BACKEND}/activities/${activityTitle}`
+      );
+      setActivityId(activityRes.data.id);
+    };
+
+    fetchData();
+  }, []);
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
   const handleConfirm = async () => {
-    const activities = await axios.get(
-      `${process.env.REACT_APP_BACKEND}/activities/${activityTitle}`
-    );
-    const id = activities.data.id;
-    await axios.post(`${process.env.REACT_APP_BACKEND}/articles`, {
-      activityId: id,
-      url: "",
+    if (!validateTitle(title)) {
+      return;
+    }
+    if (!title.trim() || !description.trim()) {
+      alert("Title and description are required.");
+      return;
+    }
+
+    const urlString = urls
+      .map((u) => u.trim())
+      .filter((u) => u !== "")
+      .join(", ");
+
+    const newArticle = {
+      id: uuidv4(),
+      activityId: activityId,
+      activityName: activityTitle,
       title,
-      image: "",
-      description: "",
-    });
-    navigate(`/activities/${slugify(activityTitle)}/${slugify(title)}`);
+      description,
+      url: urlString,
+      image: "https://placehold.co/600x600?text=Placeholder%20image",
+      isPreview: true,
+      content: [
+        {
+          title: "Heading section title",
+          content: "Heading section content",
+        },
+        {
+          title: "Section 1 title",
+          content: "Section 1 content",
+          detail: ["Section 1 detail 1", "Section 1 detail 2", "Section 1 detail 3"],
+        },
+        {
+          title: "Section 2 title",
+          content: "Section 2 content",
+        },
+      ],
+    };
+
+    onCreate(newArticle);
+    setOpen(false);
   };
 
   return (
@@ -49,9 +116,41 @@ function NewModal({ activityTitle }) {
               type="title"
               label="Title"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                setTitle(val);
+                validateTitle(val);
+              }}
+              error={Boolean(titleError)}
+              helperText={titleError}
+            />
+            <MKInput
+              label="Description (required)"
+              multiline
+              rows={3}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
               fullWidth
             />
+            {/* URL List */}
+            <MKBox display="flex" flexDirection="column" gap={1}>
+              {urls.map((url, index) => (
+                <MKBox key={index} display="flex" alignItems="center" gap={1}>
+                  <MKInput
+                    type="text"
+                    label={`URL ${index + 1}`}
+                    value={url}
+                    onChange={(e) => handleUrlChange(index, e.target.value)}
+                    fullWidth
+                  />
+                  <IconButton color="error" onClick={() => handleRemoveUrl(index)}>
+                    <Delete />
+                  </IconButton>
+                </MKBox>
+              ))}
+
+              <Button onClick={addUrlField}>Add another URL</Button>
+            </MKBox>
             <MKBox display="flex" justifyContent="flex-end" gap={1}>
               <Button onClick={handleClose}>Cancel</Button>
               <Button onClick={handleConfirm} color="primary">
@@ -67,6 +166,7 @@ function NewModal({ activityTitle }) {
 
 NewModal.propTypes = {
   activityTitle: PropTypes.string.isRequired,
+  onCreate: PropTypes.func,
 };
 
 export default NewModal;

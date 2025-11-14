@@ -3,6 +3,7 @@ create table activities (
   id uuid primary key default gen_random_uuid (),
   title text not null,
   image text not null,
+  display_order integer not null,
   create_at timestamptz default now()
 );
 

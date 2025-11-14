@@ -45,6 +45,19 @@ export const getAllAmenities = async (req, res, next) => {
   }
 };
 
+// GET the count of all amenities
+// /
+export const getCountOfAllAmenities = async (req, res, next) => {
+  try {
+    const { count, error } = await supabase.from("amenities").select("*", { count: "exact" });
+    if (error) throw error;
+
+    res.json(count);
+  } catch (err) {
+    next(err);
+  }
+};
+
 // GET the amenities of the provided value
 // /:type -> type can be `big` or `small`
 export const getAmenities = async (req, res, next) => {

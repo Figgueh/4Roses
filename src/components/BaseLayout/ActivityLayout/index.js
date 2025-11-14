@@ -46,8 +46,8 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
   useEffect(() => {
     const defaultArticle = {
       title: "",
-      image: "",
-      article: [],
+      image: "https://placehold.co/600x600?text=Placeholder%20image",
+      content: [],
     };
     setEditedArticle(item || defaultArticle);
     console.log(item.image);
@@ -127,16 +127,23 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
         setPreviewImage(null);
         setIsEditMode(false);
 
-        if (!breadcrumb.at(1).route.includes("[object Object]")) {
-          // Is from a regular update
-          navigate(`${breadcrumb.at(1).route}/${slugify(res.data.title)}`);
-        } else {
+        if (breadcrumb == undefined) {
+          // Is being created from activity picker.
+          navigate(`/activities/${slugify(item.activityName)}/${slugify(res.data.title)}`);
+        } else if (!breadcrumb.at(1).route.includes("[object Object]")) {
+          // Is from a regular update.
+          navigate(`${breadcrumb?.at(1).route}/${slugify(res.data.title)}`);
+        } else if (window.location.pathname.includes("dashboard")) {
           // Is coming from the article builder.
           navigate(`/activities/${slugify(item.activityName)}/${slugify(res.data.title)}`);
         }
       }
     } catch (err) {
-      setError(err.response.data.error);
+      console.error("Save error:", err);
+
+      const message = err?.response?.data?.error || err?.message || "Unknown error occurred";
+
+      setError(message);
     }
   };
 
@@ -204,6 +211,7 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
   };
 
   const handleDelete = async () => {
+    if (item.isPreview) return setError("Currently in preview mode, Nothing to delete.");
     const deleteResponse = await axios.delete(
       `${process.env.REACT_APP_BACKEND}/articles/${item.id}`
     );

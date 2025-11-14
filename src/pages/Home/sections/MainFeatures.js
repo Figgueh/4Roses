@@ -12,6 +12,7 @@ Coded by www.creative-tim.com
 
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 */
+import { useEffect, useState } from "react";
 
 // @mui material components
 import Container from "@mui/material/Container";
@@ -25,8 +26,21 @@ import MKBox from "components/MKBox";
 import DefaultCounterCard from "components/Cards/CounterCards/DefaultCounterCard";
 import { useTranslation } from "react-i18next";
 
+import axios from "axios";
+
 function MainFeatures() {
   const { t } = useTranslation();
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    const getCount = async () => {
+      const amenitiesCount = await axios.get(`${process.env.REACT_APP_BACKEND}/amenities/count`);
+      setCount(amenitiesCount.data);
+    };
+
+    getCount();
+  }, []);
+
   return (
     <MKBox component="section" py={3}>
       <Container>
@@ -50,7 +64,7 @@ function MainFeatures() {
           </Grid>
           <Grid item xs={12} md={4}>
             <DefaultCounterCard
-              count={12}
+              count={count}
               suffix="+"
               title={t("Amenities")}
               description={t("From a washer and dryer to wifi, it's included.")}
