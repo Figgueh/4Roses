@@ -335,7 +335,7 @@ export const generateArticleFromUrls = async (req, res, next) => {
     res.setHeader("Connection", "keep-alive");
     res.flushHeaders();
 
-    const allHtmlContent = await scrapeMultiple(urls, res);
+    let allHtmlContent = await scrapeMultiple(urls, res);
     res.write(`event: preProcessing\ndata: Scraping complete.\n\n`);
 
     const prompt = buildPrompt(allHtmlContent);
@@ -344,6 +344,11 @@ export const generateArticleFromUrls = async (req, res, next) => {
     console.log(prompt);
 
     const article = await generateArticle(prompt, res);
+
+    // Clear memory
+    allHtmlContent.length = 0;
+    allHtmlContent = null;
+    global.gc && global.gc();
 
     res.write(`event: done\ndata: ${JSON.stringify(article)}\n\n`);
     res.end();
