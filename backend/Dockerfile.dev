@@ -5,20 +5,24 @@ FROM ghcr.io/puppeteer/puppeteer:latest
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 ENV PUPPETEER_EXECUTABLE_PATH=/home/pptruser/.cache/puppeteer/chrome-headless-shell/linux-141.0.7390.78/chrome-headless-shell-linux64/chrome-headless-shell
 
-# Switch to pptruser (already default, but explicit is safe)
-USER pptruser
+# Work in a neutral directory
+WORKDIR /app
 
-# Set a writable working directory for pptruser
-WORKDIR /home/pptruser/app
+# Use root to install node_modules during build
+USER root
 
-# Copy package files and install dependencies
 COPY package*.json ./
 RUN npm install
 
-# Copy the rest of the app
-COPY --chown=pptruser:pptruser . .
+# Copy source files
+COPY . .
+
+# Give ownership back to pptruser for Cloud Run execution
+RUN chown -R pptruser:pptruser /app
+
+# Switch back to pptruser (Cloud Run requires non-root)
+USER pptruser
 
 EXPOSE 3001
 
-# Start the app
 CMD ["npm", "run", "dev"]
