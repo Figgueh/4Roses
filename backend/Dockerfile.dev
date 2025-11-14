@@ -7,11 +7,12 @@ ENV PUPPETEER_EXECUTABLE_PATH=/home/pptruser/.cache/puppeteer/chrome-headless-sh
 
 WORKDIR /usr/src/app
 RUN chown -R pptruser:pptruser /usr/src/app
+USER pptruser
 
 COPY package*.json ./
 RUN npm install
 
-COPY . .
+COPY --chown=pptruser:pptruser . .
 
 EXPOSE 3001
 
