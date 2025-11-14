@@ -1,18 +1,24 @@
-# Use official Puppeteer image (includes Chromium deps)
+# Use official Puppeteer image
 FROM ghcr.io/puppeteer/puppeteer:latest
 
-# Set Puppeteer to use downloaded Chromium
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-ENV PUPPETEER_EXECUTABLE_PATH=/home/pptruser/.cache/puppeteer/chrome-headless-shell/linux-141.0.7390.78/chrome-headless-shell-linux64/chrome-headless-shell
+# Work in a neutral directory
+WORKDIR /app
 
-WORKDIR /usr/src/app
+# Use root to install node_modules during build
+USER root
 
 COPY package*.json ./
 RUN npm install
 
+# Copy source files
 COPY . .
+
+# Give ownership back to pptruser for Cloud Run execution
+RUN chown -R pptruser:pptruser /app
+
+# Switch back to pptruser (Cloud Run requires non-root)
+USER pptruser
 
 EXPOSE 3001
 
-# Ensure permissions and launch
-CMD ["sh", "-c", "npm run dev"]
+CMD ["npm", "run", "dev"]

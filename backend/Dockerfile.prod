@@ -1,31 +1,30 @@
-# Use official Puppeteer image (includes Chromium deps)
+# Use Puppeteer base image
 FROM ghcr.io/puppeteer/puppeteer:latest
 
-# Disable Puppeteer auto Chromium download
-# ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-# ENV PUPPETEER_EXECUTABLE_PATH=/home/pptruser/.cache/puppeteer/chrome-headless-shell/linux-141.0.7390.78/chrome-headless-shell-linux64/chrome-headless-shell
+WORKDIR /app
 
-# ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
-# ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+# Install dependencies as root
+USER root
 
-WORKDIR /usr/src/app
-
-# Copy dependency files first for caching
 COPY package*.json ./
-
-# Install only production dependencies
 RUN npm install
 
-# Copy the rest of the app
+# Copy source
 COPY . .
 
-# Expose only the port your app listens on
+# Build your app (production build)
+RUN npm run build
+
+# After build, remove devDependencies
+RUN npm prune --production
+
+# Give ownership to pptruser
+RUN chown -R pptruser:pptruser /app
+
+# Run as non-root (Cloud Run requirement)
+USER pptruser
+
 EXPOSE 3001
 
-# Use a non-root user (good security practice)
-# USER pptruser
-
-RUN find /home/pptruser/.cache/puppeteer -type f -exec ls -lh {} \;
-
-# Run your app in production mode
-CMD ["sh", "-c", "npm run start"]
+# Start the production server
+CMD ["npm", "start"]
