@@ -1,19 +1,24 @@
-# Use official Puppeteer image (includes Chromium deps)
+# Use official Puppeteer image
 FROM ghcr.io/puppeteer/puppeteer:latest
 
+# Work in a neutral directory
 WORKDIR /app
 
-# Copy dependency files first for caching
+# Use root to install node_modules during build
+USER root
+
 COPY package*.json ./
+RUN npm install
 
-# Install only production dependencies
-RUN npm install --omit=dev
-
-# Copy the rest of the app
+# Copy source files
 COPY . .
 
-# Expose only the port your app listens on
+# Give ownership back to pptruser for Cloud Run execution
+RUN chown -R pptruser:pptruser /app
+
+# Switch back to pptruser (Cloud Run requires non-root)
+USER pptruser
+
 EXPOSE 3001
 
-# Run your app in production mode
 CMD ["npm", "run", "start"]
