@@ -1,20 +1,24 @@
-# Use official Puppeteer image (includes Chromium deps)
+# Use official Puppeteer image
 FROM ghcr.io/puppeteer/puppeteer:latest
 
 # Set Puppeteer to use downloaded Chromium
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 ENV PUPPETEER_EXECUTABLE_PATH=/home/pptruser/.cache/puppeteer/chrome-headless-shell/linux-141.0.7390.78/chrome-headless-shell-linux64/chrome-headless-shell
 
-WORKDIR /usr/src/app
-RUN chown -R pptruser:pptruser /usr/src/app
+# Switch to pptruser (already default, but explicit is safe)
 USER pptruser
 
+# Set a writable working directory for pptruser
+WORKDIR /home/pptruser/app
+
+# Copy package files and install dependencies
 COPY package*.json ./
 RUN npm install
 
+# Copy the rest of the app
 COPY --chown=pptruser:pptruser . .
 
 EXPOSE 3001
 
-# Ensure permissions and launch
-CMD ["sh", "-c", "npm run dev"]
+# Start the app
+CMD ["npm", "run", "dev"]
