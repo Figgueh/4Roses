@@ -28,7 +28,7 @@ const scrapePage = async (url) => {
     }
   });
 
-  await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60000 });
+  await page.goto(url, { waitUntil: "domcontentloaded", timeout: 0 });
   await new Promise((r) => setTimeout(r, 7000));
 
   const pageData = await page.evaluate(() => {
