@@ -1,12 +1,15 @@
 import React, { useState } from "react";
-
-// @mui material components
-import Container from "@mui/material/Container";
-import Tabs from "@mui/material/Tabs";
-import Tab from "@mui/material/Tab";
 import Box from "@mui/material/Box";
+import List from "@mui/material/List";
+import ListItem from "@mui/material/ListItem";
+import ListItemButton from "@mui/material/ListItemButton";
+import ListItemText from "@mui/material/ListItemText";
+import Collapse from "@mui/material/Collapse";
+import Divider from "@mui/material/Divider";
+import Typography from "@mui/material/Typography";
+import { ExpandLess, ExpandMore } from "@mui/icons-material";
 
-// Tabs:
+// Tools
 import PhotoUploader from "./PhotoUploader";
 import VideoUploader from "./VideoUploader";
 import ActivityEditor from "./ActivityEditor";
@@ -14,36 +17,121 @@ import ArticleGenerator from "./ArticleGenerator";
 import AmenitiesEditor from "./AmenitiesEditor";
 
 function AdminDash() {
-  const [activeTab, setActiveTab] = useState(0);
-  const handleTabType = (tab, newValue) => setActiveTab(newValue);
+  const [activeTool, setActiveTool] = useState("interior");
+  const [openPhotos, setOpenPhotos] = useState(true);
+
+  const renderTool = () => {
+    switch (activeTool) {
+      case "interior":
+        return <PhotoUploader album="interior" />;
+      case "exterior":
+        return <PhotoUploader album="exterior" />;
+      case "videos":
+        return <VideoUploader />;
+      case "amenities":
+        return <AmenitiesEditor />;
+      case "activities":
+        return <ActivityEditor />;
+      case "articles":
+        return <ArticleGenerator />;
+      default:
+        return null;
+    }
+  };
 
   return (
-    <Box sx={{ flexGrow: 1, display: "flex", flexDirection: "column", minHeight: "100vh" }}>
-      <Container maxWidth="lg">
-        <Box sx={{ display: "flex", gap: 2 }}>
-          <Tabs
-            sx={{ maxHeight: "220px", borderColor: "divider", minWidth: "150px" }}
-            orientation="vertical"
-            value={activeTab}
-            onChange={handleTabType}
-          >
-            <Tab label="Interior Photos" />
-            <Tab label="Exterior Photos" />
-            <Tab label="Videos" />
-            <Tab label="Amenities Editor" />
-            <Tab label="Activity Editor" />
-            <Tab label="Article Generator" />
-          </Tabs>
-          <Box sx={{ flexGrow: 1 }}>
-            {activeTab === 0 && <PhotoUploader album="interior" />}
-            {activeTab === 1 && <PhotoUploader album="exterior" />}
-            {activeTab === 2 && <VideoUploader />}
-            {activeTab === 3 && <AmenitiesEditor />}
-            {activeTab === 4 && <ActivityEditor />}
-            {activeTab === 5 && <ArticleGenerator />}
-          </Box>
-        </Box>
-      </Container>
+    <Box sx={{ display: "flex", minHeight: "100vh", backgroundColor: "#f8f9fa" }}>
+      {/* Sidebar */}
+      <Box
+        sx={{
+          width: 250,
+          minWidth: 250,
+          maxWidth: 250,
+          flexShrink: 0,
+          backgroundColor: "#fff",
+          borderRight: "1px solid #ddd",
+          p: 2,
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
+        <Typography variant="h5" fontWeight="bold" sx={{ mb: 2 }}>
+          Admin Dashboard
+        </Typography>
+
+        <Divider />
+
+        <List component="nav" sx={{ mt: 1 }}>
+          {/* Photos Group */}
+          <ListItem disablePadding>
+            <ListItemButton onClick={() => setOpenPhotos(!openPhotos)}>
+              <ListItemText primary="Media Manager" />
+              {openPhotos ? <ExpandLess /> : <ExpandMore />}
+            </ListItemButton>
+          </ListItem>
+
+          <Collapse in={openPhotos} timeout="auto" unmountOnExit>
+            <List component="div" disablePadding>
+              <ListItemButton
+                selected={activeTool === "interior"}
+                sx={{ pl: 4 }}
+                onClick={() => setActiveTool("interior")}
+              >
+                <ListItemText primary="Interior Photos" />
+              </ListItemButton>
+
+              <ListItemButton
+                selected={activeTool === "exterior"}
+                sx={{ pl: 4 }}
+                onClick={() => setActiveTool("exterior")}
+              >
+                <ListItemText primary="Exterior Photos" />
+              </ListItemButton>
+            </List>
+            <ListItem disablePadding>
+              <ListItemButton
+                selected={activeTool === "videos"}
+                sx={{ pl: 4 }}
+                onClick={() => setActiveTool("videos")}
+              >
+                <ListItemText primary="Videos" />
+              </ListItemButton>
+            </ListItem>
+          </Collapse>
+
+          {/* Other tools */}
+
+          <ListItem disablePadding>
+            <ListItemButton
+              selected={activeTool === "amenities"}
+              onClick={() => setActiveTool("amenities")}
+            >
+              <ListItemText primary="Amenities Editor" />
+            </ListItemButton>
+          </ListItem>
+
+          <ListItem disablePadding>
+            <ListItemButton
+              selected={activeTool === "activities"}
+              onClick={() => setActiveTool("activities")}
+            >
+              <ListItemText primary="Activity Editor" />
+            </ListItemButton>
+          </ListItem>
+
+          <ListItem disablePadding>
+            <ListItemButton
+              selected={activeTool === "articles"}
+              onClick={() => setActiveTool("articles")}
+            >
+              <ListItemText primary="Article Generator" />
+            </ListItemButton>
+          </ListItem>
+        </List>
+      </Box>
+
+      {/* Main Content Area */}
+      <Box sx={{ flexGrow: 1, p: 4 }}>{renderTool()}</Box>
     </Box>
   );
 }

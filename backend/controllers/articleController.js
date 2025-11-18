@@ -146,7 +146,8 @@ export const getArticlesForActivity = async (req, res, next) => {
 // POST a new article
 export const createArticle = async (req, res, next) => {
   try {
-    const { id, activityId, url, title, image, rawContent, description, clientId } = req.body;
+    const { id, activityId, url, title, image, rawContent, description, address, clientId } =
+      req.body;
 
     console.log(req.body);
     var jsonContent;
@@ -166,6 +167,7 @@ export const createArticle = async (req, res, next) => {
         content: jsonContent,
         image: image,
         description: description,
+        address: address,
       })
       .select()
       .single();
@@ -222,7 +224,7 @@ export const updateArticle = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { lang = "en" } = req.query;
-    const { title, rawContent, image } = req.body;
+    const { title, rawContent, image, url, address } = req.body;
     const file = req.file;
 
     // Rebuild the article
@@ -251,7 +253,7 @@ export const updateArticle = async (req, res, next) => {
       // Update the title and content
       const { data: result, error } = await supabase
         .from("articles")
-        .update({ title, content, image })
+        .update({ title, content, image, url, address })
         .eq("id", id);
 
       articleData.title = title;
@@ -326,32 +328,32 @@ export const deleteArticle = async (req, res, next) => {
 // Body: {urls}
 export const generateArticleFromUrls = async (req, res, next) => {
   try {
-    const { urls } = req.body;
+    const sse = new SSEConnection(res);
+    const { urls } = req.query;
+    const parsedUrls = JSON.parse(urls);
 
-    console.log("RECEIVED: ", urls);
+    console.log(parsedUrls);
 
-    res.setHeader("Content-Type", "text/event-stream");
-    res.setHeader("Cache-Control", "no-cache");
-    res.setHeader("Connection", "keep-alive");
-    res.flushHeaders();
+    if (!Array.isArray(parsedUrls) || parsedUrls.length === 0) {
+      sse.send("error", { message: "No URLs provided" });
+      return sse.close();
+    }
 
-    let allHtmlContent = await scrapeMultiple(urls, res);
-    res.write(`event: preProcessing\ndata: Scraping complete.\n\n`);
+    const allHtmlContent = await scrapeMultiple(parsedUrls, sse, sse.signal);
+    if (sse.signal.aborted) return;
+
+    sse.send("preProcessing", "Scraping complete.");
 
     const prompt = buildPrompt(allHtmlContent);
-    res.write(`event: preProcessing\ndata: Prompt assembled.\n\n`);
+    sse.send("preProcessing", "Prompt assembled.");
 
     console.log(prompt);
 
-    const article = await generateArticle(prompt, res);
+    const article = await generateArticle(prompt, sse);
+    if (sse.signal.aborted) return;
 
-    // Clear memory
-    allHtmlContent.length = 0;
-    allHtmlContent = null;
-    global.gc && global.gc();
-
-    res.write(`event: done\ndata: ${JSON.stringify(article)}\n\n`);
-    res.end();
+    sse.send("done", article);
+    sse.close();
   } catch (err) {
     next(err);
   }

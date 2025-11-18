@@ -5,9 +5,9 @@ import { UserAuth } from "connection/auth/authContext";
 // @mui material components
 import Container from "@mui/material/Container";
 import Grid from "@mui/material/Grid";
-import AppBar from "@mui/material/AppBar";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
+import Card from "@mui/material/Card";
 
 // Layout imports
 import BaseLayout from "components/BaseLayout";
@@ -27,9 +27,10 @@ function Dashboard() {
   const navigate = useNavigate();
   const { session, signOut } = UserAuth();
   const [activeTab, setActiveTab] = useState(0);
-  const handleTabType = (tab, newValue) => setActiveTab(newValue);
-  const [isAdmin, setIsAdmin] = useState();
+  const [isAdmin, setIsAdmin] = useState(false);
   const { t } = useTranslation();
+
+  const handleTabChange = (event, newValue) => setActiveTab(newValue);
 
   const handleSignOut = async (event) => {
     event.preventDefault();
@@ -49,38 +50,75 @@ function Dashboard() {
 
   return (
     <BaseLayout title={t("Account dashboard")}>
-      <MKBox sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
+      <MKBox sx={{ flex: 1, display: "flex", flexDirection: "column", mt: 2 }}>
+        {/* Top Bar */}
         <MKBox
           display="flex"
           justifyContent="space-between"
           alignItems="center"
-          p={2}
+          p={2.5}
+          mb={3}
           sx={{
             backgroundColor: "background.paper",
             borderRadius: 2,
-            boxShadow: 2,
+            boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
+            borderLeft: "4px solid #4a80f6",
           }}
         >
-          <span style={{ fontWeight: 500, fontSize: "1rem" }}>
+          <span style={{ fontWeight: 600, fontSize: "1.05rem" }}>
             {t("Welcome")}, <strong>{session?.user?.email}</strong>
           </span>
-          <MKButton variant="gradient" color="light" size="small" onClick={handleSignOut}>
+
+          <MKButton
+            variant="gradient"
+            color="dark"
+            size="small"
+            onClick={handleSignOut}
+            sx={{ borderRadius: 2, px: 2.4 }}
+          >
             {t("sign out")}
           </MKButton>
         </MKBox>
 
-        <Container lg={3}>
-          <Grid container item justifyContent="center" xs={12} lg={10} mx="auto">
-            <AppBar position="static">
-              <Tabs sx={{ minWidth: "100%" }} value={activeTab} onChange={handleTabType}>
-                <Tab label="My Profile" />
-                {isAdmin == true && <Tab label="Administration" />};
-              </Tabs>
-            </AppBar>
+        {/* Tabs Wrapper */}
+        <Container>
+          <Grid container justifyContent="center">
+            <Grid item xs={12} lg={10}>
+              <Card sx={{ borderRadius: 3, boxShadow: 3 }}>
+                <Tabs
+                  value={activeTab}
+                  onChange={handleTabChange}
+                  variant="fullWidth"
+                  TabIndicatorProps={{ style: { display: "none" } }} // remove indicator
+                  sx={{
+                    mb: 0,
+                    borderBottom: "none",
+                    "& .MuiTabs-flexContainer": {
+                      borderBottom: "none",
+                    },
+                    "& .MuiTab-root": {
+                      fontWeight: 600,
+                      borderRadius: 2,
+                      textTransform: "none",
+                      "&.Mui-selected": {
+                        backgroundColor: "action.selected",
+                      },
+                    },
+                  }}
+                >
+                  <Tab label={t("My Profile")} />
+                  {isAdmin && <Tab label={t("Administration")} />}
+                </Tabs>
+              </Card>
+            </Grid>
           </Grid>
         </Container>
-        {activeTab === 0 && <ProfileTab />}
-        {activeTab === 1 && <AdminDash />}
+
+        {/* Tab Content */}
+        <MKBox mt={2}>
+          {activeTab === 0 && <ProfileTab />}
+          {activeTab === 1 && isAdmin && <AdminDash />}
+        </MKBox>
       </MKBox>
     </BaseLayout>
   );

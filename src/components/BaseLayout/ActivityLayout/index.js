@@ -370,6 +370,93 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
               }}
             />
 
+            {/* URL viewer, aligned under the image only */}
+            {(item.url || item.address) && (
+              <MKBox
+                sx={{
+                  width: { xs: "100%", md: "50%" }, // match the image width
+                  float: "right", // stay in the same column
+                  mr: { md: 2 },
+                  ml: { md: 2 },
+                  mt: 1,
+                  p: 2,
+                  borderRadius: "lg",
+                  backgroundColor: "#f8f9ff",
+                  border: "1px solid #e0e6ff",
+                  textAlign: "center",
+                }}
+              >
+                <MKButton
+                  color="info"
+                  size="small"
+                  variant="contained"
+                  sx={{ mb: 2 }}
+                  onClick={() =>
+                    setEditedArticle((prev) => ({
+                      ...prev,
+                      showInfo: !prev.showInfo,
+                    }))
+                  }
+                >
+                  {editedArticle.showInfo ? "Hide info" : "Show info"}
+                </MKButton>
+
+                {editedArticle.showInfo && editedArticle.url && (
+                  <>
+                    <MKTypography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                      Website link:
+                    </MKTypography>
+                    <MKTypography
+                      variant="body2"
+                      component="a"
+                      href={item.url.split(",")[0].trim()}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      sx={{
+                        mt: 1.5,
+                        p: 1,
+                        backgroundColor: "white",
+                        borderRadius: "md",
+                        boxShadow: "sm",
+                        textDecoration: "underline",
+                        color: "info.main",
+                        wordBreak: "break-all",
+                      }}
+                    >
+                      {item.url.split(",")[0].trim()}
+                    </MKTypography>
+                  </>
+                )}
+                {editedArticle.showInfo && editedArticle.address && (
+                  <>
+                    <MKTypography variant="subtitle2" sx={{ fontWeight: 600, mt: 1 }}>
+                      Company address:
+                    </MKTypography>
+                    <MKTypography
+                      variant="body2"
+                      component="a"
+                      href={`https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(
+                        "R. Júlio Amaro 33, 8500-001 Alvor, Portugal"
+                      )}&destination=${encodeURIComponent(item.address)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      sx={{
+                        mt: 1.5,
+                        p: 1,
+                        backgroundColor: "white",
+                        borderRadius: "md",
+                        boxShadow: "sm",
+                        wordBreak: "break-all",
+                        color: "info.main",
+                      }}
+                    >
+                      {item.address}
+                    </MKTypography>
+                  </>
+                )}
+              </MKBox>
+            )}
+
             {item.content?.map((section, index) => (
               <MKBox key={index} sx={{ m: 2 }}>
                 <MKTypography variant="h3" pb={1.5} sx={{ fontWeight: "bold" }}>
@@ -389,14 +476,15 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
             ))}
           </MKBox>
         ) : (
-          <MKBox sx={{ flex: 1 }}>
+          <>
+            {/* Title stays full width above content on the left */}
             <MKInput
               value={editedArticle.title}
               onChange={(e) => setEditedArticle((prev) => ({ ...prev, title: e.target.value }))}
               type="title"
               label="Title"
-              m={2}
               fullWidth
+              sx={{ mt: 2 }}
               InputProps={{
                 sx: {
                   input: {
@@ -407,116 +495,175 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
                 },
               }}
             />
-
-            <ButtonBase
-              component="label"
-              tabIndex={-1}
-              aria-label="article image"
+            <MKBox
               sx={{
-                display: "inline-block",
-                float: "right",
-                maxWidth: { xs: "100%", md: "50%" },
-                m: { xs: 0, md: 2 },
-                p: 0,
-                overflow: "hidden",
+                display: "flex",
+                flexDirection: { xs: "column", md: "row-reverse" },
+                alignItems: "flex-start",
+                width: "100%",
               }}
             >
+              {/* ----------- RIGHT SIDE (Image + URL box) ----------- */}
               <MKBox
-                component="img"
-                src={previewImage || editedArticle.image}
-                borderRadius="lg"
-                shadow="lg"
-                sx={{ width: "100%", height: "auto", display: "block" }}
-              />
-              <input
-                type="file"
-                accept="image/*"
-                style={{ display: "none" }}
-                onChange={handleImageUploadChange}
-              />
-            </ButtonBase>
-
-            {editedArticle?.content?.map((section, articleIndex) => (
-              <MKBox
-                key={articleIndex}
-                sx={{ m: 2, display: "flex", flexDirection: "row", flexWrap: "wrap" }}
+                sx={{
+                  width: { xs: "100%", md: "45%" },
+                  ml: { md: 2 },
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "flex-end",
+                }}
               >
-                <MKInput
-                  type="section_title"
-                  label={`Section ${articleIndex} title`}
-                  value={section?.title || ""}
-                  onChange={(e) => changeArticle(articleIndex, "title", e.target.value)}
-                  pb={1.5}
-                  InputProps={{
-                    sx: {
-                      mb: 2,
-                      input: {
-                        fontSize: "1.75rem",
-                        fontWeight: 500,
-                      },
-                    },
+                {/* IMAGE */}
+                <ButtonBase
+                  component="label"
+                  tabIndex={-1}
+                  aria-label="article image"
+                  sx={{
+                    width: "100%",
+                    p: 0,
+                    mt: 2,
+                    overflow: "hidden",
+                    borderRadius: "lg",
                   }}
-                />
+                >
+                  <MKBox
+                    component="img"
+                    src={previewImage || editedArticle.image}
+                    borderRadius="lg"
+                    shadow="lg"
+                    sx={{ width: "100%", height: "auto", display: "block" }}
+                  />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    style={{ display: "none" }}
+                    onChange={handleImageUploadChange}
+                  />
+                </ButtonBase>
 
-                {articleIndex !== 0 && (
-                  <MKBox mt={1.5}>
-                    <MKButton
-                      sx={{ ml: 2, mb: 2 }}
-                      size="medium"
-                      color="success"
-                      variant="gradient"
-                      onClick={() => addDetail(articleIndex)}
-                    >
-                      <Add />
-                    </MKButton>
-                    <MKButton
-                      sx={{ ml: 2, mb: 2 }}
-                      size="medium"
-                      color="error"
-                      variant="gradient"
-                      onClick={() => removeDetail(articleIndex)}
-                    >
-                      <Remove />
-                    </MKButton>
-                  </MKBox>
-                )}
-
-                <MKInput
-                  type="content"
-                  label={`Section ${articleIndex} content`}
-                  value={section?.content || ""}
-                  onChange={(e) => changeArticle(articleIndex, "content", e.target.value)}
-                  multiline
-                  InputProps={{
-                    sx: {
-                      textarea: {
-                        fontSize: "1rem",
-                        fontWeight: 400,
-                        lineHeight: 1.5,
-                      },
-                    },
+                {/* URL + ADDRESS */}
+                <MKBox
+                  sx={{
+                    width: "100%",
+                    mt: 2,
+                    p: 2,
+                    borderRadius: "lg",
+                    backgroundColor: "#f8f9ff",
+                    border: "1px solid #e0e6ff",
                   }}
-                  sx={{ width: "100%" }}
-                />
+                >
+                  <MKInput
+                    label="Website URL"
+                    value={editedArticle.url || ""}
+                    onChange={(e) =>
+                      setEditedArticle((prev) => ({
+                        ...prev,
+                        url: e.target.value,
+                      }))
+                    }
+                    fullWidth
+                    sx={{ mb: 2 }}
+                  />
 
-                {section?.detail && (
-                  <MKTypography component="ul" width="100%">
-                    {section.detail.map((val, index) => (
-                      <MKTypography key={index} component="li" ml={3}>
-                        <MKInput
-                          value={val}
-                          fullWidth
-                          onChange={(e) =>
-                            changeArticle(articleIndex, "detail", e.target.value, index)
-                          }
-                        />
-                      </MKTypography>
-                    ))}
-                  </MKTypography>
-                )}
+                  <MKInput
+                    label="Business Address"
+                    value={editedArticle.address || ""}
+                    onChange={(e) =>
+                      setEditedArticle((prev) => ({
+                        ...prev,
+                        address: e.target.value,
+                      }))
+                    }
+                    fullWidth
+                  />
+                </MKBox>
               </MKBox>
-            ))}
-          </MKBox>
+
+              {/* ----------- LEFT SIDE: Article Content ----------- */}
+              <MKBox sx={{ width: { xs: "100%", md: "55%" }, pr: { md: 2 }, mt: { xs: 2, md: 0 } }}>
+                {editedArticle?.content?.map((section, articleIndex) => (
+                  <MKBox
+                    key={articleIndex}
+                    sx={{ m: 2, display: "flex", flexDirection: "row", flexWrap: "wrap" }}
+                  >
+                    <MKInput
+                      type="section_title"
+                      label={`Section ${articleIndex} title`}
+                      value={section?.title || ""}
+                      onChange={(e) => changeArticle(articleIndex, "title", e.target.value)}
+                      pb={1.5}
+                      InputProps={{
+                        sx: {
+                          mb: 2,
+                          input: {
+                            fontSize: "1.75rem",
+                            fontWeight: 500,
+                          },
+                        },
+                      }}
+                    />
+
+                    {articleIndex !== 0 && (
+                      <MKBox mt={1.5}>
+                        <MKButton
+                          sx={{ ml: 2, mb: 2 }}
+                          size="medium"
+                          color="success"
+                          variant="gradient"
+                          onClick={() => addDetail(articleIndex)}
+                        >
+                          <Add />
+                        </MKButton>
+                        <MKButton
+                          sx={{ ml: 2, mb: 2 }}
+                          size="medium"
+                          color="error"
+                          variant="gradient"
+                          onClick={() => removeDetail(articleIndex)}
+                        >
+                          <Remove />
+                        </MKButton>
+                      </MKBox>
+                    )}
+
+                    <MKInput
+                      type="content"
+                      label={`Section ${articleIndex} content`}
+                      value={section?.content || ""}
+                      onChange={(e) => changeArticle(articleIndex, "content", e.target.value)}
+                      multiline
+                      InputProps={{
+                        sx: {
+                          textarea: {
+                            fontSize: "1rem",
+                            fontWeight: 400,
+                            lineHeight: 1.5,
+                          },
+                        },
+                      }}
+                      sx={{ width: "100%" }}
+                    />
+
+                    {section?.detail && (
+                      <MKTypography component="ul" width="100%">
+                        {section.detail.map((val, index) => (
+                          <MKTypography key={index} component="li" ml={3}>
+                            <MKInput
+                              value={val}
+                              fullWidth
+                              onChange={(e) =>
+                                changeArticle(articleIndex, "detail", e.target.value, index)
+                              }
+                            />
+                          </MKTypography>
+                        ))}
+                      </MKTypography>
+                    )}
+                  </MKBox>
+                ))}
+              </MKBox>
+            </MKBox>
+          </>
         )}
       </Card>
     </>
@@ -542,6 +689,7 @@ ActivityLayout.propTypes = {
     image: PropTypes.string,
     content: PropTypes.array,
     url: PropTypes.string,
+    address: PropTypes.string,
     isPreview: PropTypes.bool,
     activityId: PropTypes.string,
     activityName: PropTypes.string,
