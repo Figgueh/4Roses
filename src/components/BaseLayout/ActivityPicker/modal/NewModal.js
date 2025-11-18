@@ -15,6 +15,7 @@ function NewModal({ activityTitle, onCreate }) {
   const [title, setTitle] = useState("");
   const [titleError, setTitleError] = useState("");
   const [description, setDescription] = useState("");
+  const [address, setAddress] = useState("");
   const [urls, setUrls] = useState([""]);
   const [open, setOpen] = useState(false);
   const [activityId, setActivityId] = useState("");
@@ -78,6 +79,7 @@ function NewModal({ activityTitle, onCreate }) {
       title,
       description,
       url: urlString,
+      address: address,
       image: "https://placehold.co/600x600?text=Placeholder%20image",
       isPreview: true,
       content: [
@@ -130,6 +132,12 @@ function NewModal({ activityTitle, onCreate }) {
               rows={3}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
+              fullWidth
+            />
+            <MKInput
+              label="Company address"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
               fullWidth
             />
             {/* URL List */}
