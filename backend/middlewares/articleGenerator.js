@@ -1,10 +1,11 @@
-export const generateArticle = async (prompt, res) => {
+export const generateArticle = async (prompt, sse) => {
   let response;
   const apiKey = process.env.OPENROUTER_KEY;
 
   try {
     response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
+      signal: sse.signal,
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
@@ -26,6 +27,8 @@ export const generateArticle = async (prompt, res) => {
       }),
     });
 
+    if (sse.isAborted()) return;
+
     if (!response.ok) {
       const errorText = await response.text();
       console.log(errorText);
@@ -34,15 +37,15 @@ export const generateArticle = async (prompt, res) => {
       throw new Error(`OpenRouter request failed (${response.status}): ${errorText}`);
     }
   } catch (err) {
-    res.write(
-      `event: error\ndata: ${JSON.stringify({
-        message: "Failed to generate article",
-        error: err.message,
-      })}\n\n`
-    );
-    return res.end();
+    if (err.name === "AbortError") {
+      console.log("generateArticle aborted cleanly");
+      return;
+    }
+    sse.send("error", { message: "Failed to generate article", error: err.message });
+    return;
   }
-  res.write(`event: preProcessing\ndata: request was sent successfully.\n\n`);
+
+  sse.send("preProcessing", "OpenRouter request accepted.");
 
   const reader = response.body.getReader();
   const decoder = new TextDecoder("utf-8");
@@ -54,6 +57,8 @@ export const generateArticle = async (prompt, res) => {
 
   // eslint-disable-next-line no-constant-condition
   while (true) {
+    if (sse.isAborted()) return;
+
     const { done, value } = await reader.read();
     if (done) break;
 
@@ -99,7 +104,7 @@ export const generateArticle = async (prompt, res) => {
               try {
                 const parsedMeta = JSON.parse(metaStr);
                 console.log(parsedMeta);
-                res.write(`event: metadata\ndata: ${JSON.stringify(parsedMeta)}\n\n`);
+                sse.send("metadata", parsedMeta);
                 sentMeta = true;
               } catch (err) {
                 // still incomplete JSON, wait for more chunks
@@ -117,7 +122,7 @@ export const generateArticle = async (prompt, res) => {
               while ((match = sectionRegex.exec(buffer)) !== null) {
                 try {
                   const sectionObj = JSON.parse(match[0]);
-                  res.write(`event: section\ndata: ${JSON.stringify(sectionObj)}\n\n`);
+                  sse.send("section", sectionObj);
                 } catch (err) {
                   console.error("Failed to parse section:", err);
                 }
@@ -131,17 +136,12 @@ export const generateArticle = async (prompt, res) => {
             }
           }
         } catch (err) {
-          if (json.trim() === "[DONE]") {
-            res.write("event: done\ndata: [DONE]\n\n");
-            res.end();
+          if (json === "[DONE]") {
+            sse.send("done", "[DONE]");
+            sse.close();
             return;
           }
           console.log("adding: ", json, " \nto: ", partial);
-
-          // console.error(
-          //   "Parse error while trying to make the OpenRouter response a JSON object",
-          //   err
-          // );
           partial += json;
         }
       }

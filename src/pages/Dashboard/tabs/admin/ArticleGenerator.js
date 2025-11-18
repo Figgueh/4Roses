@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { v4 as uuidv4 } from "uuid";
+import { useEffect, useState, useRef } from "react";
+// import { v4 as uuidv4 } from "uuid";
 import axios from "axios";
 
 import { Icon, Menu, Alert, AlertTitle } from "@mui/material";
@@ -21,7 +21,7 @@ function ArticleGenerator() {
 
   const [article, setArticle] = useState("");
 
-  const [status, setStatus] = useState(null);
+  const [status, setStatus] = useState("idle");
   const [section, setSection] = useState("");
   const [error, setError] = useState("");
   const [activities, setActivities] = useState([]);
@@ -29,6 +29,8 @@ function ArticleGenerator() {
   const [dropdown, setDropdown] = useState(null);
   const openDropdown = ({ currentTarget }) => setDropdown(currentTarget);
   const closeDropdown = () => setDropdown(null);
+
+  const eventSourceRef = useRef(null);
 
   const handleUrlChange = (index, newValue) => {
     const updatedUrls = [...urls];
@@ -50,97 +52,56 @@ function ArticleGenerator() {
     setArticle("");
     setStatus("Sending details to server...");
 
-    try {
-      const response = await fetch(
-        `${process.env.REACT_APP_BACKEND}/articles/generateArticleFromUrls`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ urls }),
-        }
-      );
-
-      // Setup a reader to read SSE
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder("utf-8");
-      let buffer = "";
-      let currentEvent = "message";
-
-      // Loop which reads what is sent from the server
-      // eslint-disable-next-line no-constant-condition
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-
-        for (let line of lines.slice(0, -1)) {
-          line = line.trim();
-          if (!line) continue;
-
-          // Parse the event data
-          if (line.startsWith("event:")) {
-            currentEvent = line.slice(6).trim();
-
-            // Parse the payload stored in "data:"
-          } else if (line.startsWith("data:")) {
-            const payload = line.slice(5).trim();
-
-            // Server finished sending all the data
-            if (payload === "[DONE]") {
-              // Append the other necessary data
-              setArticle((prev) => ({
-                ...prev,
-                id: uuidv4(),
-                url: urls.join(", "),
-                activityId: section.id,
-                activityName: section.title,
-              }));
-
-              setStatus("Done");
-              return;
-            }
-
-            // Event specific behavior
-            // Error handling
-            if (currentEvent === "error") {
-              const parsed = JSON.parse(payload);
-              console.error("Backend error:", parsed);
-              setError(parsed.message + " " + parsed.error);
-              setStatus(null);
-
-              // Server status handling
-            } else if (currentEvent == "preProcessing") {
-              setStatus(payload);
-
-              // Metadata handling
-            } else if (currentEvent == "metadata") {
-              const parsed = JSON.parse(payload);
-              setArticle((prev) => ({
-                ...prev,
-                title: parsed.title,
-                image: parsed.image,
-                description: parsed.description,
-                content: [],
-                isPreview: true,
-              }));
-
-              // Article content handling
-            } else if (currentEvent == "section") {
-              const parsed = JSON.parse(payload);
-              setArticle((prev) => ({
-                ...prev,
-                content: [...(prev.content ?? []), parsed],
-              }));
-            }
-          }
-        }
-      }
-    } catch (err) {
-      setError(err.message);
-      setStatus(null);
+    // Close previous SSE connection if any
+    if (eventSourceRef.current) {
+      eventSourceRef.current.close();
     }
+
+    // Create new SSE connection
+    const sse = new EventSource(
+      `${process.env.REACT_APP_BACKEND}/articles/generateArticleFromUrls?urls=${encodeURIComponent(
+        JSON.stringify(urls)
+      )}`
+    );
+
+    eventSourceRef.current = sse;
+
+    sse.addEventListener("preProcessing", (event) => setStatus(event.data));
+    sse.addEventListener("metadata", (event) => {
+      const parsed = JSON.parse(event.data);
+      setArticle({
+        title: parsed.title,
+        image: parsed.image,
+        description: parsed.description,
+        content: [],
+        url: urls.concat(", "),
+        isPreview: true,
+      });
+    });
+    sse.addEventListener("section", (event) => {
+      const parsed = JSON.parse(event.data);
+      setArticle((prev) => ({
+        ...prev,
+        content: [...(prev.content ?? []), parsed],
+      }));
+    });
+    sse.addEventListener("done", () => {
+      setStatus("Done");
+      sse.close();
+      eventSourceRef.current = null;
+    });
+    sse.addEventListener("error", (event) => {
+      const parsed = JSON.parse(event.data);
+      setError(parsed.message + " " + parsed.error ?? "");
+      setStatus(null);
+      sse.close();
+      eventSourceRef.current = null;
+    });
+    sse.addEventListener("abort", () => {
+      setStatus("idle");
+      sse.close();
+      eventSourceRef.current = null;
+    });
   };
 
   useEffect(() => {
@@ -233,6 +194,23 @@ function ArticleGenerator() {
       <MKButton onClick={handleGenerate} variant="gradient" color="info" sx={{ my: 2 }}>
         {status === "Done" ? "Regenerate" : "Generate"} article
       </MKButton>
+
+      {status !== "Done" && status !== "idle" && status !== "Stopped" && (
+        <MKButton
+          // variant="outlined"
+          color="error"
+          sx={{ ml: 2 }}
+          onClick={() => {
+            if (eventSourceRef.current) {
+              eventSourceRef.current.close();
+              setStatus("Stopped");
+              eventSourceRef.current = null;
+            }
+          }}
+        >
+          Stop generation
+        </MKButton>
+      )}
 
       {article?.title && (
         <>
