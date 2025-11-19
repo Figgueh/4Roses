@@ -364,6 +364,7 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
               style={{ float: "right" }}
               sx={{
                 width: { xs: "100%", md: "50%" },
+                maxWidth: 600,
                 marginRight: { md: 2 },
                 marginLeft: { md: 2 },
                 marginTop: { md: 2 },
