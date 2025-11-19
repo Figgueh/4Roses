@@ -1,7 +1,6 @@
 import supabase from "connection/client";
 
 export const updateAccount = async (id, fullName, avatarUrl) => {
-  console.log("HERE", id, fullName, avatarUrl);
   if (id == null || "") console.error("Id can't be null");
 
   // If all information is provided
