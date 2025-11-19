@@ -582,7 +582,7 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
             </Link>
           )}
 
-          <MKBox ml={{ xs: "auto", lg: 0 }} display="flex" alignItems="center" gap={1}>
+          <MKBox ml={{ lg: 0 }} display={{ xs: "none", lg: "flex" }} alignItems="center" gap={1}>
             {/* Action Button */}
             {action &&
               (action.type === "internal" ? (
@@ -649,7 +649,22 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
           borderRadius="xl"
           px={transparent ? 2 : 0}
         >
-          {mobileView && <DefaultNavbarMobile routes={routes} open={mobileNavbar} />}
+          {mobileView && (
+            <DefaultNavbarMobile
+              routes={routes}
+              open={mobileNavbar}
+              actionButton={
+                <MKButton component={Link} to="/book" variant="gradient" color="info" size="small">
+                  Book Now
+                </MKButton>
+              }
+              languageSelector={
+                <MKButton variant="gradient" color="light" onClick={openDropdownLang} size="small">
+                  {currentLang} <Icon sx={{ transform: "rotate(0deg)" }}>expand_more</Icon>
+                </MKButton>
+              }
+            />
+          )}
         </MKBox>
       </MKBox>
       {dropdownMenu}
