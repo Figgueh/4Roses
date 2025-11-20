@@ -131,6 +131,9 @@ export const addAmenity = async (req, res, next) => {
     const { title, description, isSmall, display_order } = req.body;
     const file = req.file;
 
+    // Clean data
+    const cleanedTitle = title.trim();
+
     if (!file) {
       return res.status(400).json({ error: "Image file is required" });
     }
@@ -140,7 +143,13 @@ export const addAmenity = async (req, res, next) => {
 
     const { data: newData, error } = await supabase
       .from("amenities")
-      .insert({ title, description, small: isSmall, image: file.originalname, display_order })
+      .insert({
+        title: cleanedTitle,
+        description,
+        small: isSmall,
+        image: file.originalname,
+        display_order,
+      })
       .select()
       .single();
 
@@ -148,7 +157,7 @@ export const addAmenity = async (req, res, next) => {
 
     // Translate and upload data to the database.
     for (const language of supportedLanguages) {
-      const transTitle = await translateText(title, language);
+      const transTitle = await translateText(cleanedTitle, language);
 
       // Only translate the description if it's provided
       const transDescription = description ? await translateText(description, language) : null;
@@ -181,7 +190,7 @@ export const updateAmenity = async (req, res, next) => {
     const { lang = "en" } = req.query;
 
     const updateData = {
-      title,
+      title: title.trim(),
       description,
       small: isSmall,
       display_order,
@@ -217,7 +226,7 @@ export const updateAmenity = async (req, res, next) => {
       // If the language isn't english, update the translation table instead.
       const { error } = await supabase
         .from("amenities_translation")
-        .update({ title, description })
+        .update({ title: title.trim(), description })
         .eq("language", lang)
         .eq("amenities_id", id)
         .select()

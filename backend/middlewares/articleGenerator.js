@@ -88,7 +88,7 @@ export const generateArticle = async (prompt, sse) => {
             }
 
             // Look for metadata if not sent yet
-            if (!sentMeta && delta.trim().includes("article")) {
+            if (!sentMeta && /\barticle\b/.test(buffer)) {
               var lines = buffer
                 .split("\n")
                 .map((line) => line.trim())

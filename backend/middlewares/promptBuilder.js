@@ -14,7 +14,7 @@ Generate me an article that includes things like the price, location, services o
 If the web pages don't include any information on the previously mentioned items, then don't include them and find something else that would be good to know.
 The article should follow this schema:
 {
-  "title": "Main title, make sure to not include any special characters like @,:,",'...",
+  "title": "Main title, make sure to not include any accents on letters and special characters like @,:,",'...",
   "image": "Leave blank or provide a working link, make sure I have the full url",
   "description": "a short description summarizing the article",
   "article": [{

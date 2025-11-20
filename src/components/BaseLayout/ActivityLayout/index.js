@@ -50,7 +50,6 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
       content: [],
     };
     setEditedArticle(item || defaultArticle);
-    console.log(item.image);
   }, [item]);
 
   const handleEditMode = () => {
@@ -78,8 +77,9 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
     formData.append("id", item.id);
     formData.append("title", updatedArticle.title);
     formData.append("rawContent", JSON.stringify(updatedArticle.content));
-    formData.append("url", updatedArticle.url);
+    formData.append("url", updatedArticle.url ?? "");
     formData.append("image", updatedArticle.image);
+    formData.append("address", updatedArticle.address ?? "");
     formData.append("description", updatedArticle.description);
 
     try {
@@ -410,7 +410,7 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
                     <MKTypography
                       variant="body2"
                       component="a"
-                      href={item.url.split(",")[0].trim()}
+                      href={item?.url?.split(",")[0].trim()}
                       target="_blank"
                       rel="noopener noreferrer"
                       sx={{
@@ -458,23 +458,27 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
               </MKBox>
             )}
 
-            {item.content?.map((section, index) => (
-              <MKBox key={index} sx={{ m: 2 }}>
-                <MKTypography variant="h3" pb={1.5} sx={{ fontWeight: "bold" }}>
-                  {section?.title}
-                </MKTypography>
-                <MKTypography variant="body1">{section?.content}</MKTypography>
-                {section?.detail && (
-                  <MKTypography component="ul">
-                    {section.detail.map((val, index) => (
-                      <MKTypography key={index} component="li" ml={3}>
-                        {val}
-                      </MKTypography>
-                    ))}
+            <MKBox sx={{ display: "block" }}>
+              {item.content?.map((section, index) => (
+                <MKBox key={index} sx={{ mb: 3 }}>
+                  <MKTypography variant="h3" pb={1.5} sx={{ fontWeight: "bold" }}>
+                    {section?.title}
                   </MKTypography>
-                )}
-              </MKBox>
-            ))}
+                  <MKTypography variant="body1" sx={{ whiteSpace: "pre-line" }}>
+                    {section?.content}
+                  </MKTypography>
+                  {section?.detail && (
+                    <MKTypography component="ul">
+                      {section.detail.map((val, i) => (
+                        <MKTypography key={i} component="li" ml={3}>
+                          {val}
+                        </MKTypography>
+                      ))}
+                    </MKTypography>
+                  )}
+                </MKBox>
+              ))}
+            </MKBox>
           </MKBox>
         ) : (
           <>

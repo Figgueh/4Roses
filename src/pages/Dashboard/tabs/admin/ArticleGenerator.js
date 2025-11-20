@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-// import { v4 as uuidv4 } from "uuid";
+import { v4 as uuidv4 } from "uuid";
 import axios from "axios";
 
 import { Icon, Menu, Alert, AlertTitle } from "@mui/material";
@@ -69,14 +69,18 @@ function ArticleGenerator() {
     sse.addEventListener("preProcessing", (event) => setStatus(event.data));
     sse.addEventListener("metadata", (event) => {
       const parsed = JSON.parse(event.data);
-      setArticle({
+      setArticle((prev) => ({
+        ...prev,
+        id: uuidv4(),
         title: parsed.title,
         image: parsed.image,
         description: parsed.description,
         content: [],
-        url: urls.concat(", "),
+        url: urls.join(", "),
+        activityName: section.title,
+        activityId: section.id,
         isPreview: true,
-      });
+      }));
     });
     sse.addEventListener("section", (event) => {
       const parsed = JSON.parse(event.data);
@@ -223,7 +227,7 @@ function ArticleGenerator() {
               { label: article.title },
             ]}
             item={article}
-            setItem={(newItem) => setArticle((prev) => ({ ...prev, article: newItem }))}
+            setItem={(newItem) => setArticle((prev) => ({ ...prev, ...newItem }))}
           />
         </>
       )}

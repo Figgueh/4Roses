@@ -9,7 +9,14 @@ export const scrapePage = async (url, method = "new") => {
   const browser = await puppeteer.launch({
     headless: true,
     executablePath: puppeteer.executablePath(),
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    args: [
+      "--disable-extensions",
+      "--disable-default-apps",
+      "--disable-popup-blocking",
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-features=IsolateOrigins,site-per-process",
+    ],
   });
 
   const context = await browser.createBrowserContext({
