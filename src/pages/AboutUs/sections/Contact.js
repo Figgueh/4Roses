@@ -58,7 +58,7 @@ function Contact() {
   };
 
   return (
-    <MKBox component="section" py={{ xs: 0, lg: 6 }}>
+    <MKBox component="section" id="contactUs" py={{ xs: 0, lg: 6 }}>
       <Container>
         <Grid container item>
           <MKBox

@@ -20,11 +20,11 @@ export default {
   socials: [
     {
       icon: <FacebookIcon />,
-      link: "https://www.facebook.com/CreativeTim/",
+      link: "https://www.facebook.com/maria.aurora.abrantes",
     },
     {
       icon: <YouTubeIcon />,
-      link: "https://www.youtube.com/channel/UCVyTG4sCw-rOvB9oHkzZD1w",
+      link: "https://www.youtube.com/@joaquimfigueiras8377",
     },
     {
       icon: <BookIcon fontSize="small" />,
@@ -35,41 +35,34 @@ export default {
     {
       name: "company",
       items: [
-        { name: "about us", href: "https://www.creative-tim.com/presentation" },
-        { name: "freebies", href: "https://www.creative-tim.com/templates/free" },
-        { name: "premium tools", href: "https://www.creative-tim.com/templates/premium" },
-        { name: "blog", href: "https://www.creative-tim.com/blog" },
+        { name: "about our property", href: "/pages/landing-pages/AboutUs" },
+        { name: "about us", href: "/pages/landing-pages/AboutUs" },
+        { name: "Contact us", href: "/pages/landing-pages/AboutUs/#contactUs", isHashLink: true },
       ],
     },
     {
-      name: "resources",
+      name: "Albums",
       items: [
-        { name: "illustrations", href: "https://iradesign.io/" },
-        { name: "bits & snippets", href: "https://www.creative-tim.com/bits" },
-        { name: "affiliate program", href: "https://www.creative-tim.com/affiliates/new" },
+        { name: "interior album", href: "pages/albums/interior" },
+        { name: "exterior album", href: "pages/albums/exterior" },
+        { name: "video album", href: "pages/albums/videos" },
       ],
     },
     {
       name: "help & support",
-      items: [
-        { name: "contact us", href: "https://www.creative-tim.com/contact-us" },
-        { name: "knowledge center", href: "https://www.creative-tim.com/knowledge-center" },
-        { name: "custom development", href: "https://services.creative-tim.com/" },
-        { name: "sponsorships", href: "https://www.creative-tim.com/sponsorships" },
-      ],
+      items: [{ name: "contact developer", href: "contact-developer" }],
     },
     {
       name: "legal",
       items: [
-        { name: "terms & conditions", href: "https://www.creative-tim.com/terms" },
-        { name: "privacy policy", href: "https://www.creative-tim.com/privacy" },
-        { name: "licenses (EULA)", href: "https://www.creative-tim.com/license" },
+        { name: "terms & conditions", href: "terms-and-conditions" },
+        { name: "Website Design licenses", href: "https://www.creative-tim.com/license" },
       ],
     },
   ],
   copyright: (
     <MKTypography variant="button" fontWeight="regular">
-      All rights reserved. Copyright &copy; {date} 4 Roses by{" "}
+      All rights reserved. Copyright &copy; {date} Four Roses by{" "}
       <MKTypography
         component="a"
         href="https://www.facebook.com/joaquim.figueiras.58"

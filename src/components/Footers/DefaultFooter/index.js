@@ -26,6 +26,7 @@ import Grid from "@mui/material/Grid";
 // Material Kit 2 React components
 import MKBox from "components/MKBox";
 import MKTypography from "components/MKTypography";
+import { HashLink } from "react-router-hash-link";
 
 function DefaultFooter({ content }) {
   const { brand, socials, menus, copyright } = content;
@@ -71,33 +72,50 @@ function DefaultFooter({ content }) {
                 {title}
               </MKTypography>
               <MKBox component="ul" p={0} m={0} sx={{ listStyle: "none" }}>
-                {items.map(({ name, route, href }) => (
-                  <MKBox key={name} component="li" p={0} m={0} lineHeight={1.25}>
-                    {href ? (
-                      <MKTypography
-                        component="a"
-                        href={href}
-                        target="_blank"
-                        rel="noreferrer"
-                        variant="button"
-                        fontWeight="regular"
-                        textTransform="capitalize"
-                      >
-                        {name}
-                      </MKTypography>
-                    ) : (
-                      <MKTypography
-                        component={Link}
-                        to={route}
-                        variant="button"
-                        fontWeight="regular"
-                        textTransform="capitalize"
-                      >
-                        {name}
-                      </MKTypography>
-                    )}
-                  </MKBox>
-                ))}
+                {items.map(({ name, route, href }) => {
+                  const isHash = typeof href === "string" && href.includes("#");
+
+                  return (
+                    <MKBox key={name} component="li" p={0} m={0} lineHeight={1.25}>
+                      {href ? (
+                        isHash ? (
+                          <MKTypography
+                            component={HashLink}
+                            smooth
+                            to={href}
+                            variant="button"
+                            fontWeight="regular"
+                            textTransform="capitalize"
+                          >
+                            {name}
+                          </MKTypography>
+                        ) : (
+                          <MKTypography
+                            component="a"
+                            href={href}
+                            target="_blank"
+                            rel="noreferrer"
+                            variant="button"
+                            fontWeight="regular"
+                            textTransform="capitalize"
+                          >
+                            {name}
+                          </MKTypography>
+                        )
+                      ) : (
+                        <MKTypography
+                          component={Link}
+                          to={route}
+                          variant="button"
+                          fontWeight="regular"
+                          textTransform="capitalize"
+                        >
+                          {name}
+                        </MKTypography>
+                      )}
+                    </MKBox>
+                  );
+                })}
               </MKBox>
             </Grid>
           ))}

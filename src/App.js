@@ -31,6 +31,8 @@ import Home from "pages/Home";
 import { AuthContextProvider } from "connection/auth/authContext";
 import ActivityBuilder from "pages/ActivityBuilder";
 import { useTranslation } from "react-i18next";
+import ContactDeveloperPage from "pages/footerPages/ContactDev";
+import TermsConditions from "pages/footerPages/termsConditions";
 
 export default function App() {
   const { pathname } = useLocation();
@@ -67,6 +69,9 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="activities/:section/:slug" element={<ActivityBuilder />} />
           <Route path="activities/:section" element={<ActivityBuilder />} />
+          {/* Footer pages */}
+          <Route path="contact-developer" element={<ContactDeveloperPage />} />
+          <Route path="terms-and-conditions" element={<TermsConditions />} />
           {/* <Route path="*" element={<Navigate to="/pages/landing-pages/home" />} /> */}
         </Routes>
       </AuthContextProvider>
