@@ -21,39 +21,30 @@ export const getIcs = async (req, res, next) => {
   }
 };
 
-// GET price for a certain date
-// /price?date=YYYY-MM-DD
-export const getPrice = async (req, res, next) => {
+// GET price for all months
+//
+export const getMonthlyPrice = async (req, res) => {
   try {
-    const { date } = req.query;
-
-    if (!date) {
-      return res.status(400).json({ error: "Date is required" });
-    }
-
-    const parsed = new Date(date);
-
-    if (isNaN(parsed.getTime())) {
-      return res.status(400).json({ error: "Invalid date format" });
-    }
-
-    const month = parsed.getMonth(); // 0 - 11
-
     const { data, error } = await supabase
       .from("monthly_pricing")
-      .select("price")
-      .eq("month", month)
-      .single();
+      .select("month, price")
+      .order("month", { ascending: true });
 
-    if (error || !data) {
+    if (error) {
       console.error(error);
-      return res.status(404).json({ error: "No price found for this month" });
+      return res.status(500).json({ error: "Failed to load monthly prices" });
     }
 
-    return res.json({ price: data.price });
+    // Convert to useful format: {0: 120, 1: 130, ...}
+    const monthlyPrices = {};
+
+    data.forEach((row) => {
+      monthlyPrices[row.month] = row.price;
+    });
+
+    return res.json(monthlyPrices);
   } catch (err) {
     console.error("PRICE ERROR:", err);
-    res.status(500).json({ error: "Server error" });
-    next(err);
+    return res.status(500).json({ error: "Server error" });
   }
 };

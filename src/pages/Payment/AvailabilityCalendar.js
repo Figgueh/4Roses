@@ -4,7 +4,11 @@ import Grid from "@mui/material/Grid";
 import MKBox from "components/MKBox";
 import MKButton from "components/MKButton";
 import MKTypography from "components/MKTypography";
+import { Alert, AlertTitle } from "@mui/material";
 
+const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+// Utility to fetch ICS
 async function fetchICSFromBackend(url) {
   const backendUrl = `${process.env.REACT_APP_BACKEND}/reservation/ics?url=${encodeURIComponent(
     url
@@ -30,25 +34,25 @@ function parseICS(data, sourceName) {
     .filter(Boolean);
 }
 
-const fetchPrice = async (date) => {
-  const formatted = date.toISOString().split("T")[0];
-  const res = await fetch(`${process.env.REACT_APP_BACKEND}/reservation/price?date=${formatted}`);
-  if (!res.ok) return null;
-
-  const data = await res.json(); // expects { price: 123 }
-  return data.price;
-};
-
-const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-
-export default function AvailabilityCalendar({ icsUrls }) {
-  const [blocked, setBlocked] = useState([]);
+export default function AvailabilityCalendar({ icsUrls, onSelectionChange }) {
+  const [blockedDates, setBlockedDates] = useState(new Set());
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDates, setSelectedDates] = useState({});
   const [isDragging, setIsDragging] = useState(false);
   const [dragStartDate, setDragStartDate] = useState(null);
   const [dragEndDate, setDragEndDate] = useState(null);
+  const [dragMode, setDragMode] = useState(null);
+  const [monthlyPrices, setMonthlyPrices] = useState({});
+  const [error, setError] = useState("");
 
+  // Load monthly prices
+  useEffect(() => {
+    fetch(`${process.env.REACT_APP_BACKEND}/reservation/monthlyPrice`)
+      .then((res) => res.json())
+      .then(setMonthlyPrices);
+  }, []);
+
+  // Load ICS
   useEffect(() => {
     const load = async () => {
       if (!icsUrls || !icsUrls.length) return;
@@ -56,7 +60,16 @@ export default function AvailabilityCalendar({ icsUrls }) {
         const results = await Promise.all(
           icsUrls.map((s) => fetchICSFromBackend(s.url).then((text) => parseICS(text, s.name)))
         );
-        setBlocked(results.flat());
+        const allEvents = results.flat();
+        const set = new Set();
+        allEvents.forEach((b) => {
+          const current = new Date(b.start);
+          while (current < b.end) {
+            set.add(current.toISOString().split("T")[0]);
+            current.setDate(current.getDate() + 1);
+          }
+        });
+        setBlockedDates(set);
       } catch (err) {
         console.error(err);
       }
@@ -69,67 +82,73 @@ export default function AvailabilityCalendar({ icsUrls }) {
   const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-  // const handleDateClick = async (date) => {
-  //   const key = date.toISOString().split("T")[0];
+  const isBlocked = (date) => blockedDates.has(date.toISOString().split("T")[0]);
 
-  //   if (selectedDates[key]) {
-  //     // unselect
-  //     const updated = { ...selectedDates };
-  //     delete updated[key];
-  //     setSelectedDates(updated);
-  //     return;
-  //   }
+  const getPriceForDate = (date) => monthlyPrices[date.getMonth()] ?? "--";
 
-  //   const price = await fetchPrice(date);
-
-  //   setSelectedDates((prev) => ({
-  //     ...prev,
-  //     [key]: price,
-  //   }));
-  // };
-
-  const getBlockedSources = (date) =>
-    blocked.filter((b) => date >= b.start && date < b.end).map((b) => b.source);
-
-  const changeMonth = (n) => setCurrentDate(new Date(year, month + n, 1));
-
+  // Drag handlers
   const handleMouseDown = (date) => {
-    if (!getBlockedSources(date).length) {
-      setIsDragging(true);
-      setDragStartDate(date);
-      setDragEndDate(date);
-    }
+    if (isBlocked(date)) return;
+    const key = date.toISOString().split("T")[0];
+    setDragMode(selectedDates[key] ? "unselect" : "select");
+    setIsDragging(true);
+    setDragStartDate(date);
+    setDragEndDate(date);
   };
 
   const handleMouseEnter = (date) => {
-    if (isDragging && !getBlockedSources(date).length) {
-      setDragEndDate(date);
-    }
+    if (isDragging && !isBlocked(date)) setDragEndDate(date);
   };
 
-  const handleMouseUp = async () => {
-    if (!dragStartDate || !dragEndDate) {
-      setIsDragging(false);
-      return;
-    }
-
-    // compute all dates in the range
+  const handleMouseUp = () => {
+    if (!isDragging || !dragStartDate || !dragEndDate) return;
     const start = dragStartDate < dragEndDate ? dragStartDate : dragEndDate;
     const end = dragStartDate > dragEndDate ? dragStartDate : dragEndDate;
-    const newSelected = { ...selectedDates };
 
+    const newSelected = { ...selectedDates };
     for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
       const key = d.toISOString().split("T")[0];
-      if (!newSelected[key] && !getBlockedSources(d).length) {
-        const price = await fetchPrice(new Date(d)); // fetch price
-        newSelected[key] = price;
-      }
+      if (isBlocked(d)) continue;
+      if (dragMode === "select") newSelected[key] = getPriceForDate(d);
+      if (dragMode === "unselect") delete newSelected[key];
     }
 
-    setSelectedDates(newSelected);
+    if (!validateContinuousDates(newSelected)) {
+      setError("Selected dates must be continuous!");
+    } else {
+      setSelectedDates(newSelected);
+      setError("");
+      onSelectionChange?.(newSelected, monthlyPrices); // pass to parent
+    }
+
     setIsDragging(false);
     setDragStartDate(null);
     setDragEndDate(null);
+    setDragMode(null);
+  };
+
+  function validateContinuousDates(dates) {
+    const keys = Object.keys(dates).sort();
+    for (let i = 1; i < keys.length; i++) {
+      const prev = new Date(keys[i - 1]);
+      const curr = new Date(keys[i]);
+      if ((curr - prev) / (1000 * 60 * 60 * 24) !== 1) return false;
+    }
+    return true;
+  }
+
+  const isInDragRange = (date) => {
+    if (!isDragging || !dragStartDate || !dragEndDate) return false;
+    const start = dragStartDate < dragEndDate ? dragStartDate : dragEndDate;
+    const end = dragStartDate > dragEndDate ? dragStartDate : dragEndDate;
+    return date >= start && date <= end;
+  };
+
+  const getDragBackgroundColor = (date, selected) => {
+    if (!isInDragRange(date)) return null;
+    if (dragMode === "select" && !selected) return "#d9fbe2";
+    if (dragMode === "unselect" && selected) return "#f8caca";
+    return null;
   };
 
   return (
@@ -138,14 +157,21 @@ export default function AvailabilityCalendar({ icsUrls }) {
         Availability
       </MKTypography>
 
+      {error && (
+        <Alert sx={{ mt: 2 }} severity="error" onClose={() => setError(null)}>
+          <AlertTitle>Date selection error</AlertTitle>
+          {error}
+        </Alert>
+      )}
+
       <MKBox display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-        <MKButton variant="outlined" onClick={() => changeMonth(-1)}>
+        <MKButton variant="outlined" onClick={() => setCurrentDate(new Date(year, month - 1, 1))}>
           ‹ Prev
         </MKButton>
         <MKTypography variant="h6">
           {currentDate.toLocaleString("default", { month: "long", year: "numeric" })}
         </MKTypography>
-        <MKButton variant="outlined" onClick={() => changeMonth(1)}>
+        <MKButton variant="outlined" onClick={() => setCurrentDate(new Date(year, month + 1, 1))}>
           Next ›
         </MKButton>
       </MKBox>
@@ -166,9 +192,9 @@ export default function AvailabilityCalendar({ icsUrls }) {
         ))}
         {[...Array(daysInMonth)].map((_, i) => {
           const date = new Date(year, month, i + 1);
-          const blockedSources = getBlockedSources(date);
-          const blockedDay = blockedSources.length > 0;
+          const blockedDay = isBlocked(date);
           const dateKey = date.toISOString().split("T")[0];
+          const dragColor = getDragBackgroundColor(date, selectedDates[dateKey]);
 
           return (
             <Grid item xs={1.7} key={i}>
@@ -181,25 +207,26 @@ export default function AvailabilityCalendar({ icsUrls }) {
                 justifyContent="center"
                 flexDirection="column"
                 sx={{
+                  userSelect: "none",
                   height: 60,
                   borderRadius: 2,
                   backgroundColor: blockedDay
                     ? "grey.300"
+                    : dragColor
+                    ? dragColor
                     : selectedDates[dateKey]
-                    ? "#b6f0c0"
+                    ? "#81e59a"
                     : "white",
                   color: blockedDay ? "text.disabled" : "text.primary",
                   border: blockedDay ? "1px solid grey" : "1px solid #e0e0e0",
                   cursor: blockedDay ? "not-allowed" : "pointer",
-                  "&:hover": {
-                    backgroundColor: blockedDay ? "grey.300" : "#b6f0c0",
-                  },
+                  "&:hover": { backgroundColor: blockedDay || dragColor ? undefined : "#b6f0c0" },
                 }}
               >
                 {i + 1}
-                {!blockedDay && selectedDates[dateKey] && (
+                {!blockedDay && (
                   <MKTypography variant="caption" mt={0.5}>
-                    ${selectedDates[dateKey]}
+                    €{getPriceForDate(date).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                   </MKTypography>
                 )}
               </MKBox>
@@ -207,30 +234,13 @@ export default function AvailabilityCalendar({ icsUrls }) {
           );
         })}
       </Grid>
-
-      <MKBox display="flex" gap={3} justifyContent="center" mt={3}>
-        <MKBox display="flex" alignItems="center" gap={1}>
-          <MKBox
-            width={16}
-            height={16}
-            sx={{ bgcolor: "white", border: "1px solid #e0e0e0", borderRadius: 1 }}
-          />
-          <MKTypography variant="caption">Available</MKTypography>
-        </MKBox>
-        <MKBox display="flex" alignItems="center" gap={1}>
-          <MKBox width={16} height={16} sx={{ bgcolor: "grey.300", borderRadius: 1 }} />
-          <MKTypography variant="caption">Unavailable</MKTypography>
-        </MKBox>
-      </MKBox>
     </MKBox>
   );
 }
 
 AvailabilityCalendar.propTypes = {
   icsUrls: PropTypes.arrayOf(
-    PropTypes.shape({
-      url: PropTypes.string.isRequired,
-      name: PropTypes.string.isRequired,
-    })
+    PropTypes.shape({ url: PropTypes.string.isRequired, name: PropTypes.string.isRequired })
   ).isRequired,
+  onSelectionChange: PropTypes.func, // callback to parent
 };

@@ -1,6 +1,10 @@
-import AvailabilityCalendar from "./calendar";
+import { useState } from "react";
+import AvailabilityCalendar from "./AvailabilityCalendar";
+import PriceSummary from "./PriceSummary";
 
-function Payment() {
+export default function BookingPage() {
+  const [selectedForSummary, setSelectedForSummary] = useState(null);
+
   return (
     <>
       <AvailabilityCalendar
@@ -18,9 +22,10 @@ function Payment() {
             name: "VRBO",
           },
         ]}
+        onSelectionChange={(selectedDates) => setSelectedForSummary({ selectedDates })}
       />
-      ;
+
+      {selectedForSummary && <PriceSummary selectedDates={selectedForSummary.selectedDates} />}
     </>
   );
 }
-export default Payment;
