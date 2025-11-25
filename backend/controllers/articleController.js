@@ -93,6 +93,8 @@ export const getArticlesForActivity = async (req, res, next) => {
     const { lang = "en" } = req.query;
     const { activityId } = req.params;
 
+    console.log(activityId);
+
     const { data: articlesReq, error } = await supabase
       .from("articles")
       .select("*")
@@ -149,13 +151,14 @@ export const createArticle = async (req, res, next) => {
     const { id, activityId, url, title, image, rawContent, description, address, clientId } =
       req.body;
 
-    console.log(req.body);
+    // Clean data
     var jsonContent;
     try {
       jsonContent = JSON.parse(rawContent);
     } catch (err) {
       jsonContent = [];
     }
+    const cleanedTitle = title.trim();
 
     const { data, error } = await supabase
       .from("articles")
@@ -163,7 +166,7 @@ export const createArticle = async (req, res, next) => {
         id: id,
         activity_id: activityId,
         url: url,
-        title: title,
+        title: cleanedTitle,
         content: jsonContent,
         image: image,
         description: description,
@@ -188,7 +191,7 @@ export const createArticle = async (req, res, next) => {
     // Translate and upload data to the database.
     for (const language of supportedLanguages) {
       const [transTitle, transDescription, transArticle] = await Promise.all([
-        translateText(title, language),
+        translateText(cleanedTitle, language),
         translateText(description, language),
         translateArticle(jsonContent, language),
       ]);
@@ -234,6 +237,7 @@ export const updateArticle = async (req, res, next) => {
     } catch (e) {
       content = rawContent;
     }
+    const cleanedTitle = title.trim();
 
     // Get the old image path and title
     const { data: articleData } = await supabase
@@ -253,10 +257,10 @@ export const updateArticle = async (req, res, next) => {
       // Update the title and content
       const { data: result, error } = await supabase
         .from("articles")
-        .update({ title, content, image, url, address })
+        .update({ title: cleanedTitle, content, image, url, address })
         .eq("id", id);
 
-      articleData.title = title;
+      articleData.title = cleanedTitle;
 
       if (error) {
         if (error.code === "23505") {
@@ -269,7 +273,7 @@ export const updateArticle = async (req, res, next) => {
     } else {
       const { data: result, error } = await supabase
         .from("articles_translation")
-        .update({ title, content })
+        .update({ title: cleanedTitle, content })
         .eq("language", lang)
         .eq("articles_id", id);
       if (error) {

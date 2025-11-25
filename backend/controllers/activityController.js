@@ -31,7 +31,6 @@ export const getActivities = async (req, res, next) => {
       return {
         ...activity,
         image: generateUrl(500, 500),
-        // image: `${process.env.SUPABASE_IMAGE}${activity.image}`,
         slug: "activities/" + slugify(activity.title),
       };
     });
@@ -110,6 +109,7 @@ export const getActivityById = async (req, res, next) => {
 export const getActivityIdByName = async (req, res, next) => {
   try {
     const { activityName } = req.params;
+
     const { data, error } = await supabase
       .from("activities")
       .select("id")
@@ -136,6 +136,9 @@ export const addActivity = async (req, res, next) => {
     const { title, imageUrl } = req.body;
     const file = req.file;
 
+    // Clean data
+    const cleanedTitle = title.trim();
+
     // Image is required
     if (!file) return res.status(400).json({ error: "No image uploaded" });
 
@@ -145,7 +148,7 @@ export const addActivity = async (req, res, next) => {
     // Create the table
     const { data, error } = await supabase
       .from("activities")
-      .insert({ title: title, image: imageUrl })
+      .insert({ title: cleanedTitle, image: imageUrl })
       .select()
       .single();
 
@@ -153,7 +156,7 @@ export const addActivity = async (req, res, next) => {
 
     // Translate and upload data to the database.
     for (const language of supportedLanguages) {
-      const [transTitle] = await Promise.all([translateText(title, language)]);
+      const [transTitle] = await Promise.all([translateText(cleanedTitle, language)]);
 
       console.log(data.id);
       const { data: transData, error: transError } = await supabase
@@ -189,6 +192,9 @@ export const updateActivity = async (req, res, next) => {
     const image = req.file;
     const { lang = "en" } = req.query;
 
+    // clean data
+    const cleanedTitle = title.trim();
+
     if (image && imageUrl) {
       // Get the current photo
       const { data: existingPhoto } = await supabase
@@ -207,7 +213,7 @@ export const updateActivity = async (req, res, next) => {
     if (lang == "en") {
       const { data, error } = await supabase
         .from("activities")
-        .update({ title, image: imageUrl, display_order })
+        .update({ title: cleanedTitle, image: imageUrl, display_order })
         .eq("id", id)
         .select()
         .single();
@@ -218,7 +224,7 @@ export const updateActivity = async (req, res, next) => {
       // If the language isn't english, update the translation table instead.
       const { data, error } = await supabase
         .from("activities_translation")
-        .update({ title })
+        .update({ title: cleanedTitle })
         .eq("language", lang)
         .eq("activity_id", id)
         .select()
