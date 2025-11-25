@@ -9,6 +9,7 @@ import amenitiesRoutes from "./routes/amenities.js";
 import imageRoutes from "./routes/images.js";
 import videoRoutes from "./routes/videos.js";
 import emailRoutes from "./routes/email.js";
+import reservations from "./routes/reservation.js";
 
 // Addons
 import { errorHandler } from "./middlewares/errorHandler.js";
@@ -27,6 +28,7 @@ app.use("/api/amenities", amenitiesRoutes);
 app.use("/api/images", imageRoutes);
 app.use("/api/videos", videoRoutes);
 app.use("/api/email", emailRoutes);
+app.use("/api/reservation", reservations);
 
 // Error handling
 app.use(errorHandler);
