@@ -88,7 +88,7 @@ export default function AvailabilityCalendar({ icsUrls, onSelectionChange }) {
 
   // Drag handlers
   const handleMouseDown = (date) => {
-    if (isBlocked(date)) return;
+    if (isBlocked(date) || isPastDate(date)) return;
     const key = date.toISOString().split("T")[0];
     setDragMode(selectedDates[key] ? "unselect" : "select");
     setIsDragging(true);
@@ -97,7 +97,9 @@ export default function AvailabilityCalendar({ icsUrls, onSelectionChange }) {
   };
 
   const handleMouseEnter = (date) => {
-    if (isDragging && !isBlocked(date)) setDragEndDate(date);
+    if (isDragging && !isBlocked(date) && !isPastDate(date)) {
+      setDragEndDate(date);
+    }
   };
 
   const handleMouseUp = () => {
@@ -108,7 +110,7 @@ export default function AvailabilityCalendar({ icsUrls, onSelectionChange }) {
     const newSelected = { ...selectedDates };
     for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
       const key = d.toISOString().split("T")[0];
-      if (isBlocked(d)) continue;
+      if (isBlocked(d) || isPastDate(d)) continue;
       if (dragMode === "select") newSelected[key] = getPriceForDate(d);
       if (dragMode === "unselect") delete newSelected[key];
     }
@@ -136,6 +138,15 @@ export default function AvailabilityCalendar({ icsUrls, onSelectionChange }) {
     }
     return true;
   }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const isPastDate = (date) => {
+    const d = new Date(date);
+    d.setHours(0, 0, 0, 0);
+    return d < today;
+  };
 
   const isInDragRange = (date) => {
     if (!isDragging || !dragStartDate || !dragEndDate) return false;
@@ -165,13 +176,13 @@ export default function AvailabilityCalendar({ icsUrls, onSelectionChange }) {
       )}
 
       <MKBox display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-        <MKButton variant="outlined" onClick={() => setCurrentDate(new Date(year, month - 1, 1))}>
+        <MKButton variant="filled" onClick={() => setCurrentDate(new Date(year, month - 1, 1))}>
           ‹ Prev
         </MKButton>
         <MKTypography variant="h6">
           {currentDate.toLocaleString("default", { month: "long", year: "numeric" })}
         </MKTypography>
-        <MKButton variant="outlined" onClick={() => setCurrentDate(new Date(year, month + 1, 1))}>
+        <MKButton variant="filled" onClick={() => setCurrentDate(new Date(year, month + 1, 1))}>
           Next ›
         </MKButton>
       </MKBox>
@@ -195,6 +206,7 @@ export default function AvailabilityCalendar({ icsUrls, onSelectionChange }) {
           const blockedDay = isBlocked(date);
           const dateKey = date.toISOString().split("T")[0];
           const dragColor = getDragBackgroundColor(date, selectedDates[dateKey]);
+          const pastDay = isPastDate(date);
 
           return (
             <Grid item xs={1.7} key={i}>
@@ -210,21 +222,25 @@ export default function AvailabilityCalendar({ icsUrls, onSelectionChange }) {
                   userSelect: "none",
                   height: 60,
                   borderRadius: 2,
-                  backgroundColor: blockedDay
-                    ? "grey.300"
-                    : dragColor
-                    ? dragColor
-                    : selectedDates[dateKey]
-                    ? "#81e59a"
-                    : "white",
-                  color: blockedDay ? "text.disabled" : "text.primary",
-                  border: blockedDay ? "1px solid grey" : "1px solid #e0e0e0",
-                  cursor: blockedDay ? "not-allowed" : "pointer",
-                  "&:hover": { backgroundColor: blockedDay || dragColor ? undefined : "#b6f0c0" },
+                  backgroundColor:
+                    blockedDay || pastDay
+                      ? "grey.200"
+                      : dragColor
+                      ? dragColor
+                      : selectedDates[dateKey]
+                      ? "#81e59a"
+                      : "white",
+
+                  color: blockedDay || pastDay ? "text.disabled" : "text.primary",
+                  border: blockedDay || pastDay ? "1px solid #ccc" : "1px solid #e0e0e0",
+                  cursor: blockedDay || pastDay ? "not-allowed" : "pointer",
+                  "&:hover": {
+                    backgroundColor: blockedDay || dragColor || pastDay ? undefined : "#b6f0c0",
+                  },
                 }}
               >
                 {i + 1}
-                {!blockedDay && (
+                {!blockedDay && !pastDay && (
                   <MKTypography variant="caption" mt={0.5}>
                     €{getPriceForDate(date).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                   </MKTypography>
