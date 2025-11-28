@@ -1,60 +1,26 @@
-/*
-=========================================================
-* Material Kit 2 React - v2.1.0
-=========================================================
-
-* Product Page: https://www.creative-tim.com/product/material-kit-react
-* Copyright 2023 Creative Tim (https://www.creative-tim.com)
-
-Coded by www.creative-tim.com
-
- =========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-*/
-// @mui material components
-import Container from "@mui/material/Container";
-import Grid from "@mui/material/Grid";
-import Card from "@mui/material/Card";
-
-// Material Kit 2 React components
-import MKBox from "components/MKBox";
-import MKTypography from "components/MKTypography";
-
-// Material Kit 2 React examples
+import { useState } from "react";
+import AvailabilityCalendar from "./AvailabilityCalendar";
+import PriceSummary from "./PriceSummary";
 import DefaultNavbar from "components/DefaultNavbar";
-import DefaultFooter from "components/Footers/DefaultFooter";
-
-// Routes
-import { routes } from "routes";
-import footerRoutes from "footer.routes";
-
-//Images
-import bgImage from "assets/images/property/exterior/frontGroundFloor.JPG";
-
-// Home page sections
-import MainFeatures from "pages/Home/sections/MainFeatures";
-import Amenities from "pages/Home/sections/Amenities";
-import MediaCard from "components/Cards/BlogCards/CenteredBlogCard/MediaCard";
-
 import { useTranslation } from "react-i18next";
+import { routes } from "routes";
+import MKBox from "components/MKBox";
+import DefaultFooter from "components/Footers/DefaultFooter";
+import footerRoutes from "footer.routes";
+import bgImage from "assets/images/property/exterior/frontGroundFloor.JPG";
+import Container from "@mui/material/Container";
+import MKTypography from "components/MKTypography";
+import Grid from "@mui/material/Grid";
+import { Card } from "@mui/material";
 
-function Home() {
+export default function BookingPage() {
   const { t } = useTranslation();
   const translatedRoutes = routes(t);
+  const [selectedForSummary, setSelectedForSummary] = useState(null);
 
   return (
     <>
-      <DefaultNavbar
-        routes={translatedRoutes}
-        action={{
-          type: "internal",
-          route: "/book",
-          label: `${t("book")}`,
-          color: "default",
-        }}
-        sticky
-      />
+      <DefaultNavbar routes={translatedRoutes} />
 
       <MKBox
         minHeight="75vh"
@@ -91,10 +57,10 @@ function Home() {
                 },
               })}
             >
-              {t("dreamRental")}
+              {t("Booking selection and price breakdown")}
             </MKTypography>
             <MKTypography variant="body1" color="white" opacity={0.8} mt={1} mb={3}>
-              {t("Spacious, Scenic, and Ready for You — Book Today!")}
+              {t("Take advantage of a 5% discount for booking directly with us")}
             </MKTypography>
           </Grid>
         </Container>
@@ -108,9 +74,25 @@ function Home() {
           boxShadow: ({ boxShadows: { xxl } }) => xxl,
         }}
       >
-        <MainFeatures />
-        <MediaCard toDisplay={["exterior", "interior"]} containsHeader={true} />
-        <Amenities />
+        <AvailabilityCalendar
+          icsUrls={[
+            {
+              url: "https://www.airbnb.ca/calendar/ical/685302237883325603.ics?s=eac91e56e2412fa2d4e6e3a2cd41361a",
+              name: "Airbnb",
+            },
+            {
+              url: "https://ical.booking.com/v1/export?t=b6fb13e3-9a9e-4502-8d65-5cda7784b6a7",
+              name: "Booking.com",
+            },
+            {
+              url: "http://www.vrbo.com/icalendar/23c22c9fe2234081906c2953e22e43d4.ics?nonTentative",
+              name: "VRBO",
+            },
+          ]}
+          onSelectionChange={(selectedDates) => setSelectedForSummary({ selectedDates })}
+        />
+
+        {selectedForSummary && <PriceSummary selectedDates={selectedForSummary.selectedDates} />}
       </Card>
       <MKBox pt={6} px={1} mt={6}>
         <DefaultFooter content={footerRoutes} />
@@ -118,5 +100,3 @@ function Home() {
     </>
   );
 }
-
-export default Home;

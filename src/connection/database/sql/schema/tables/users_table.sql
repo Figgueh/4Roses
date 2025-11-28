@@ -3,6 +3,7 @@ drop table users;
 create table users (
   id uuid primary key default gen_random_uuid (),
   full_name text,
+  email text,
   avatar_url text,
   is_admin boolean default false,
   created_at timestamptz default now()
