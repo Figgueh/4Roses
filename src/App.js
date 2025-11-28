@@ -35,6 +35,7 @@ import ContactDeveloperPage from "pages/footerPages/ContactDev";
 import TermsConditions from "pages/footerPages/termsConditions";
 import Booking from "pages/Booking";
 import ConfirmBooking from "pages/Booking/ConfirmBooking";
+import BookingSuccess from "pages/Booking/BookingSuccess";
 
 export default function App() {
   const { pathname } = useLocation();
@@ -73,6 +74,7 @@ export default function App() {
           <Route path="activities/:section" element={<ActivityBuilder />} />
           <Route path="book" element={<Booking />} />
           <Route path="confirm-booking" element={<ConfirmBooking />} />
+          <Route path="booking-success" element={<BookingSuccess />} />
 
           {/* Footer pages */}
           <Route path="contact-developer" element={<ContactDeveloperPage />} />
