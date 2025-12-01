@@ -1,38 +1,37 @@
 import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Grid, Radio, RadioGroup, FormControlLabel, FormControl, Divider } from "@mui/material";
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 
 import MKBox from "components/MKBox";
 import MKTypography from "components/MKTypography";
-import MKInput from "components/MKInput";
 import StripeCheckout from "./StripeCheckout";
 import supabase from "connection/client";
 import axios from "axios";
 import MKButton from "components/MKButton";
+import AddressForm from "./AddressForm";
 
 const stripePromise = loadStripe(`${process.env.REACT_APP_STRIPE_PUBLIC_KEY}`);
 const IBAN_ACCOUNT = "DE89 3704 0044 0532 0130 00";
 
-export default function ConfirmBooking() {
+export default function BillingForm() {
   const { state } = useLocation();
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUser(data.user));
   }, []);
 
-  const { dates = {}, nights = 0, price = 0, dueToday = 0 } = state || {};
+  const { dates = {}, nights = 0, price = 0, dueToday = 0, guests = 0 } = state || {};
 
   const [form, setForm] = useState({
-    guests: 1,
     payment_method: "iban",
     billing_name: "",
     phone: "",
     billing_address: "",
-    billing_city: "",
+    billing_state: "",
     billing_postal_code: "",
     billing_country: "",
   });
@@ -63,7 +62,7 @@ export default function ConfirmBooking() {
           total_price: price,
           amount_paid: dueToday,
           payment_method: form.payment_method,
-          guests: form.guests,
+          guests: guests,
         };
         const { data } = await axios.post(
           `${process.env.REACT_APP_BACKEND}/reservation/create-payment-intent`,
@@ -73,10 +72,9 @@ export default function ConfirmBooking() {
         );
 
         setClientSecret(data.clientSecret);
-        // console.log(clientSecret);
       } catch (err) {
         console.error(err);
-        setMessage("❌ Failed to initialize credit card payment.");
+        setMessage("Error: Failed to initialize credit card payment.");
       } finally {
         setLoading(false);
       }
@@ -93,22 +91,23 @@ export default function ConfirmBooking() {
     form.guests,
     form.billing_name,
     form.billing_address,
-    form.billing_city,
+    form.billing_state,
     form.billing_postal_code,
     form.billing_country,
     user,
   ]);
 
+  // Handle submit is when the user click on the submit button for IBAN payment requests.
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!user) {
-      setMessage("❌ You must be logged in to make a reservation");
+      setMessage("Error: You must be logged in to make a reservation");
       return;
     }
 
     if (form.payment_method === "credit_card") {
-      setMessage("❌ Please use the payment form below");
+      setMessage("Error: Please use the payment form below");
       return;
     }
 
@@ -117,22 +116,32 @@ export default function ConfirmBooking() {
       !form.billing_name ||
       !form.phone ||
       !form.billing_address ||
+      !form.billing_country ||
       !form.billing_city ||
-      !form.billing_postal_code ||
-      !form.billing_country
+      !form.billing_state ||
+      !form.billing_postal_code
     ) {
-      setMessage("❌ Please fill in all billing fields");
+      console.log(form);
+      setMessage("Error: Please fill in all billing fields");
       return;
     }
 
     const payload = {
       user_id: user.id,
-      check_in: checkIn,
-      check_out: checkOut,
+      start_date: checkIn,
+      end_date: checkOut,
       nights,
+      payment_method: form.payment_method,
       total_price: price,
       amount_paid: dueToday,
-      guests: form.guests, // ← Add this
+      number_of_guests: guests,
+      billing_name: form.billing_name,
+      phone: form.phone,
+      billing_address: form.billing_address,
+      billing_country: form.billing_country,
+      billing_city: form.billing_city,
+      billing_state: form.billing_state,
+      billing_postal_code: form.billing_postal_code,
     };
 
     try {
@@ -144,17 +153,19 @@ export default function ConfirmBooking() {
         payload
       );
 
-      if (data.success) {
-        setMessage("✅ Reservation created! Please complete the bank transfer to confirm.");
+      console.log(data);
 
-        // Optional redirect
-        // navigate("/booking-success");
+      if (data.success) {
+        setMessage("Reservation created! Please complete the bank transfer to confirm.");
+        navigate("/booking-success", {
+          state: { bookingId: data.reservation.id },
+        });
       } else {
-        setMessage("❌ Failed to create reservation");
+        setMessage("Error: Failed to create reservation");
       }
     } catch (err) {
       console.error(err);
-      setMessage("❌ Error creating reservation");
+      setMessage("Error: Error creating reservation");
     } finally {
       setLoading(false);
     }
@@ -184,6 +195,9 @@ export default function ConfirmBooking() {
               <strong>Nights:</strong> {nights}
             </MKTypography>
             <MKTypography variant="body1">
+              <strong>Number of guests:</strong> {guests}
+            </MKTypography>
+            <MKTypography variant="body1">
               <strong>Total:</strong> €{price.toFixed(2)}
             </MKTypography>
             <MKTypography variant="body1" color="success.main">
@@ -203,22 +217,7 @@ export default function ConfirmBooking() {
             <Divider sx={{ mb: 2 }} />
 
             <Grid container spacing={2}>
-              {/* Guests */}
-              <Grid item xs={12}>
-                <MKInput
-                  type="number"
-                  label="Number of guests"
-                  name="guests"
-                  value={form.guests}
-                  onChange={handleChange}
-                  inputProps={{ min: 1 }}
-                  fullWidth
-                  required
-                  disabled={loading}
-                />
-              </Grid>
-
-              {/* Payment Method */}
+              {/* Online payment Methods */}
               <Grid item xs={12}>
                 <FormControl>
                   <RadioGroup
@@ -240,67 +239,7 @@ export default function ConfirmBooking() {
               {/* IBAN */}
               {form.payment_method === "iban" && (
                 <>
-                  {/* Billing Address */}
-                  <Grid item xs={12}>
-                    <MKInput
-                      label="Full Name"
-                      name="billing_name"
-                      value={form.billing_name}
-                      onChange={handleChange}
-                      fullWidth
-                      required
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <MKInput
-                      label="Phone number"
-                      name="phone"
-                      value={form.phone}
-                      onChange={handleChange}
-                      fullWidth
-                      required
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <MKInput
-                      label="Street Address"
-                      name="billing_address"
-                      value={form.billing_address}
-                      onChange={handleChange}
-                      fullWidth
-                      required
-                    />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <MKInput
-                      label="City"
-                      name="billing_city"
-                      value={form.billing_city}
-                      onChange={handleChange}
-                      fullWidth
-                      required
-                    />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <MKInput
-                      label="Postal Code"
-                      name="billing_postal_code"
-                      value={form.billing_postal_code}
-                      onChange={handleChange}
-                      fullWidth
-                      required
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <MKInput
-                      label="Country"
-                      name="billing_country"
-                      value={form.billing_country}
-                      onChange={handleChange}
-                      fullWidth
-                      required
-                    />
-                  </Grid>
+                  <AddressForm form={form} handleChange={handleChange} />
                   <Grid item xs={12}>
                     <MKBox p={2} bgcolor="#f1f1f1" borderRadius="md">
                       <MKTypography variant="body2">
@@ -322,7 +261,6 @@ export default function ConfirmBooking() {
                     </MKBox>
                     <MKButton onClick={handleSubmit} fullWidth color="dark" disabled={loading}>
                       {loading ? "Processing..." : "Create reservation"}
-                      {console.log(form)}
                     </MKButton>
                   </Grid>
                 </>
@@ -332,18 +270,7 @@ export default function ConfirmBooking() {
               {form.payment_method === "credit_card" && clientSecret && (
                 <Grid item xs={12}>
                   <Elements stripe={stripePromise} options={{ clientSecret }}>
-                    <StripeCheckout
-                      setMessage={setMessage}
-                      setLoading={setLoading}
-                      bookingData={{
-                        user_id: user?.id,
-                        check_in: checkIn,
-                        check_out: checkOut,
-                        total_price: price,
-                        amount_paid: dueToday,
-                        guests: form.guests,
-                      }}
-                    />
+                    <StripeCheckout setMessage={setMessage} setLoading={setLoading} />
                   </Elements>
                 </Grid>
               )}
@@ -354,7 +281,7 @@ export default function ConfirmBooking() {
                   <MKTypography
                     textAlign="center"
                     fontSize="0.9rem"
-                    color={message.includes("✅") ? "success" : "error"}
+                    color={!message.includes("Error") ? "success" : "error"}
                   >
                     {message}
                   </MKTypography>

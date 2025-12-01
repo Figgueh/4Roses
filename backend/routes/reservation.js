@@ -4,15 +4,15 @@ import {
   createReservation,
   getIcs,
   getMonthlyPrice,
-  // stripeWebhook,
+  getReservationData,
 } from "../controllers/paymentController.js";
 
 const router = express.Router();
 
 router.get("/ics", getIcs);
 router.get("/monthlyPrice", getMonthlyPrice);
+router.get("/booking/:id", getReservationData);
 router.post("/create-payment-intent", createPaymentIntent);
 router.post("/createReservation", createReservation);
-// router.post("/stripeWebhook", stripeWebhook);
 
 export default router;

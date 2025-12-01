@@ -12,11 +12,12 @@ import Container from "@mui/material/Container";
 import MKTypography from "components/MKTypography";
 import Grid from "@mui/material/Grid";
 import { Card } from "@mui/material";
+import BookingOptions from "./BookingOptions";
 
 export default function BookingPage() {
   const { t } = useTranslation();
   const translatedRoutes = routes(t);
-  const [selectedForSummary, setSelectedForSummary] = useState(null);
+  const [bookingData, setBookingData] = useState({ selectedDates: {}, guests: 1 });
 
   return (
     <>
@@ -89,10 +90,17 @@ export default function BookingPage() {
               name: "VRBO",
             },
           ]}
-          onSelectionChange={(selectedDates) => setSelectedForSummary({ selectedDates })}
+          selectedDates={bookingData.selectedDates}
+          onSelectionChange={(selectedDates) =>
+            setBookingData((prev) => ({ ...prev, selectedDates }))
+          }
         />
-
-        {selectedForSummary && <PriceSummary selectedDates={selectedForSummary.selectedDates} />}
+        {Object.keys(bookingData.selectedDates).length > 0 && (
+          <>
+            <BookingOptions bookingData={bookingData} setBookingData={setBookingData} />
+            <PriceSummary bookingData={bookingData} />
+          </>
+        )}
       </Card>
       <MKBox pt={6} px={1} mt={6}>
         <DefaultFooter content={footerRoutes} />

@@ -34,10 +34,9 @@ function parseICS(data, sourceName) {
     .filter(Boolean);
 }
 
-export default function AvailabilityCalendar({ icsUrls, onSelectionChange }) {
+export default function AvailabilityCalendar({ icsUrls, selectedDates, onSelectionChange }) {
   const [blockedDates, setBlockedDates] = useState(new Set());
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedDates, setSelectedDates] = useState({});
   const [isDragging, setIsDragging] = useState(false);
   const [dragStartDate, setDragStartDate] = useState(null);
   const [dragEndDate, setDragEndDate] = useState(null);
@@ -118,9 +117,8 @@ export default function AvailabilityCalendar({ icsUrls, onSelectionChange }) {
     if (!validateContinuousDates(newSelected)) {
       setError("Selected dates must be continuous!");
     } else {
-      setSelectedDates(newSelected);
+      onSelectionChange?.(newSelected);
       setError("");
-      onSelectionChange?.(newSelected, monthlyPrices); // pass to parent
     }
 
     setIsDragging(false);
@@ -258,5 +256,6 @@ AvailabilityCalendar.propTypes = {
   icsUrls: PropTypes.arrayOf(
     PropTypes.shape({ url: PropTypes.string.isRequired, name: PropTypes.string.isRequired })
   ).isRequired,
+  selectedDates: PropTypes.objectOf(PropTypes.number),
   onSelectionChange: PropTypes.func, // callback to parent
 };

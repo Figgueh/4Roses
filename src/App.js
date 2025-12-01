@@ -34,8 +34,8 @@ import { useTranslation } from "react-i18next";
 import ContactDeveloperPage from "pages/footerPages/ContactDev";
 import TermsConditions from "pages/footerPages/termsConditions";
 import Booking from "pages/Booking";
-import ConfirmBooking from "pages/Booking/ConfirmBooking";
 import BookingSuccess from "pages/Booking/BookingSuccess";
+import BillingForm from "pages/Booking/BillingForm";
 
 export default function App() {
   const { pathname } = useLocation();
@@ -73,7 +73,7 @@ export default function App() {
           <Route path="activities/:section/:slug" element={<ActivityBuilder />} />
           <Route path="activities/:section" element={<ActivityBuilder />} />
           <Route path="book" element={<Booking />} />
-          <Route path="confirm-booking" element={<ConfirmBooking />} />
+          <Route path="billing" element={<BillingForm />} />
           <Route path="booking-success" element={<BookingSuccess />} />
 
           {/* Footer pages */}

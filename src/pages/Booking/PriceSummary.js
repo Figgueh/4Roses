@@ -11,10 +11,11 @@ const NIGHTLY_TOURIST_TAX = 2;
 const MAX_TOURIST_TAX_DAYS = 7;
 const DISCOUNT_RATE = 0.05; // 5%
 
-export default function PriceSummary({ selectedDates }) {
+export default function PriceSummary({ bookingData }) {
   const navigate = useNavigate();
   const [error, setError] = useState("");
 
+  const { selectedDates } = bookingData;
   if (!selectedDates || Object.keys(selectedDates).length === 0)
     return <MKTypography variant="body2">No dates selected</MKTypography>;
 
@@ -223,12 +224,13 @@ export default function PriceSummary({ selectedDates }) {
               }
 
               // Proceed with booking
-              navigate("/confirm-booking", {
+              navigate("/billing", {
                 state: {
                   dates: selectedDates,
                   nights: totalNights,
                   price: totalPrice,
                   dueToday: dueToday,
+                  guests: bookingData.guests,
                 },
               });
             }}
@@ -242,5 +244,8 @@ export default function PriceSummary({ selectedDates }) {
 }
 
 PriceSummary.propTypes = {
-  selectedDates: PropTypes.object.isRequired,
+  bookingData: PropTypes.shape({
+    selectedDates: PropTypes.objectOf(PropTypes.number).isRequired,
+    guests: PropTypes.number, // if needed
+  }).isRequired,
 };

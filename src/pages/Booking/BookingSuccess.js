@@ -1,29 +1,80 @@
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Grid } from "@mui/material";
 import MKBox from "components/MKBox";
 import MKTypography from "components/MKTypography";
 import MKButton from "components/MKButton";
+import axios from "axios";
 
 export default function BookingSuccess() {
   const { state } = useLocation();
   const navigate = useNavigate();
+  const bookingId = state?.bookingId;
+
+  const [booking, setBooking] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!bookingId) {
+      setError("No booking ID provided.");
+      setLoading(false);
+      return;
+    }
+
+    const fetchBooking = async () => {
+      try {
+        const { data } = await axios.get(
+          `${process.env.REACT_APP_BACKEND}/reservation/booking/${bookingId}`
+        );
+        setBooking(data.booking);
+      } catch (err) {
+        console.error(err);
+        setError("Failed to load booking information.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBooking();
+  }, [bookingId]);
+
+  const handleBackToHome = () => navigate("/");
+
+  if (loading) {
+    return (
+      <MKBox minHeight="100vh" display="flex" justifyContent="center" alignItems="center">
+        <MKTypography>Loading booking details...</MKTypography>
+      </MKBox>
+    );
+  }
+
+  if (error) {
+    return (
+      <MKBox minHeight="100vh" display="flex" justifyContent="center" alignItems="center">
+        <MKTypography color="error">{error}</MKTypography>
+        <MKButton onClick={handleBackToHome} sx={{ mt: 2 }}>
+          Back to Home
+        </MKButton>
+      </MKBox>
+    );
+  }
 
   const {
-    check_in,
-    check_out,
-    nights,
+    start_date,
+    end_date,
     total_price,
     amount_paid,
     payment_method,
+    status,
+    email,
     billing_name,
-    billing_email,
     billing_address,
     billing_city,
-    billing_postal,
+    billing_state,
+    billing_postal_code,
     billing_country,
-  } = state || {};
-
-  const handleBackToHome = () => navigate("/");
+  } = booking || {};
 
   return (
     <MKBox
@@ -36,21 +87,34 @@ export default function BookingSuccess() {
     >
       <MKBox width="100%" maxWidth="600px" p={4} borderRadius="2xl" bgColor="white" shadow="lg">
         <MKTypography variant="h3" fontWeight="bold" mb={3} textAlign="center">
-          ✅ Booking Confirmed!
+          {status == "pending"
+            ? "Your booking is in the process of being confirmed."
+            : "Booking Confirmed!"}
         </MKTypography>
 
-        <MKTypography variant="body1" mb={2}>
-          Thank you {billing_name || ""}, your booking is confirmed.
-        </MKTypography>
+        {status === "pending" ? (
+          <MKTypography variant="body2">
+            We`ve notified the owner to confirm your deposit. Once it`s verified, you`ll receive a
+            confirmation email at:{" "}
+            <MKTypography component="span" fontWeight="bold">
+              {email}
+            </MKTypography>
+            . Thank you for your patience!
+          </MKTypography>
+        ) : (
+          <MKTypography variant="body2">
+            Your booking is confirmed. We look forward to hosting you!
+          </MKTypography>
+        )}
 
-        <Grid container spacing={1} mb={2}>
+        <Grid container spacing={1} mb={2} mt={1}>
           <Grid item xs={6}>
             <MKTypography variant="body2" fontWeight="bold">
               Check-in:
             </MKTypography>
           </Grid>
           <Grid item xs={6}>
-            <MKTypography variant="body2">{check_in}</MKTypography>
+            <MKTypography variant="body2">{start_date}</MKTypography>
           </Grid>
 
           <Grid item xs={6}>
@@ -59,16 +123,7 @@ export default function BookingSuccess() {
             </MKTypography>
           </Grid>
           <Grid item xs={6}>
-            <MKTypography variant="body2">{check_out}</MKTypography>
-          </Grid>
-
-          <Grid item xs={6}>
-            <MKTypography variant="body2" fontWeight="bold">
-              Nights:
-            </MKTypography>
-          </Grid>
-          <Grid item xs={6}>
-            <MKTypography variant="body2">{nights}</MKTypography>
+            <MKTypography variant="body2">{end_date}</MKTypography>
           </Grid>
 
           <Grid item xs={6}>
@@ -105,12 +160,20 @@ export default function BookingSuccess() {
               Billing Address
             </MKTypography>
             <MKTypography variant="body2">{billing_name}</MKTypography>
-            <MKTypography variant="body2">{billing_email}</MKTypography>
             <MKTypography variant="body2">{billing_address}</MKTypography>
             <MKTypography variant="body2">
-              {billing_city}, {billing_postal}
+              {billing_city}, {billing_state} {billing_postal_code}
             </MKTypography>
             <MKTypography variant="body2">{billing_country}</MKTypography>
+          </MKBox>
+        )}
+
+        {status === "pending" && (
+          <MKBox mt={3} p={3} bgcolor="#fff3cd" borderRadius="md" border="1px solid #ffeeba">
+            <MKTypography variant="body2" mb={2}>
+              This booking is currently pending. You can view it in your dashboard, where you can
+              also make any necessary updates or changes.
+            </MKTypography>
           </MKBox>
         )}
 
