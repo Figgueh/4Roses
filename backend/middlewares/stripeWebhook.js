@@ -14,18 +14,31 @@ export const stripeWebhookHandler = async (req, res) => {
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
+  const pi = event.data.object;
+  const { user_id, check_in, check_out, total_price, guests } = pi.metadata;
+
+  // Check if there is any issues before attempting to charge the customer
+  if (event.type === "payment_intent.created") {
+    const { data: existing } = await supabase
+      .from("reservations")
+      .select("*")
+      .eq("status", "confirmed")
+      .lte("start_date", check_out)
+      .gte("end_date", check_in);
+
+    if (existing && existing.length > 0) {
+      return res.status(409).json({ error: "Dates already booked" });
+    }
+  }
+
   if (event.type === "payment_intent.succeeded") {
     try {
-      const pi = event.data.object;
-
       // Retrieve full PaymentIntent with expanded charges to get billing info
       const fullPi = await stripe.paymentIntents.retrieve(pi.id, {
         expand: ["payment_method"],
       });
 
       const billing = fullPi.payment_method.billing_details;
-
-      const { user_id, check_in, check_out, total_price, guests } = pi.metadata;
 
       const reservationData = {
         user_id,
@@ -34,7 +47,7 @@ export const stripeWebhookHandler = async (req, res) => {
         number_of_guests: parseInt(guests) || 1,
         total_price: parseFloat(total_price),
         amount_paid: fullPi.amount_received / 100,
-        payment_method: "credit_card",
+        payment_method: "credit card",
         billing_name: billing.name,
         billing_address: billing.address?.line1,
         billing_city: billing.address?.city,
@@ -43,6 +56,7 @@ export const stripeWebhookHandler = async (req, res) => {
         billing_country: billing.address?.country,
         phone: billing.phone,
         status: "confirmed",
+        payment_intent: [pi.id],
       };
 
       const { error } = await supabase.from("reservations").insert([reservationData]);

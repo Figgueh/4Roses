@@ -3,6 +3,8 @@ import PropTypes from "prop-types";
 import MKBox from "components/MKBox";
 import MKTypography from "components/MKTypography";
 import MKButton from "components/MKButton";
+import axios from "axios";
+
 import { Alert, AlertTitle } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
@@ -214,13 +216,28 @@ export default function PriceSummary({ bookingData }) {
             variant="gradient"
             color="success"
             size="large"
-            onClick={() => {
+            onClick={async () => {
+              const start_date = Object.keys(selectedDates)[0];
+              const end_date = Object.keys(selectedDates)[Object.keys(selectedDates).length - 1];
+
+              // Validate number of nights
               const totalNights = Object.keys(selectedDates).length;
               if (totalNights < 7) {
                 setError("The minimum stay is 7 nights.");
                 return;
               } else {
                 setError("");
+              }
+
+              // Validate that there isn't already a confirmed reservation
+              const { data } = await axios.get(
+                `${process.env.REACT_APP_BACKEND}/reservation/check/${start_date}/${end_date}`
+              );
+              if (data.isBooked) {
+                setError(
+                  "Oops! Some of these dates are no longer available. Refresh the page to check the current availability."
+                );
+                return;
               }
 
               // Proceed with booking

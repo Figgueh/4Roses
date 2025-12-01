@@ -15,17 +15,24 @@ export default function BookingSuccess() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+
+  const urlPaymentIntent = params.get("payment_intent");
+
   useEffect(() => {
-    if (!bookingId) {
-      setError("No booking ID provided.");
+    if (!bookingId && !urlPaymentIntent) {
+      setError("No booking ID or payment intent found.");
       setLoading(false);
       return;
     }
 
+    const idToLookup = bookingId || urlPaymentIntent;
+
     const fetchBooking = async () => {
       try {
         const { data } = await axios.get(
-          `${process.env.REACT_APP_BACKEND}/reservation/booking/${bookingId}`
+          `${process.env.REACT_APP_BACKEND}/reservation/booking/${idToLookup}`
         );
         setBooking(data.booking);
       } catch (err) {

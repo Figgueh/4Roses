@@ -36,7 +36,6 @@ export const getMonthlyPrice = async (req, res, next) => {
       return res.status(500).json({ error: "Failed to load monthly prices" });
     }
 
-    // Convert to useful format: {0: 120, 1: 130, ...}
     const monthlyPrices = {};
 
     data.forEach((row) => {
@@ -49,20 +48,57 @@ export const getMonthlyPrice = async (req, res, next) => {
   }
 };
 
+// GET check if reservation isn't already confirmed
+// /check/:check_in/:check_out
+export const checkReservation = async (req, res, next) => {
+  const { check_in, check_out } = req.params;
+
+  try {
+    // Check if the dates are available
+    const { data: existing } = await supabase
+      .from("reservations")
+      .select("*")
+      .eq("status", "confirmed")
+      .lte("start_date", check_out)
+      .gte("end_date", check_in);
+
+    res.json({ isBooked: existing?.length > 0 });
+  } catch (err) {
+    next(err);
+  }
+};
+
 // GET reservation data by id
 //
 export const getReservationData = async (req, res, next) => {
   const { id } = req.params;
 
+  let bookingData = {};
+
   try {
-    const { data: bookingData, error } = await supabase
+    // First assume the id submitted is the reservation id
+    const { data: bookingDataById, error } = await supabase
       .from("reservations")
       .select("*")
       .eq("id", id)
       .single();
-    if (error) {
-      console.error(error);
-      return res.status(500).json({ error: "Failed to load reservation data." });
+
+    if (!error) {
+      bookingData = bookingDataById;
+    } else {
+      // If the reservation id isn't found, then look up based on the payment intent
+      const { data: bookingDataByIntent, error } = await supabase
+        .from("reservations")
+        .select("*")
+        .contains("payment_intent", [id])
+        .single();
+
+      if (!error) {
+        bookingData = bookingDataByIntent;
+      } else {
+        console.error(error);
+        return res.status(500).json({ error: "Failed to load reservation data." });
+      }
     }
 
     // Get the users email
@@ -115,16 +151,6 @@ export const createReservation = async (req, res) => {
       return res.status(400).json({ error: "Invalid payment method" });
     }
 
-    // const { data: existing } = await supabase
-    //   .from("reservations")
-    //   .select("id")
-    //   .or(`start_date.lte.${end_date},end_date.gte.${start_date}`)
-    //   .limit(1);
-
-    // if (existing?.length > 0) {
-    //   return res.status(409).json({ error: "Dates already booked" });
-    // }
-
     const { data, error } = await supabase
       .from("reservations")
       .insert([
@@ -167,6 +193,18 @@ export const createPaymentIntent = async (req, res) => {
 
     if (!user_id || !amount_paid) {
       return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    // Check if the dates are available
+    const { data: existing } = await supabase
+      .from("reservations")
+      .select("*")
+      .eq("status", "confirmed")
+      .lte("start_date", check_out)
+      .gte("end_date", check_in);
+
+    if (existing && existing.length > 0) {
+      return res.status(409).json({ error: "Dates already booked" });
     }
 
     // Fetch the users database data
