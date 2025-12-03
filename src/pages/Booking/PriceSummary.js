@@ -71,7 +71,7 @@ export default function PriceSummary({ bookingData }) {
   const remainingBalance = totalPrice - dueToday;
 
   return (
-    <MKBox mt={4} p={3} borderRadius={3} border="1px solid #e0e0e0" bgcolor="#fafafa">
+    <MKBox mt={4} p={3} borderRadius="3px" border="1px solid #e0e0e0" bgcolor="#fafafa">
       <MKTypography variant="h6" mb={3}>
         Price Summary
       </MKTypography>
@@ -82,7 +82,7 @@ export default function PriceSummary({ bookingData }) {
         <MKBox
           flex={1}
           p={3}
-          borderRadius={2}
+          borderRadius="2px"
           border="1px solid #e0e0e0"
           bgcolor="#fff"
           display="flex"
@@ -174,7 +174,7 @@ export default function PriceSummary({ bookingData }) {
         <MKBox
           flex={1}
           p={3}
-          borderRadius={2}
+          borderRadius="2px"
           border="1px solid #e0e0e0"
           bgcolor="#fff"
           display="flex"
@@ -200,7 +200,7 @@ export default function PriceSummary({ bookingData }) {
               </MKTypography>
             </MKBox>
 
-            <MKTypography variant="caption" color="text.secondary" display="block" mb={2}>
+            <MKTypography variant="caption" color="secondary" display="block" mb={2}>
               Remaining balance must be paid in full before check-in.
             </MKTypography>
           </div>

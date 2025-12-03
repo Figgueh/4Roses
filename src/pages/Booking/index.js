@@ -89,6 +89,10 @@ export default function BookingPage() {
               url: "http://www.vrbo.com/icalendar/23c22c9fe2234081906c2953e22e43d4.ics?nonTentative",
               name: "VRBO",
             },
+            {
+              url: `${process.env.REACT_APP_BACKEND}/reservation/calendar.ics`,
+              name: "4Roses",
+            },
           ]}
           selectedDates={bookingData.selectedDates}
           onSelectionChange={(selectedDates) =>

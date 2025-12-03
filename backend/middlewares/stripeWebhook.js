@@ -18,18 +18,18 @@ export const stripeWebhookHandler = async (req, res) => {
   const { user_id, check_in, check_out, total_price, guests } = pi.metadata;
 
   // Check if there is any issues before attempting to charge the customer
-  if (event.type === "payment_intent.created") {
-    const { data: existing } = await supabase
-      .from("reservations")
-      .select("*")
-      .eq("status", "confirmed")
-      .lte("start_date", check_out)
-      .gte("end_date", check_in);
+  // if (event.type === "payment_intent.created") {
+  //   const { data: existing } = await supabase
+  //     .from("reservations")
+  //     .select("*")
+  //     .eq("status", "confirmed")
+  //     .lte("start_date", check_out)
+  //     .gte("end_date", check_in);
 
-    if (existing && existing.length > 0) {
-      return res.status(409).json({ error: "Dates already booked" });
-    }
-  }
+  //   if (existing && existing.length > 0) {
+  //     return res.status(409).json({ error: "Dates already booked" });
+  //   }
+  // }
 
   if (event.type === "payment_intent.succeeded") {
     try {

@@ -23,6 +23,53 @@ export const getIcs = async (req, res, next) => {
   }
 };
 
+// GET all ICS for calendar
+// /ics
+export const generateCalendar = async (req, res, next) => {
+  try {
+    // Fetch confirmed reservations
+    const { data: reservations, error } = await supabase
+      .from("reservations")
+      .select("id, start_date, end_date, billing_name, status")
+      .eq("status", "confirmed");
+
+    if (error) throw error;
+
+    // Build iCal content
+    let ical = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//4Roses//Calendar Sync//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+`;
+
+    reservations.forEach((r) => {
+      const dtStart = dayjs(r.start_date).format("YYYYMMDD");
+      const dtEnd = dayjs(r.end_date).format("YYYYMMDD");
+
+      ical += `
+BEGIN:VEVENT
+UID:${r.id}@4roses.fignet.ca
+DTSTAMP:${dayjs().format("YYYYMMDDTHHmmss")}Z
+DTSTART;VALUE=DATE:${dtStart}
+DTEND;VALUE=DATE:${dtEnd}
+SUMMARY:Reservation - ${r.billing_name || "Guest"}
+DESCRIPTION:Blocked (Reservation ID ${r.id})
+END:VEVENT
+`;
+    });
+
+    ical += `END:VCALENDAR`;
+
+    // Return ICS file
+    res.setHeader("Content-Type", "text/calendar; charset=utf-8");
+    res.setHeader("Content-Disposition", "inline; filename=calendar.ics");
+    res.send(ical);
+  } catch (err) {
+    next(err);
+  }
+};
+
 // GET price for all months
 //
 export const getMonthlyPrice = async (req, res, next) => {

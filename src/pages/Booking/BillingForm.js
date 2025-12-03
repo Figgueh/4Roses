@@ -32,6 +32,7 @@ export default function BillingForm() {
     phone: "",
     billing_address: "",
     billing_state: "",
+    billing_city: "",
     billing_postal_code: "",
     billing_country: "",
   });
@@ -200,10 +201,10 @@ export default function BillingForm() {
             <MKTypography variant="body1">
               <strong>Total:</strong> €{price.toFixed(2)}
             </MKTypography>
-            <MKTypography variant="body1" color="success.main">
+            <MKTypography variant="body1" color="success">
               <strong>Due today (50%):</strong> €{dueToday.toFixed(2)}
             </MKTypography>
-            <MKTypography variant="body2" mt={2} color="text.secondary">
+            <MKTypography variant="body2" mt={2} color="secondary">
               Remaining balance must be paid before check-in.
             </MKTypography>
           </Grid>
@@ -252,10 +253,10 @@ export default function BillingForm() {
                         Use this email as reference:
                       </MKTypography>
                       <MKTypography fontWeight="bold">joefigueiras@gmail.com</MKTypography>
-                      <MKTypography variant="body2" mt={1} color="text.secondary">
+                      <MKTypography variant="body2" mt={1} color="secondary">
                         You will receive a confirmation email once payment is received.
                       </MKTypography>
-                      <MKTypography variant="body2" mt={1} color="text.secondary">
+                      <MKTypography variant="body2" mt={1} color="secondary">
                         Please allow up to 24 hours for confirmation.
                       </MKTypography>
                     </MKBox>

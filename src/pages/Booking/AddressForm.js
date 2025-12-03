@@ -84,7 +84,7 @@ export default function AddressForm({ form, handleChange }) {
         <MKInput
           label={stateLabel}
           name="billing_state"
-          value={form.billing_State}
+          value={form.billing_state}
           onChange={handleChange}
           fullWidth
           required
@@ -112,7 +112,7 @@ AddressForm.propTypes = {
     phone: PropTypes.string.isRequired,
     billing_address: PropTypes.string.isRequired,
     billing_country: PropTypes.string.isRequired,
-    billing_State: PropTypes.string.isRequired,
+    billing_state: PropTypes.string.isRequired,
     billing_city: PropTypes.string.isRequired,
     billing_postal_code: PropTypes.string.isRequired,
   }).isRequired,
