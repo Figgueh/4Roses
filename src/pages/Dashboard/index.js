@@ -18,6 +18,7 @@ import { checkAdmin } from "connection/users/checkAdmin";
 // Tabs
 import ProfileTab from "./tabs/profile";
 import AdminDash from "./tabs/admin";
+import BookingsTab from "./tabs/profile/BookingsTab";
 import MKBox from "components/MKBox";
 import MKButton from "components/MKButton";
 
@@ -46,7 +47,7 @@ function Dashboard() {
     if (session?.user?.id) {
       fetchData();
     }
-  }, []);
+  }, [session]);
 
   return (
     <BaseLayout title={t("Account dashboard")}>
@@ -107,6 +108,7 @@ function Dashboard() {
                   }}
                 >
                   <Tab label={t("My Profile")} />
+                  <Tab label={t("My Bookings")} />
                   {isAdmin && <Tab label={t("Administration")} />}
                 </Tabs>
               </Card>
@@ -117,7 +119,8 @@ function Dashboard() {
         {/* Tab Content */}
         <MKBox mt={2}>
           {activeTab === 0 && <ProfileTab />}
-          {activeTab === 1 && isAdmin && <AdminDash />}
+          {activeTab === 1 && <BookingsTab />}
+          {activeTab === 2 && isAdmin && <AdminDash />}
         </MKBox>
       </MKBox>
     </BaseLayout>

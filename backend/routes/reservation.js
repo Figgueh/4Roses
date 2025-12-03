@@ -9,6 +9,7 @@ import {
   getIcs,
   getMonthlyPrice,
   getReservationData,
+  getUserReservations,
   refundSecurity,
   updateMonthlyPrice,
   updateReservation,
@@ -21,6 +22,7 @@ router.get("/monthlyPrice", getMonthlyPrice);
 router.get("/booking/:id", getReservationData);
 router.get("/check/:check_in/:check_out", checkReservation);
 router.get("/calendar.ics", generateCalendar);
+router.get("/user/:userId", getUserReservations);
 router.get("/", getAllReservations);
 router.put("/monthlyPrice/:month", updateMonthlyPrice);
 router.post("/create-payment-intent", createPaymentIntent);

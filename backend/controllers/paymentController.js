@@ -209,6 +209,41 @@ export const getReservationData = async (req, res, next) => {
   }
 };
 
+// Gets all the reservations made by a single user.
+// GET /user/:userId
+export const getUserReservations = async (req, res) => {
+  const { userId } = req.params;
+
+  if (!userId) {
+    return res.status(400).json({ error: "Missing userId parameter" });
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from("reservations")
+      .select(
+        `
+        id,
+        start_date,
+        end_date,
+        number_of_guests,
+        total_price,
+        amount_paid,
+        status
+      `
+      )
+      .eq("user_id", userId)
+      .order("start_date", { ascending: false });
+
+    if (error) throw error;
+
+    res.status(200).json({ bookings: data });
+  } catch (err) {
+    console.error("Error fetching user bookings:", err);
+    res.status(500).json({ error: "Failed to fetch bookings" });
+  }
+};
+
 export const createReservation = async (req, res) => {
   try {
     const {
