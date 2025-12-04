@@ -168,7 +168,7 @@ export const getAllReservations = async (req, res) => {
 };
 
 // GET reservation data by id
-//
+// /booking/:id
 export const getReservationData = async (req, res, next) => {
   const { id } = req.params;
 
@@ -226,7 +226,8 @@ export const getUserReservations = async (req, res) => {
         id,
         start_date,
         end_date,
-        number_of_guests,
+        guests_under,
+        guests_over,
         total_price,
         amount_paid,
         status
@@ -252,7 +253,8 @@ export const createReservation = async (req, res) => {
       end_date,
       total_price,
       amount_paid,
-      number_of_guests,
+      guests_over,
+      guests_under,
       payment_method,
 
       phone,
@@ -295,7 +297,8 @@ export const createReservation = async (req, res) => {
           total_price,
           amount_paid,
           payment_method,
-          number_of_guests,
+          guests_over,
+          guests_under,
           phone,
           billing_name,
           billing_address,
@@ -320,41 +323,47 @@ export const createReservation = async (req, res) => {
 
 export const updateReservation = async (req, res) => {
   const { id } = req.params;
-  const updates = req.body;
+  const { status, start_date, end_date } = req.body;
 
   if (!id) {
     return res.status(400).json({ error: "Reservation ID is required" });
   }
 
-  // Optional: whitelist allowed fields
-  const allowed = [
-    "status",
-    "start_date",
-    "end_date",
-    "number_of_guests",
-    "total_price",
-    "amount_paid",
-  ];
-  const sanitized = {};
-
-  for (const key of Object.keys(updates)) {
-    if (allowed.includes(key)) sanitized[key] = updates[key];
-  }
-
-  if (Object.keys(sanitized).length === 0) {
-    return res.status(400).json({ error: "No valid fields to update" });
+  if (!start_date || !end_date) {
+    return res.status(400).json({ error: "Check-in and check-out dates are required" });
   }
 
   try {
-    const { data, error } = await supabase
+    if (status == "confirmed") {
+      // Check for conflicting reservations
+      const { data: existing, error: conflictError } = await supabase
+        .from("reservations")
+        .select("*")
+        .eq("status", "confirmed")
+        .neq("id", id) // exclude the current reservation
+        .gte("start_date", start_date)
+        .lte("end_date", end_date);
+
+      if (conflictError) {
+        console.error("Supabase conflict query error:", conflictError);
+        return res.status(500).json({ error: "Failed to check date conflicts" });
+      }
+
+      if (existing && existing.length > 0) {
+        return res.status(409).json({ error: "Dates already booked" });
+      }
+    }
+
+    // Update the reservation
+    const { data, error: updateError } = await supabase
       .from("reservations")
-      .update(sanitized)
+      .update({ status })
       .eq("id", id)
       .select()
       .single();
 
-    if (error) {
-      console.error("Supabase error:", error);
+    if (updateError) {
+      console.error("Supabase update error:", updateError);
       return res.status(500).json({ error: "Failed to update reservation" });
     }
 
@@ -470,7 +479,6 @@ export const generatePDF = async (req, res) => {
       </html>
     `;
 
-    // 4️⃣ Generate PDF with Puppeteer
     const browser = await puppeteer.launch({
       args: ["--no-sandbox", "--disable-setuid-sandbox"],
     });
@@ -480,7 +488,6 @@ export const generatePDF = async (req, res) => {
     const pdfBuffer = await page.pdf({ format: "A4", printBackground: true });
     await browser.close();
 
-    // 5️⃣ Send PDF to client
     res.set({
       "Content-Type": "application/pdf",
       "Content-Disposition": `attachment; filename=invoice-${reservation.id}.pdf`,
@@ -498,8 +505,16 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 export const createPaymentIntent = async (req, res) => {
   try {
-    const { user_id, check_in, check_out, nights, total_price, amount_paid, guests } =
-      req.body.payload;
+    const {
+      user_id,
+      check_in,
+      check_out,
+      nights,
+      total_price,
+      amount_paid,
+      guests_over,
+      guests_under,
+    } = req.body.payload;
 
     if (!user_id || !amount_paid) {
       return res.status(400).json({ error: "Missing required fields" });
@@ -535,7 +550,7 @@ export const createPaymentIntent = async (req, res) => {
 
       // Create the stripe account
       const customer = await stripe.customers.create({
-        email: supabaseUser.email,
+        email: supabaseUser.user.email,
         name: databaseUser.full_name,
       });
 
@@ -566,7 +581,8 @@ export const createPaymentIntent = async (req, res) => {
         check_out: String(check_out),
         nights: String(nights),
         total_price: String(total_price),
-        guests: String(guests || 1),
+        guests_over: String(guests_over || 1),
+        guests_under: String(guests_under),
       },
     });
 

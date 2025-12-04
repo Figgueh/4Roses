@@ -91,7 +91,7 @@ export default function AvailabilityCalendar({ icsUrls, selectedDates, onSelecti
         allEvents.forEach((event) => {
           // clone start to avoid mutating the parsed objects
           let d = new Date(event.start.getTime());
-          while (d < event.end) {
+          while (d <= event.end) {
             const iso = d.toISOString().split("T")[0];
 
             set.add(

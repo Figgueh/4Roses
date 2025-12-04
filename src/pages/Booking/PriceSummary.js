@@ -4,69 +4,111 @@ import MKBox from "components/MKBox";
 import MKTypography from "components/MKTypography";
 import MKButton from "components/MKButton";
 import axios from "axios";
-
 import { Alert, AlertTitle } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
 const SECURITY_DEPOSIT = 500;
-const NIGHTLY_TOURIST_TAX = 2;
-const MAX_TOURIST_TAX_DAYS = 7;
-const DISCOUNT_RATE = 0.05; // 5%
+const DISCOUNT_RATE = 0.05;
+const SALES_TAX_RATE = 0.06;
+
+function parseLocalDate(dateStr) {
+  const [year, month, day] = dateStr.split("-").map(Number);
+  return new Date(year, month - 1, day);
+}
+function pad(n) {
+  return n < 10 ? `0${n}` : `${n}`;
+}
+function formatLocalISO(d) {
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
 
 export default function PriceSummary({ bookingData }) {
   const navigate = useNavigate();
   const [error, setError] = useState("");
 
-  const { selectedDates } = bookingData;
+  const guestsOver = bookingData?.guests_over ?? 0;
+  const guestsUnder = bookingData?.guests_under ?? 0;
+  const { selectedDates } = bookingData ?? {};
+
   if (!selectedDates || Object.keys(selectedDates).length === 0)
     return <MKTypography variant="body2">No dates selected</MKTypography>;
 
-  const getPriceRanges = (dates) => {
-    const sorted = Object.keys(dates).sort();
-    const ranges = [];
-    let rangeStart = null;
-    let prevDate = null;
-    let price = null;
+  // all selected keys include checkout as last key (by your component's convention)
+  const sortedAll = Object.keys(selectedDates).sort(); // includes checkout
+  // nightKeys: the actual nights to charge for — exclude checkout (last key)
+  const nightKeys = sortedAll.length > 1 ? sortedAll.slice(0, -1) : []; // e.g. [ '2026-03-30', '2026-03-31' ]
 
-    for (const d of sorted) {
-      const currentPrice = dates[d];
-      if (!rangeStart) {
-        rangeStart = d;
-        prevDate = d;
-        price = currentPrice;
-        continue;
-      }
-      const expected = new Date(prevDate);
-      expected.setDate(expected.getDate() + 1);
-      if (
-        currentPrice === price &&
-        new Date(d).toISOString().split("T")[0] === expected.toISOString().split("T")[0]
-      ) {
-        prevDate = d;
+  // Build contiguous ranges using nightKeys (so checkout won't make a 0-night range)
+  const getPriceRangesForNights = (datesObj) => {
+    const keys = nightKeys.slice(); // already sorted slice of sortedAll
+    const ranges = [];
+    if (keys.length === 0) return ranges;
+
+    let rangeStart = keys[0];
+    let prev = keys[0];
+    let price = datesObj[rangeStart];
+
+    for (let i = 1; i < keys.length; i++) {
+      const cur = keys[i];
+      const prevDate = parseLocalDate(prev);
+      prevDate.setDate(prevDate.getDate() + 1);
+      const expectedStr = formatLocalISO(prevDate);
+      const curPrice = datesObj[cur];
+
+      if (cur === expectedStr && curPrice === price) {
+        prev = cur; // extend
       } else {
-        ranges.push({ start: rangeStart, end: prevDate, price });
-        rangeStart = d;
-        prevDate = d;
-        price = currentPrice;
+        ranges.push({ start: rangeStart, end: prev, price });
+        rangeStart = cur;
+        prev = cur;
+        price = curPrice;
       }
     }
-    if (rangeStart) ranges.push({ start: rangeStart, end: prevDate, price });
+
+    ranges.push({ start: rangeStart, end: prev, price });
     return ranges;
   };
 
-  const ranges = getPriceRanges(selectedDates);
-  const totalNights = Object.keys(selectedDates).length;
-  const totalPriceWithoutExtras = ranges.reduce(
-    (sum, r) => sum + r.price * ((new Date(r.end) - new Date(r.start)) / (1000 * 60 * 60 * 24) + 1),
-    0
-  );
+  const ranges = getPriceRangesForNights(selectedDates);
+
+  // days in a range (count of nightKeys included)
+  const getDaysInRange = (start, end) => {
+    return nightKeys.filter((d) => d >= start && d <= end).length;
+  };
+
+  // nights = days (because nightKeys represent nights themselves)
+  const getNightsInRange = (start, end) => {
+    // nightKeys are nights, so nights = number of entries in the range
+    return Math.max(getDaysInRange(start, end), 0);
+  };
+
+  // compute total price by summing price * nights (nightKeys are nights)
+  const totalPriceWithoutExtras = ranges.reduce((sum, r) => {
+    const nights = getNightsInRange(r.start, r.end);
+    const safePrice = Number(r.price) || 0;
+    return sum + safePrice * nights;
+  }, 0);
 
   const discountAmount = totalPriceWithoutExtras * DISCOUNT_RATE;
   const discountedAccommodationTotal = totalPriceWithoutExtras - discountAmount;
-  const touristTax = NIGHTLY_TOURIST_TAX * Math.min(totalNights, MAX_TOURIST_TAX_DAYS);
-  const accommodationSubtotal = totalPriceWithoutExtras - discountAmount;
-  const totalPrice = discountedAccommodationTotal + SECURITY_DEPOSIT + touristTax;
 
+  // Tourist tax: iterate actual nights (nightKeys) up to 7 nights
+  let touristTax = 0;
+  let remainingTaxNights = Math.min(nightKeys.length, 7);
+  for (let i = 0; i < nightKeys.length && remainingTaxNights > 0; i++) {
+    const dateStr = nightKeys[i];
+    const d = parseLocalDate(dateStr);
+    const month = d.getMonth() + 1;
+    const taxPerGuest = [11, 12, 1, 2, 3].includes(month) ? 1 : 2;
+    touristTax += taxPerGuest * guestsOver;
+    remainingTaxNights--;
+  }
+
+  const accommodationSubtotal = discountedAccommodationTotal;
+  const salesTax = discountedAccommodationTotal * SALES_TAX_RATE;
+  const totalPrice = discountedAccommodationTotal + salesTax + touristTax + SECURITY_DEPOSIT;
+
+  const totalNights = nightKeys.length; // correct number of nights
   const dueToday = totalPrice * 0.5;
   const remainingBalance = totalPrice - dueToday;
 
@@ -76,9 +118,8 @@ export default function PriceSummary({ bookingData }) {
         Price Summary
       </MKTypography>
 
-      {/* Two-column layout */}
       <MKBox display="flex" flexDirection={{ xs: "column", md: "row" }} gap={3}>
-        {/* Left Column: TOTAL & Breakdown */}
+        {/* LEFT COLUMN */}
         <MKBox
           flex={1}
           p={3}
@@ -92,19 +133,21 @@ export default function PriceSummary({ bookingData }) {
             Total
           </MKTypography>
 
-          {/* Date Ranges */}
           {ranges.map((r, idx) => {
-            const start = new Date(r.start);
-            const end = new Date(r.end);
-            const nights = (end - start) / (1000 * 60 * 60 * 24) + 1;
+            const start = parseLocalDate(r.start);
+            const nights = getNightsInRange(r.start, r.end);
+            const rangeTotal = (Number(r.price) || 0) * nights;
+            const displayEndDate = parseLocalDate(r.end);
+            displayEndDate.setDate(displayEndDate.getDate() + 1); // add 1 day
+
             return (
               <MKBox display="flex" justifyContent="space-between" key={idx} mb={1.5}>
                 <MKTypography variant="body2">
-                  {start.toLocaleDateString()} - {end.toLocaleDateString()} ({nights} nights) @ €
-                  {r.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  {formatLocalISO(start)} - {formatLocalISO(displayEndDate)} ({nights} nights) @ €
+                  {(Number(r.price) || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </MKTypography>
                 <MKTypography variant="body2" textAlign="right">
-                  €{(r.price * nights).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  €{rangeTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </MKTypography>
               </MKBox>
             );
@@ -118,7 +161,7 @@ export default function PriceSummary({ bookingData }) {
             </MKTypography>
           </MKBox>
 
-          {/* Accommodation Subtotal */}
+          {/* Accommodation subtotal */}
           <MKBox display="flex" justifyContent="space-between" mb={2}>
             <MKTypography variant="body2" fontWeight="medium">
               Accommodation Subtotal
@@ -138,12 +181,21 @@ export default function PriceSummary({ bookingData }) {
             >
               Fees & Taxes
             </MKTypography>
+
             <MKBox display="flex" justifyContent="space-between" mb={1}>
               <MKTypography variant="body2">Tourist Tax</MKTypography>
               <MKTypography variant="body2" textAlign="right">
-                €{touristTax.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                €{Number(touristTax).toLocaleString(undefined, { minimumFractionDigits: 2 })}
               </MKTypography>
             </MKBox>
+
+            <MKBox display="flex" justifyContent="space-between" mb={1}>
+              <MKTypography variant="body2">Sales Tax (6%)</MKTypography>
+              <MKTypography variant="body2" textAlign="right">
+                €{salesTax.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              </MKTypography>
+            </MKBox>
+
             <MKBox display="flex" justifyContent="space-between">
               <MKTypography variant="body2">Security Deposit</MKTypography>
               <MKTypography variant="body2" textAlign="right">
@@ -152,7 +204,7 @@ export default function PriceSummary({ bookingData }) {
             </MKBox>
           </MKBox>
 
-          {/* Grand TOTAL */}
+          {/* GRAND TOTAL */}
           <MKBox
             display="flex"
             justifyContent="space-between"
@@ -170,7 +222,7 @@ export default function PriceSummary({ bookingData }) {
           </MKBox>
         </MKBox>
 
-        {/* Right Column: Payment Breakdown + Confirm Booking */}
+        {/* RIGHT COLUMN */}
         <MKBox
           flex={1}
           p={3}
@@ -217,11 +269,9 @@ export default function PriceSummary({ bookingData }) {
             color="success"
             size="large"
             onClick={async () => {
-              const start_date = Object.keys(selectedDates)[0];
-              const end_date = Object.keys(selectedDates)[Object.keys(selectedDates).length - 1];
+              const start_date = sortedAll[0];
+              const end_date = sortedAll[sortedAll.length - 1];
 
-              // Validate number of nights
-              const totalNights = Object.keys(selectedDates).length;
               if (totalNights < 7) {
                 setError("The minimum stay is 7 nights.");
                 return;
@@ -229,10 +279,10 @@ export default function PriceSummary({ bookingData }) {
                 setError("");
               }
 
-              // Validate that there isn't already a confirmed reservation
               const { data } = await axios.get(
                 `${process.env.REACT_APP_BACKEND}/reservation/check/${start_date}/${end_date}`
               );
+
               if (data.isBooked) {
                 setError(
                   "Oops! Some of these dates are no longer available. Refresh the page to check the current availability."
@@ -240,14 +290,21 @@ export default function PriceSummary({ bookingData }) {
                 return;
               }
 
-              // Proceed with booking
+              if (!guestsOver || guestsOver < 1) {
+                setError("There must be at least 1 guest over 13");
+                return;
+              } else {
+                setError(""); // clear the error if the rule is satisfied
+              }
+
               navigate("/billing", {
                 state: {
                   dates: selectedDates,
                   nights: totalNights,
                   price: totalPrice,
-                  dueToday: dueToday,
-                  guests: bookingData.guests,
+                  dueToday,
+                  guestsOver,
+                  guestsUnder,
                 },
               });
             }}
@@ -263,6 +320,7 @@ export default function PriceSummary({ bookingData }) {
 PriceSummary.propTypes = {
   bookingData: PropTypes.shape({
     selectedDates: PropTypes.objectOf(PropTypes.number).isRequired,
-    guests: PropTypes.number, // if needed
+    guests_over: PropTypes.number,
+    guests_under: PropTypes.number,
   }).isRequired,
 };

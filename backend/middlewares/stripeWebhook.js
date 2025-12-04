@@ -15,7 +15,7 @@ export const stripeWebhookHandler = async (req, res) => {
   }
 
   const pi = event.data.object;
-  const { user_id, check_in, check_out, total_price, guests } = pi.metadata;
+  const { user_id, check_in, check_out, total_price, guests_over, guests_under } = pi.metadata;
 
   // Check if there is any issues before attempting to charge the customer
   // if (event.type === "payment_intent.created") {
@@ -44,7 +44,8 @@ export const stripeWebhookHandler = async (req, res) => {
         user_id,
         start_date: check_in,
         end_date: check_out,
-        number_of_guests: parseInt(guests) || 1,
+        guests_over,
+        guests_under,
         total_price: parseFloat(total_price),
         amount_paid: fullPi.amount_received / 100,
         payment_method: "credit card",

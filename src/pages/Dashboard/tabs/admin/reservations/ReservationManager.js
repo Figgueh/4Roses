@@ -21,9 +21,11 @@ export default function ReservationManager() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState({});
   const [processingRefund, setProcessingRefund] = useState({});
+  const [backupReservations, setBackupReservations] = useState([]);
+
   const [error, setError] = useState("");
 
-  const statusOptions = ["pending", "confirmed", "cancelled"];
+  const statusOptions = ["pending", "confirmed", "completed", "cancelled"];
 
   // --------------------------
   // Load Reservations
@@ -47,6 +49,7 @@ export default function ReservationManager() {
   // Change Status
   // --------------------------
   const handleStatusChange = (id, newStatus) => {
+    setBackupReservations(reservations);
     setReservations((prev) => prev.map((r) => (r.id === id ? { ...r, status: newStatus } : r)));
   };
 
@@ -58,14 +61,26 @@ export default function ReservationManager() {
     if (!reservation) return;
 
     setSaving((prev) => ({ ...prev, [id]: true }));
+
     try {
       await axios.put(`${process.env.REACT_APP_BACKEND}/reservation/${id}`, {
+        start_date: reservation.start_date,
+        end_date: reservation.end_date,
         status: reservation.status,
       });
+
       setError("");
     } catch (err) {
-      console.error(err);
-      setError("Failed to update reservation.");
+      const status = err.response?.status;
+
+      if (status === 409) {
+        setError("There already exists a reservation booked on this date.");
+      } else {
+        setError("Failed to update reservation.");
+      }
+
+      setReservations(backupReservations);
+      return;
     } finally {
       setSaving((prev) => ({ ...prev, [id]: false }));
     }
@@ -160,7 +175,7 @@ export default function ReservationManager() {
                 <TableCell>{r.billing_name || r.user_name}</TableCell>
                 <TableCell>{r.start_date}</TableCell>
                 <TableCell>{r.end_date}</TableCell>
-                <TableCell>{r.number_of_guests}</TableCell>
+                <TableCell>{r.guests_under + r.guests_over}</TableCell>
                 <TableCell>{r.total_price?.toFixed(2)}</TableCell>
                 <TableCell>{r.amount_paid?.toFixed(2)}</TableCell>
 

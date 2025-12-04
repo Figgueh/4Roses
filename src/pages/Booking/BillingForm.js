@@ -13,6 +13,7 @@ import MKButton from "components/MKButton";
 import AddressForm from "./AddressForm";
 
 const stripePromise = loadStripe(`${process.env.REACT_APP_STRIPE_PUBLIC_KEY}`);
+const ONLINE_PAYMENT_FEE_RATE = 0.029; // 2.9%
 const IBAN_ACCOUNT = "DE89 3704 0044 0532 0130 00";
 
 export default function BillingForm() {
@@ -24,7 +25,17 @@ export default function BillingForm() {
     supabase.auth.getUser().then(({ data }) => setUser(data.user));
   }, []);
 
-  const { dates = {}, nights = 0, price = 0, dueToday = 0, guests = 0 } = state || {};
+  const {
+    dates = {},
+    nights = 0,
+    price = 0,
+    dueToday = 0,
+    guestsOver = 0,
+    guestsUnder = 0,
+  } = state || {};
+  const guests = guestsOver + guestsUnder;
+  const [creditPrice, setCreditPrice] = useState(price);
+  const [creditDueToday, setCreditDueToday] = useState(dueToday);
 
   const [form, setForm] = useState({
     payment_method: "iban",
@@ -36,6 +47,21 @@ export default function BillingForm() {
     billing_postal_code: "",
     billing_country: "",
   });
+
+  useEffect(() => {
+    if (form.payment_method === "credit_card") {
+      const newPrice = price - 500;
+      const fee = newPrice * ONLINE_PAYMENT_FEE_RATE;
+      const newPriceWithFee = newPrice + fee;
+      const newDue = newPriceWithFee * 0.5;
+
+      setCreditPrice(newPriceWithFee);
+      setCreditDueToday(newDue);
+    } else {
+      setCreditPrice(price);
+      setCreditDueToday(dueToday);
+    }
+  }, [form.payment_method, price, dueToday]);
 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -63,7 +89,8 @@ export default function BillingForm() {
           total_price: price,
           amount_paid: dueToday,
           payment_method: form.payment_method,
-          guests: guests,
+          guests_over: guestsOver,
+          guests_under: guestsUnder,
         };
         const { data } = await axios.post(
           `${process.env.REACT_APP_BACKEND}/reservation/create-payment-intent`,
@@ -135,7 +162,8 @@ export default function BillingForm() {
       payment_method: form.payment_method,
       total_price: price,
       amount_paid: dueToday,
-      number_of_guests: guests,
+      guests_over: guestsOver,
+      guests_under: guestsUnder,
       billing_name: form.billing_name,
       phone: form.phone,
       billing_address: form.billing_address,
@@ -199,11 +227,31 @@ export default function BillingForm() {
               <strong>Number of guests:</strong> {guests}
             </MKTypography>
             <MKTypography variant="body1">
-              <strong>Total:</strong> €{price.toFixed(2)}
+              <strong>Total:</strong> €{creditPrice.toFixed(2)}
             </MKTypography>
             <MKTypography variant="body1" color="success">
-              <strong>Due today (50%):</strong> €{dueToday.toFixed(2)}
+              <strong>Due today (50%):</strong> €{creditDueToday.toFixed(2)}
             </MKTypography>
+            {form.payment_method === "credit_card" && (
+              <MKBox
+                mt={1}
+                mb={2}
+                p={2}
+                bgcolor="#fffbea"
+                borderRadius="md"
+                border="1px solid #ffe58f"
+              >
+                <MKTypography variant="body2" color="warning">
+                  Online payment fee: <strong>+2.9%</strong>
+                  <br />
+                  (Applied automatically to the total)
+                </MKTypography>
+                <MKTypography variant="body2" color="warning" mt={2}>
+                  The €500 security deposit is <strong>NOT charged today</strong> when paying by
+                  credit card. It may be collected later if needed.
+                </MKTypography>
+              </MKBox>
+            )}
             <MKTypography variant="body2" mt={2} color="secondary">
               Remaining balance must be paid before check-in.
             </MKTypography>
@@ -268,12 +316,16 @@ export default function BillingForm() {
               )}
 
               {/* Stripe / Credit Card */}
-              {form.payment_method === "credit_card" && clientSecret && (
-                <Grid item xs={12}>
-                  <Elements stripe={stripePromise} options={{ clientSecret }}>
-                    <StripeCheckout setMessage={setMessage} setLoading={setLoading} />
-                  </Elements>
-                </Grid>
+              {form.payment_method === "credit_card" && (
+                <>
+                  {clientSecret && (
+                    <Grid item xs={12}>
+                      <Elements stripe={stripePromise} options={{ clientSecret }}>
+                        <StripeCheckout setMessage={setMessage} setLoading={setLoading} />
+                      </Elements>
+                    </Grid>
+                  )}
+                </>
               )}
 
               {/* Message */}
