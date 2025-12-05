@@ -36,6 +36,7 @@ import TermsConditions from "pages/footerPages/termsConditions";
 import Booking from "pages/Booking";
 import BookingSuccess from "pages/Booking/BookingSuccess";
 import BillingForm from "pages/Booking/BillingForm";
+import ContinuePayment from "pages/Booking/ContinuePayment";
 
 export default function App() {
   const { pathname } = useLocation();
@@ -75,6 +76,7 @@ export default function App() {
           <Route path="book" element={<Booking />} />
           <Route path="billing" element={<BillingForm />} />
           <Route path="booking-success" element={<BookingSuccess />} />
+          <Route path="continue-payment/:id" element={<ContinuePayment />} />
 
           {/* Footer pages */}
           <Route path="contact-developer" element={<ContactDeveloperPage />} />

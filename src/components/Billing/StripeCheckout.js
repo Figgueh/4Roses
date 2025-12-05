@@ -33,7 +33,7 @@ export default function StripeCheckout({ setMessage, setLoading }) {
       });
 
       if (result.error) {
-        setMessage("Payment error: " + result.error.message);
+        setMessage("Error: Payment error: " + result.error.message);
       } else if (result.paymentIntent?.status === "succeeded") {
         setMessage("Payment successful!");
         console.log("PaymentIntent ID:", result.paymentIntent.id);
@@ -44,7 +44,7 @@ export default function StripeCheckout({ setMessage, setLoading }) {
       }
     } catch (err) {
       console.error("Payment failed:", err);
-      setMessage("Payment failed. Try again.");
+      setMessage("Error: Payment failed. Try again.");
     } finally {
       setLoading(false);
       setSubmitted(false);

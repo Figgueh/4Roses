@@ -10,6 +10,8 @@ import {
   Paper,
   TextField,
   CircularProgress,
+  Alert,
+  AlertTitle,
 } from "@mui/material";
 import MKBox from "components/MKBox";
 import MKButton from "components/MKButton";
@@ -41,9 +43,7 @@ export default function PriceAdjuster() {
   useEffect(() => {
     const fetchPricing = async () => {
       try {
-        const { data } = await axios.get(
-          `${process.env.REACT_APP_BACKEND}/reservation/monthlyPrice`
-        );
+        const { data } = await axios.get(`${process.env.REACT_APP_BACKEND}/billings/monthlyPrice`);
 
         const pricingArray = Object.entries(data).map(([month, price]) => ({
           month: parseInt(month),
@@ -74,7 +74,7 @@ export default function PriceAdjuster() {
     setError("");
 
     try {
-      await axios.put(`${process.env.REACT_APP_BACKEND}/reservation/monthlyPrice`, { pricing });
+      await axios.put(`${process.env.REACT_APP_BACKEND}/billings/monthlyPrice`, { pricing });
 
       setSuccess("All prices updated successfully!");
     } catch (err) {
@@ -99,15 +99,17 @@ export default function PriceAdjuster() {
         Monthly Price Adjustments
       </MKTypography>
 
-      {error && (
-        <MKTypography color="error" mb={2}>
-          {error}
-        </MKTypography>
-      )}
       {success && (
-        <MKTypography color="success" mb={2}>
+        <Alert sx={{ mt: 2, mb: 2 }} severity="success" onClose={() => setSuccess(null)}>
+          <AlertTitle>Price Adjustments status</AlertTitle>
           {success}
-        </MKTypography>
+        </Alert>
+      )}
+      {error && (
+        <Alert sx={{ mt: 2, mb: 2 }} severity="error" onClose={() => setError(null)}>
+          <AlertTitle>Price Adjustments Error</AlertTitle>
+          {error}
+        </Alert>
       )}
 
       <TableContainer component={Paper}>
@@ -126,7 +128,7 @@ export default function PriceAdjuster() {
                   <TextField
                     type="number"
                     value={item.price}
-                    onChange={(e) => handlePriceChange(item.month, e.target.value)}
+                    onChange={(e) => handlePriceChange(item.month, Number(e.target.value))}
                     size="small"
                     variant="outlined"
                   />

@@ -11,6 +11,9 @@ import {
   Select,
   MenuItem,
   CircularProgress,
+  Alert,
+  AlertTitle,
+  TextField,
 } from "@mui/material";
 import MKBox from "components/MKBox";
 import MKTypography from "components/MKTypography";
@@ -24,6 +27,9 @@ export default function ReservationManager() {
   const [backupReservations, setBackupReservations] = useState([]);
 
   const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+
+  const [filterId, setFilterId] = useState(""); // <-- Booking ID filter state
 
   const statusOptions = ["pending", "confirmed", "completed", "cancelled"];
 
@@ -33,7 +39,7 @@ export default function ReservationManager() {
   useEffect(() => {
     const fetchReservations = async () => {
       try {
-        const { data } = await axios.get(`${process.env.REACT_APP_BACKEND}/reservation`);
+        const { data } = await axios.get(`${process.env.REACT_APP_BACKEND}/bookings`);
         setReservations(data);
       } catch (err) {
         console.error(err);
@@ -46,7 +52,7 @@ export default function ReservationManager() {
   }, []);
 
   // --------------------------
-  // Change Status
+  // Change Status (locally)
   // --------------------------
   const handleStatusChange = (id, newStatus) => {
     setBackupReservations(reservations);
@@ -54,7 +60,7 @@ export default function ReservationManager() {
   };
 
   // --------------------------
-  // Save Status
+  // Save Status (backend)
   // --------------------------
   const handleSave = async (id) => {
     const reservation = reservations.find((r) => r.id === id);
@@ -63,7 +69,7 @@ export default function ReservationManager() {
     setSaving((prev) => ({ ...prev, [id]: true }));
 
     try {
-      await axios.put(`${process.env.REACT_APP_BACKEND}/reservation/${id}`, {
+      await axios.put(`${process.env.REACT_APP_BACKEND}/bookings/${id}`, {
         start_date: reservation.start_date,
         end_date: reservation.end_date,
         status: reservation.status,
@@ -129,6 +135,38 @@ export default function ReservationManager() {
   };
 
   // --------------------------
+  // Delete reservation
+  // --------------------------
+  const handleDelete = async (id) => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this booking? This action cannot be undone."
+    );
+    if (!confirmed) return;
+
+    try {
+      const { data } = await axios.delete(`${process.env.REACT_APP_BACKEND}/bookings/${id}`);
+
+      if (data.error) {
+        setError("Delete failed: " + data.error);
+        return;
+      }
+
+      setMessage("Booking deleted successfully.");
+      setReservations((prev) => prev.filter((b) => b.id !== id));
+    } catch (err) {
+      console.error(err);
+      setError("Unexpected error deleting booking.");
+    }
+  };
+
+  // --------------------------
+  // Filtered Reservations
+  // --------------------------
+  const filteredReservations = reservations.filter((r) =>
+    r.id.toLowerCase().includes(filterId.toLowerCase())
+  );
+
+  // --------------------------
   // Loading Spinner
   // --------------------------
   if (loading) {
@@ -148,10 +186,28 @@ export default function ReservationManager() {
         Reservation Manager
       </MKTypography>
 
+      {/* Filter by Booking ID */}
+      <TextField
+        label="Filter by Booking ID"
+        variant="outlined"
+        size="small"
+        fullWidth
+        sx={{ mb: 3 }}
+        value={filterId}
+        onChange={(e) => setFilterId(e.target.value)}
+      />
+
       {error && (
-        <MKTypography color="error" mb={2}>
+        <Alert sx={{ mt: 2, mb: 2 }} severity="error" onClose={() => setError(null)}>
+          <AlertTitle>Reservation Manager Error</AlertTitle>
           {error}
-        </MKTypography>
+        </Alert>
+      )}
+      {message && (
+        <Alert sx={{ mt: 2, mb: 2 }} severity="success" onClose={() => setMessage(null)}>
+          <AlertTitle>Reservation Manager Status</AlertTitle>
+          {message}
+        </Alert>
       )}
 
       <TableContainer component={Paper}>
@@ -170,7 +226,7 @@ export default function ReservationManager() {
           </TableHead>
 
           <TableBody>
-            {reservations.map((r) => (
+            {filteredReservations.map((r) => (
               <TableRow key={r.id}>
                 <TableCell>{r.billing_name || r.user_name}</TableCell>
                 <TableCell>{r.start_date}</TableCell>
@@ -194,41 +250,53 @@ export default function ReservationManager() {
                 </TableCell>
 
                 <TableCell align="right">
-                  {/* Save Status */}
-                  <MKButton
-                    variant="gradient"
-                    color="info"
-                    size="small"
-                    onClick={() => handleSave(r.id)}
-                    disabled={saving[r.id]}
-                    sx={{ mr: 1 }}
-                  >
-                    {saving[r.id] ? "Saving..." : "Save"}
-                  </MKButton>
-
-                  {/* Refund Security Deposit */}
-                  {!r.security_refunded && r.security_deposit > 0 && (
+                  <MKBox display="flex" gap={1} flexWrap="wrap" justifyContent="flex-end">
+                    {/* Save Status */}
                     <MKButton
                       variant="gradient"
-                      color="warning"
+                      color="success"
                       size="small"
-                      onClick={() => handleRefundDeposit(r.id)}
-                      disabled={processingRefund[r.id]}
-                      sx={{ mr: 1 }}
+                      onClick={() => handleSave(r.id)}
+                      disabled={saving[r.id]}
                     >
-                      {processingRefund[r.id] ? "Refunding..." : "Refund Deposit"}
+                      {saving[r.id] ? "Saving..." : "Save"}
                     </MKButton>
-                  )}
 
-                  {/* Download Invoice */}
-                  <MKButton
-                    variant="gradient"
-                    color="dark"
-                    size="small"
-                    onClick={() => handleDownloadInvoice(r.id)}
-                  >
-                    Invoice
-                  </MKButton>
+                    {/* Refund Security Deposit */}
+                    {!r.security_refunded && r.security_deposit > 0 && (
+                      <MKButton
+                        variant="gradient"
+                        color="warning"
+                        size="small"
+                        onClick={() => handleRefundDeposit(r.id)}
+                        disabled={processingRefund[r.id]}
+                      >
+                        {processingRefund[r.id] ? "Refunding..." : "Refund Deposit"}
+                      </MKButton>
+                    )}
+
+                    {/* Delete reservation */}
+                    {r.status === "pending" && (
+                      <MKButton
+                        variant="gradient"
+                        color="error"
+                        size="small"
+                        onClick={() => handleDelete(r.id)}
+                      >
+                        Delete
+                      </MKButton>
+                    )}
+
+                    {/* Download Invoice */}
+                    <MKButton
+                      variant="gradient"
+                      color="info"
+                      size="small"
+                      onClick={() => handleDownloadInvoice(r.id)}
+                    >
+                      Invoice
+                    </MKButton>
+                  </MKBox>
                 </TableCell>
               </TableRow>
             ))}

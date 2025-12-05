@@ -1,18 +1,18 @@
 import { useState } from "react";
-import AvailabilityCalendar from "./AvailabilityCalendar";
-import PriceSummary from "./PriceSummary";
+import AvailabilityCalendar from "../../components/Booking/AvailabilityCalendar";
+import PriceSummary from "../../components/Billing/PriceSummary";
 import DefaultNavbar from "components/DefaultNavbar";
 import { useTranslation } from "react-i18next";
 import { routes } from "routes";
 import MKBox from "components/MKBox";
 import DefaultFooter from "components/Footers/DefaultFooter";
 import footerRoutes from "footer.routes";
-import bgImage from "assets/images/property/exterior/frontGroundFloor.JPG";
+import bgImage from "assets/images/property/beach/WidePhotoBeachNoRocks.jpg";
 import Container from "@mui/material/Container";
 import MKTypography from "components/MKTypography";
 import Grid from "@mui/material/Grid";
 import { Card } from "@mui/material";
-import BookingOptions from "./BookingOptions";
+import BookingOptions from "../../components/Booking/BookingOptions";
 
 export default function BookingPage() {
   const { t } = useTranslation();
@@ -90,7 +90,7 @@ export default function BookingPage() {
               name: "VRBO",
             },
             {
-              url: `${process.env.REACT_APP_BACKEND}/reservation/calendar.ics`,
+              url: `${process.env.REACT_APP_BACKEND}/bookings/calendar.ics`,
               name: "4Roses",
             },
           ]}

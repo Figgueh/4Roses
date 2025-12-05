@@ -32,7 +32,7 @@ export default function BookingSuccess() {
     const fetchBooking = async () => {
       try {
         const { data } = await axios.get(
-          `${process.env.REACT_APP_BACKEND}/reservation/booking/${idToLookup}`
+          `${process.env.REACT_APP_BACKEND}/bookings/booking/${idToLookup}`
         );
         setBooking(data.booking);
       } catch (err) {

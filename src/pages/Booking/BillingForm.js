@@ -6,23 +6,23 @@ import { loadStripe } from "@stripe/stripe-js";
 
 import MKBox from "components/MKBox";
 import MKTypography from "components/MKTypography";
-import StripeCheckout from "./StripeCheckout";
+import StripeCheckout from "../../components/Billing/StripeCheckout";
 import supabase from "connection/client";
 import axios from "axios";
-import MKButton from "components/MKButton";
-import AddressForm from "./AddressForm";
+import Iban from "components/Billing/Iban";
 
 const stripePromise = loadStripe(`${process.env.REACT_APP_STRIPE_PUBLIC_KEY}`);
 const ONLINE_PAYMENT_FEE_RATE = 0.029; // 2.9%
-const IBAN_ACCOUNT = "DE89 3704 0044 0532 0130 00";
 
 export default function BillingForm() {
   const { state } = useLocation();
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  const [bookingId, setBookingId] = useState("");
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUser(data.user));
+    setBookingId(crypto.randomUUID());
   }, []);
 
   const {
@@ -86,14 +86,14 @@ export default function BillingForm() {
           check_in: checkIn,
           check_out: checkOut,
           nights,
-          total_price: price,
-          amount_paid: dueToday,
+          total_price: creditPrice,
+          amount_paid: creditDueToday,
           payment_method: form.payment_method,
           guests_over: guestsOver,
           guests_under: guestsUnder,
         };
         const { data } = await axios.post(
-          `${process.env.REACT_APP_BACKEND}/reservation/create-payment-intent`,
+          `${process.env.REACT_APP_BACKEND}/billings/create-payment-intent`,
           {
             payload,
           }
@@ -114,8 +114,8 @@ export default function BillingForm() {
     checkIn,
     checkOut,
     nights,
-    price,
-    dueToday,
+    creditPrice,
+    creditDueToday,
     form.guests,
     form.billing_name,
     form.billing_address,
@@ -155,6 +155,7 @@ export default function BillingForm() {
     }
 
     const payload = {
+      id: bookingId,
       user_id: user.id,
       start_date: checkIn,
       end_date: checkOut,
@@ -178,7 +179,7 @@ export default function BillingForm() {
       setMessage("");
 
       const { data } = await axios.post(
-        `${process.env.REACT_APP_BACKEND}/reservation/createReservation`,
+        `${process.env.REACT_APP_BACKEND}/bookings/createReservation`,
         payload
       );
 
@@ -287,32 +288,13 @@ export default function BillingForm() {
 
               {/* IBAN */}
               {form.payment_method === "iban" && (
-                <>
-                  <AddressForm form={form} handleChange={handleChange} />
-                  <Grid item xs={12}>
-                    <MKBox p={2} bgcolor="#f1f1f1" borderRadius="md">
-                      <MKTypography variant="body2">
-                        Transfer the deposit in <strong>euros (€)</strong> to:
-                      </MKTypography>
-                      <MKTypography fontWeight="bold" mt={1}>
-                        {IBAN_ACCOUNT}
-                      </MKTypography>
-                      <MKTypography variant="body2" mt={1}>
-                        Use this email as reference:
-                      </MKTypography>
-                      <MKTypography fontWeight="bold">joefigueiras@gmail.com</MKTypography>
-                      <MKTypography variant="body2" mt={1} color="secondary">
-                        You will receive a confirmation email once payment is received.
-                      </MKTypography>
-                      <MKTypography variant="body2" mt={1} color="secondary">
-                        Please allow up to 24 hours for confirmation.
-                      </MKTypography>
-                    </MKBox>
-                    <MKButton onClick={handleSubmit} fullWidth color="dark" disabled={loading}>
-                      {loading ? "Processing..." : "Create reservation"}
-                    </MKButton>
-                  </Grid>
-                </>
+                <Iban
+                  form={form}
+                  handleChange={handleChange}
+                  booking={bookingId}
+                  loading={loading}
+                  handleSubmit={handleSubmit}
+                />
               )}
 
               {/* Stripe / Credit Card */}

@@ -9,9 +9,7 @@ import { Alert, AlertTitle } from "@mui/material";
 const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 async function fetchICSFromBackend(url) {
-  const backendUrl = `${process.env.REACT_APP_BACKEND}/reservation/ics?url=${encodeURIComponent(
-    url
-  )}`;
+  const backendUrl = `${process.env.REACT_APP_BACKEND}/bookings/ics?url=${encodeURIComponent(url)}`;
   const response = await fetch(backendUrl);
   if (!response.ok) throw new Error(`Failed to fetch ICS: ${response.status}`);
   return response.text();
@@ -59,7 +57,7 @@ export default function AvailabilityCalendar({ icsUrls, selectedDates, onSelecti
   // Load monthly prices
   useEffect(() => {
     let mounted = true;
-    fetch(`${process.env.REACT_APP_BACKEND}/reservation/monthlyPrice`)
+    fetch(`${process.env.REACT_APP_BACKEND}/billings/monthlyPrice`)
       .then((res) => res.json())
       .then((data) => {
         if (mounted) setMonthlyPrices(data || {});

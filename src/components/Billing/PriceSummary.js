@@ -280,7 +280,7 @@ export default function PriceSummary({ bookingData }) {
               }
 
               const { data } = await axios.get(
-                `${process.env.REACT_APP_BACKEND}/reservation/check/${start_date}/${end_date}`
+                `${process.env.REACT_APP_BACKEND}/bookings/check/${start_date}/${end_date}`
               );
 
               if (data.isBooked) {
