@@ -50,7 +50,14 @@ function AdminDash() {
   };
 
   return (
-    <Box sx={{ display: "flex", minHeight: "100vh", backgroundColor: "#f8f9fa" }}>
+    <Box
+      sx={{
+        minWidth: activeTool === "reservation manager" ? "1600px" : "100%",
+        display: "flex",
+        minHeight: "100vh",
+        backgroundColor: "#f8f9fa",
+      }}
+    >
       {/* Sidebar */}
       <Box
         sx={{

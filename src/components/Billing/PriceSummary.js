@@ -301,6 +301,9 @@ export default function PriceSummary({ bookingData }) {
                 state: {
                   dates: selectedDates,
                   nights: totalNights,
+                  accommodation_subtotal: accommodationSubtotal,
+                  sales_tax: salesTax,
+                  tourist_tax: touristTax,
                   price: totalPrice,
                   dueToday,
                   guestsOver,

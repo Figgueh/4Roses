@@ -29,7 +29,7 @@ export const generateCalendar = async (req, res, next) => {
     const { data: reservations, error } = await supabase
       .from("reservations")
       .select("id, start_date, end_date, billing_name, status")
-      .eq("status", "confirmed");
+      .in("status", ["confirmed", "paid", "completed"]);
 
     if (error) throw error;
 
@@ -108,6 +108,21 @@ export const getAllReservations = async (req, res) => {
   }
 };
 
+async function waitForReservation(paymentIntentId, maxAttempts = 20) {
+  for (let i = 0; i < maxAttempts; i++) {
+    const { data } = await supabase
+      .from("reservations")
+      .select("*")
+      .contains("payment_intent", [paymentIntentId])
+      .maybeSingle();
+
+    if (data) return data; // Found it!
+    await new Promise((r) => setTimeout(r, 500)); // Wait 0.5s
+  }
+
+  throw new Error("Timed out waiting for webhook to store reservation.");
+}
+
 // GET reservation data by id
 // /booking/:id
 export const getReservationData = async (req, res, next) => {
@@ -116,7 +131,7 @@ export const getReservationData = async (req, res, next) => {
   let bookingData = {};
 
   try {
-    // First assume the id submitted is the reservation id
+    // Try to get by reservation id first
     const { data: bookingDataById, error } = await supabase
       .from("reservations")
       .select("*")
@@ -126,19 +141,8 @@ export const getReservationData = async (req, res, next) => {
     if (!error) {
       bookingData = bookingDataById;
     } else {
-      // If the reservation id isn't found, then look up based on the payment intent
-      const { data: bookingDataByIntent, error } = await supabase
-        .from("reservations")
-        .select("*")
-        .contains("payment_intent", [id])
-        .single();
-
-      if (!error) {
-        bookingData = bookingDataByIntent;
-      } else {
-        console.error(error);
-        return res.status(500).json({ error: "Failed to load reservation data." });
-      }
+      // Fallback: wait for webhook to store reservation by payment intent
+      bookingData = await waitForReservation(id);
     }
 
     // Get the users email
@@ -193,6 +197,9 @@ export const createReservation = async (req, res) => {
       user_id,
       start_date,
       end_date,
+      accommodation_subtotal,
+      sales_tax,
+      tourist_tax,
       total_price,
       amount_paid,
       guests_over,
@@ -238,6 +245,9 @@ export const createReservation = async (req, res) => {
           user_id,
           start_date,
           end_date,
+          accommodation_subtotal,
+          sales_tax,
+          tourist_tax,
           total_price,
           amount_paid,
           payment_method,
@@ -278,12 +288,12 @@ export const updateReservation = async (req, res) => {
   }
 
   try {
-    if (status == "confirmed") {
+    if (status == "confirmed" || status == "completed" || status == "paid") {
       // Check for conflicting reservations
       const { data: existing, error: conflictError } = await supabase
         .from("reservations")
         .select("*")
-        .eq("status", "confirmed")
+        .in("status", ["confirmed", "completed", "paid"])
         .neq("id", id) // exclude the current reservation
         .gte("start_date", start_date)
         .lte("end_date", end_date);
@@ -318,6 +328,30 @@ export const updateReservation = async (req, res) => {
   }
 };
 
+export const settleSecurityDeposit = async (req, res, next) => {
+  try {
+    const { amount } = req.body;
+    const { id } = req.params;
+
+    // Save to database
+    const { data: updated } = await supabase
+      .from("reservations")
+      .update({
+        security_deposit_refunded: true,
+        security_deposit_refunded_amount: amount,
+        status: "completed",
+      })
+      .eq("id", id)
+      .select()
+      .single();
+
+    res.json({ success: true, reservation: updated });
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
+};
+
 export const deleteReservation = async (req, res, next) => {
   const { id } = req.params;
 
@@ -334,8 +368,10 @@ export const deleteReservation = async (req, res, next) => {
     }
 
     // Prevent deleting non-pending reservations
-    if (reservation.status !== "pending") {
-      return res.status(400).json({ error: "Only pending reservations can be deleted" });
+    if (reservation.status !== "pending" && reservation.status !== "cancelled") {
+      return res
+        .status(400)
+        .json({ error: "Only pending or cancelled reservations can be deleted" });
     }
 
     // Delete the reservation

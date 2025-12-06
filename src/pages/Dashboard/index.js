@@ -117,7 +117,7 @@ function Dashboard() {
         </Container>
 
         {/* Tab Content */}
-        <MKBox mt={2}>
+        <MKBox mt={2} ml={-5} mr={-5}>
           {activeTab === 0 && <ProfileTab />}
           {activeTab === 1 && <BookingsTab />}
           {activeTab === 2 && isAdmin && <AdminDash />}

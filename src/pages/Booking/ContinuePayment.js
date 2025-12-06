@@ -7,6 +7,7 @@ import { CircularProgress, Card, Grid } from "@mui/material";
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import StripeCheckout from "../../components/Billing/StripeCheckout";
+import Iban from "components/Billing/Iban";
 
 const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY);
 
@@ -92,32 +93,7 @@ export default function ContinuePayment() {
         ) : null}
 
         {/* IBAN PAYMENT */}
-        {booking.payment_method === "iban" && (
-          <Grid item xs={12} mt={2}>
-            <Card sx={{ p: 3, backgroundColor: "#f7f7f7", borderRadius: 2 }}>
-              <MKTypography variant="h6" fontWeight="bold" mb={1}>
-                Bank Transfer Required
-              </MKTypography>
-
-              <MKTypography fontSize="0.9rem" mb={1}>
-                Please send the remaining balance to the following IBAN:
-              </MKTypography>
-
-              <MKTypography
-                fontWeight="bold"
-                fontSize="1.1rem"
-                mb={2}
-                sx={{ wordBreak: "break-word" }}
-              >
-                {process.env.REACT_APP_RENTAL_IBAN}
-              </MKTypography>
-
-              <MKTypography fontSize="0.85rem" color="text.secondary">
-                Make sure to include your Booking ID in the transfer reference.
-              </MKTypography>
-            </Card>
-          </Grid>
-        )}
+        {booking.payment_method === "iban" && <Iban booking={booking.id} />}
 
         {/* MESSAGE */}
         {message && (

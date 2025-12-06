@@ -44,7 +44,7 @@ export default function BookingSuccess() {
     };
 
     fetchBooking();
-  }, [bookingId]);
+  }, [bookingId, urlPaymentIntent]);
 
   const handleBackToHome = () => navigate("/");
 
@@ -178,8 +178,8 @@ export default function BookingSuccess() {
         {status === "pending" && (
           <MKBox mt={3} p={3} bgcolor="#fff3cd" borderRadius="md" border="1px solid #ffeeba">
             <MKTypography variant="body2" mb={2}>
-              This booking is currently pending. You can view it in your dashboard, where you can
-              also make any necessary updates or changes.
+              Your booking is currently pending. You can view it anytime in your dashboard, where
+              you can cancel it or monitor its status.
             </MKTypography>
           </MKBox>
         )}

@@ -12,7 +12,7 @@ import axios from "axios";
 import Iban from "components/Billing/Iban";
 
 const stripePromise = loadStripe(`${process.env.REACT_APP_STRIPE_PUBLIC_KEY}`);
-const ONLINE_PAYMENT_FEE_RATE = 0.029; // 2.9%
+const ONLINE_PAYMENT_FEE_RATE = 0.036; // 3.6%
 
 export default function BillingForm() {
   const { state } = useLocation();
@@ -28,6 +28,9 @@ export default function BillingForm() {
   const {
     dates = {},
     nights = 0,
+    accommodation_subtotal = 0,
+    sales_tax = 0,
+    tourist_tax = 0,
     price = 0,
     dueToday = 0,
     guestsOver = 0,
@@ -36,6 +39,7 @@ export default function BillingForm() {
   const guests = guestsOver + guestsUnder;
   const [creditPrice, setCreditPrice] = useState(price);
   const [creditDueToday, setCreditDueToday] = useState(dueToday);
+  const fee = price * ONLINE_PAYMENT_FEE_RATE;
 
   const [form, setForm] = useState({
     payment_method: "iban",
@@ -50,9 +54,7 @@ export default function BillingForm() {
 
   useEffect(() => {
     if (form.payment_method === "credit_card") {
-      const newPrice = price - 500;
-      const fee = newPrice * ONLINE_PAYMENT_FEE_RATE;
-      const newPriceWithFee = newPrice + fee;
+      const newPriceWithFee = price + fee;
       const newDue = newPriceWithFee * 0.5;
 
       setCreditPrice(newPriceWithFee);
@@ -80,17 +82,23 @@ export default function BillingForm() {
     const fetchClientSecret = async () => {
       setLoading(true);
       setMessage("");
+      // If the credit price hasn't been updated it, then don't create the intent.
+      if (price == creditPrice) return;
+
       try {
         const payload = {
           user_id: user.id,
           check_in: checkIn,
           check_out: checkOut,
-          nights,
+          accommodation_subtotal,
+          sales_tax,
+          tourist_tax,
           total_price: creditPrice,
           amount_paid: creditDueToday,
           payment_method: form.payment_method,
           guests_over: guestsOver,
           guests_under: guestsUnder,
+          credit_fees: fee,
         };
         const { data } = await axios.post(
           `${process.env.REACT_APP_BACKEND}/billings/create-payment-intent`,
@@ -159,10 +167,12 @@ export default function BillingForm() {
       user_id: user.id,
       start_date: checkIn,
       end_date: checkOut,
-      nights,
-      payment_method: form.payment_method,
+      accommodation_subtotal,
+      sales_tax,
+      tourist_tax,
       total_price: price,
       amount_paid: dueToday,
+      payment_method: form.payment_method,
       guests_over: guestsOver,
       guests_under: guestsUnder,
       billing_name: form.billing_name,
@@ -243,13 +253,10 @@ export default function BillingForm() {
                 border="1px solid #ffe58f"
               >
                 <MKTypography variant="body2" color="warning">
-                  Online payment fee: <strong>+2.9%</strong>
+                  Online payment fee:{" "}
+                  <strong>+{(ONLINE_PAYMENT_FEE_RATE * 100).toFixed(2)}%</strong>
                   <br />
                   (Applied automatically to the total)
-                </MKTypography>
-                <MKTypography variant="body2" color="warning" mt={2}>
-                  The €500 security deposit is <strong>NOT charged today</strong> when paying by
-                  credit card. It may be collected later if needed.
                 </MKTypography>
               </MKBox>
             )}

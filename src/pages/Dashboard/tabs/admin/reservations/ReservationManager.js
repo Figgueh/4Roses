@@ -23,7 +23,6 @@ export default function ReservationManager() {
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState({});
-  const [processingRefund, setProcessingRefund] = useState({});
   const [backupReservations, setBackupReservations] = useState([]);
 
   const [error, setError] = useState("");
@@ -31,7 +30,7 @@ export default function ReservationManager() {
 
   const [filterId, setFilterId] = useState(""); // <-- Booking ID filter state
 
-  const statusOptions = ["pending", "confirmed", "completed", "cancelled"];
+  const statusOptions = ["pending", "confirmed", "paid", "completed", "cancelled"];
 
   // --------------------------
   // Load Reservations
@@ -41,6 +40,7 @@ export default function ReservationManager() {
       try {
         const { data } = await axios.get(`${process.env.REACT_APP_BACKEND}/bookings`);
         setReservations(data);
+        setBackupReservations(data);
       } catch (err) {
         console.error(err);
         setError("Failed to load reservations.");
@@ -55,7 +55,6 @@ export default function ReservationManager() {
   // Change Status (locally)
   // --------------------------
   const handleStatusChange = (id, newStatus) => {
-    setBackupReservations(reservations);
     setReservations((prev) => prev.map((r) => (r.id === id ? { ...r, status: newStatus } : r)));
   };
 
@@ -69,11 +68,17 @@ export default function ReservationManager() {
     setSaving((prev) => ({ ...prev, [id]: true }));
 
     try {
-      await axios.put(`${process.env.REACT_APP_BACKEND}/bookings/${id}`, {
+      const { data } = await axios.put(`${process.env.REACT_APP_BACKEND}/bookings/${id}`, {
         start_date: reservation.start_date,
         end_date: reservation.end_date,
         status: reservation.status,
       });
+
+      const updated = data.updated;
+
+      setReservations((prev) => prev.map((r) => (r.id === id ? updated : r)));
+
+      setBackupReservations((prev) => prev.map((r) => (r.id === id ? updated : r)));
 
       setError("");
     } catch (err) {
@@ -86,29 +91,8 @@ export default function ReservationManager() {
       }
 
       setReservations(backupReservations);
-      return;
     } finally {
       setSaving((prev) => ({ ...prev, [id]: false }));
-    }
-  };
-
-  // --------------------------
-  // Refund Deposit
-  // --------------------------
-  const handleRefundDeposit = async (id) => {
-    setProcessingRefund((p) => ({ ...p, [id]: true }));
-    try {
-      await axios.post(`${process.env.REACT_APP_BACKEND}/reservation/${id}/refund-security`);
-
-      // Update local UI
-      setReservations((prev) =>
-        prev.map((r) => (r.id === id ? { ...r, security_refunded: true } : r))
-      );
-    } catch (err) {
-      console.error(err);
-      setError("Failed to refund security deposit.");
-    } finally {
-      setProcessingRefund((p) => ({ ...p, [id]: false }));
     }
   };
 
@@ -117,10 +101,9 @@ export default function ReservationManager() {
   // --------------------------
   const handleDownloadInvoice = async (id) => {
     try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND}/reservation/${id}/invoice`,
-        { responseType: "blob" }
-      );
+      const response = await axios.get(`${process.env.REACT_APP_BACKEND}/billings/${id}/invoice`, {
+        responseType: "blob",
+      });
 
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const a = document.createElement("a");
@@ -156,6 +139,45 @@ export default function ReservationManager() {
     } catch (err) {
       console.error(err);
       setError("Unexpected error deleting booking.");
+    }
+  };
+
+  // --------------------------
+  // Settle Security Deposit
+  // --------------------------
+  const handleSecurityDeposit = async (id) => {
+    const input = window.prompt("Enter the amount reimbursed to the customer (€):");
+
+    if (input === null) return; // user pressed Cancel
+
+    const amount = Number(input);
+
+    if (isNaN(amount) || amount < 0) {
+      setError("Invalid amount entered.");
+      return;
+    }
+
+    if (amount > 500) {
+      setError("500€ is the maximum amount that can be refunded.");
+    }
+
+    try {
+      const { data } = await axios.post(
+        `${process.env.REACT_APP_BACKEND}/bookings/${id}/settleSecurityDeposit`,
+        { amount }
+      );
+
+      if (data.error) {
+        setError(data.error);
+        return;
+      }
+
+      setReservations((prev) => prev.map((r) => (r.id === id ? data.reservation : r)));
+      setBackupReservations((prev) => prev.map((r) => (r.id === id ? data.reservation : r)));
+
+      setMessage(`Security deposit settled. Reimbursed €${amount.toFixed(2)}.`);
+    } catch (err) {
+      setError("Failed to settle security deposit.");
     }
   };
 
@@ -220,6 +242,7 @@ export default function ReservationManager() {
               <TableCell>Guests</TableCell>
               <TableCell>Total (€)</TableCell>
               <TableCell>Paid (€)</TableCell>
+              <TableCell>Payment method</TableCell>
               <TableCell>Status</TableCell>
               <TableCell align="right">Actions</TableCell>
             </TableRow>
@@ -234,6 +257,7 @@ export default function ReservationManager() {
                 <TableCell>{r.guests_under + r.guests_over}</TableCell>
                 <TableCell>{r.total_price?.toFixed(2)}</TableCell>
                 <TableCell>{r.amount_paid?.toFixed(2)}</TableCell>
+                <TableCell>{r.payment_method}</TableCell>
 
                 <TableCell>
                   <Select
@@ -252,31 +276,20 @@ export default function ReservationManager() {
                 <TableCell align="right">
                   <MKBox display="flex" gap={1} flexWrap="wrap" justifyContent="flex-end">
                     {/* Save Status */}
-                    <MKButton
-                      variant="gradient"
-                      color="success"
-                      size="small"
-                      onClick={() => handleSave(r.id)}
-                      disabled={saving[r.id]}
-                    >
-                      {saving[r.id] ? "Saving..." : "Save"}
-                    </MKButton>
-
-                    {/* Refund Security Deposit */}
-                    {!r.security_refunded && r.security_deposit > 0 && (
+                    {r.status !== backupReservations.find((b) => b.id === r.id)?.status && (
                       <MKButton
                         variant="gradient"
-                        color="warning"
+                        color="success"
                         size="small"
-                        onClick={() => handleRefundDeposit(r.id)}
-                        disabled={processingRefund[r.id]}
+                        onClick={() => handleSave(r.id)}
+                        disabled={saving[r.id]}
                       >
-                        {processingRefund[r.id] ? "Refunding..." : "Refund Deposit"}
+                        {saving[r.id] ? "Saving..." : "Save"}
                       </MKButton>
                     )}
 
                     {/* Delete reservation */}
-                    {r.status === "pending" && (
+                    {(r.status === "pending" || r.status === "cancelled") && (
                       <MKButton
                         variant="gradient"
                         color="error"
@@ -288,14 +301,28 @@ export default function ReservationManager() {
                     )}
 
                     {/* Download Invoice */}
-                    <MKButton
-                      variant="gradient"
-                      color="info"
-                      size="small"
-                      onClick={() => handleDownloadInvoice(r.id)}
-                    >
-                      Invoice
-                    </MKButton>
+                    {r.status === "completed" && (
+                      <MKButton
+                        variant="gradient"
+                        color="info"
+                        size="small"
+                        onClick={() => handleDownloadInvoice(r.id)}
+                      >
+                        Invoice
+                      </MKButton>
+                    )}
+
+                    {/* Settle security deposit */}
+                    {r.status === "paid" && (
+                      <MKButton
+                        variant="gradient"
+                        color="info"
+                        size="small"
+                        onClick={() => handleSecurityDeposit(r.id)}
+                      >
+                        Settle security deposit
+                      </MKButton>
+                    )}
                   </MKBox>
                 </TableCell>
               </TableRow>

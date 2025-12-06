@@ -8,6 +8,7 @@ import {
   getIcs,
   getReservationData,
   getUserReservations,
+  settleSecurityDeposit,
   updateReservation,
 } from "../controllers/bookingController.js";
 
@@ -22,5 +23,6 @@ router.get("/", getAllReservations);
 router.post("/createReservation", createReservation);
 router.put("/:id", updateReservation);
 router.delete("/:id", deleteReservation);
+router.post("/:id/settleSecurityDeposit", settleSecurityDeposit);
 
 export default router;

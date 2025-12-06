@@ -6,11 +6,14 @@ import MKBox from "components/MKBox";
 import MKTypography from "components/MKTypography";
 import MKButton from "components/MKButton";
 import AddressForm from "./AddressForm";
+import { useNavigate } from "react-router-dom";
 
 export default function Iban({ form, handleChange, booking, loading, handleSubmit }) {
+  const navigate = useNavigate();
+
   return (
     <>
-      <AddressForm form={form} handleChange={handleChange} />
+      {form && handleChange && <AddressForm form={form} handleChange={handleChange} />}
 
       <Grid item xs={12}>
         <MKBox p={2} bgcolor="#f1f1f1" borderRadius="md">
@@ -26,7 +29,7 @@ export default function Iban({ form, handleChange, booking, loading, handleSubmi
             <strong>Recipient details:</strong>
           </MKTypography>
 
-          <MKTypography fontWeight="bold">Joaquim Figueiras</MKTypography>
+          <MKTypography>Name: Joaquim Belo Figueiras</MKTypography>
           <MKTypography>Email: joefigueiras@gmail.com</MKTypography>
           <MKTypography>Phone: +351 969 755 150</MKTypography>
 
@@ -50,20 +53,24 @@ export default function Iban({ form, handleChange, booking, loading, handleSubmi
           </MKTypography>
         </MKBox>
 
-        <MKButton onClick={handleSubmit} fullWidth color="dark" disabled={loading}>
-          {loading ? "Processing..." : "Create reservation"}
-        </MKButton>
+        {handleSubmit ? (
+          <MKButton onClick={handleSubmit} fullWidth color="dark" disabled={loading}>
+            {loading ? "Processing..." : "Create reservation"}
+          </MKButton>
+        ) : (
+          <MKButton onClick={() => navigate("/dashboard")} fullWidth color="dark">
+            back to Dashboard
+          </MKButton>
+        )}
       </Grid>
     </>
   );
 }
 
 Iban.propTypes = {
-  form: PropTypes.object.isRequired,
-  handleChange: PropTypes.func.isRequired,
-  booking: PropTypes.shape({
-    id: PropTypes.string,
-  }).isRequired,
-  loading: PropTypes.bool.isRequired,
-  handleSubmit: PropTypes.func.isRequired,
+  form: PropTypes.object,
+  handleChange: PropTypes.func,
+  booking: PropTypes.string.isRequired,
+  loading: PropTypes.bool,
+  handleSubmit: PropTypes.func,
 };

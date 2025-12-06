@@ -15,7 +15,18 @@ export const stripeWebhookHandler = async (req, res) => {
   }
 
   const pi = event.data.object;
-  const { user_id, check_in, check_out, total_price, guests_over, guests_under } = pi.metadata;
+  const {
+    user_id,
+    check_in,
+    check_out,
+    accommodation_subtotal,
+    sales_tax,
+    tourist_tax,
+    total_price,
+    guests_over,
+    guests_under,
+    credit_fees,
+  } = pi.metadata;
 
   if (event.type === "payment_intent.succeeded") {
     const intent = event.data.object;
@@ -36,24 +47,17 @@ export const stripeWebhookHandler = async (req, res) => {
       // Increment the amount paid
       const updatedAmount = data.amount_paid + paymentAmount;
 
+      // Create the new payment_intent array
+      const payment_intent = [data.payment_intent[0], pi.id];
+      console.log(payment_intent);
+
       // Update the database
       const { error: updateError } = await supabase
         .from("reservations")
-        .update({ amount_paid: updatedAmount })
+        .update({ amount_paid: updatedAmount, status: "paid", payment_intent })
         .eq("id", reservationId);
 
       if (updateError) throw updateError;
-
-      // If there is not more remaining balance
-      if (updatedAmount >= data.total_price) {
-        // Mark as completed in the database
-        const { error: updateError } = await supabase
-          .from("reservations")
-          .update({ status: "completed" })
-          .eq("id", reservationId);
-
-        if (updateError) throw updateError;
-      }
 
       res.json({ received: true });
       // If not then we initialize the reservation.
@@ -70,10 +74,13 @@ export const stripeWebhookHandler = async (req, res) => {
           user_id,
           start_date: check_in,
           end_date: check_out,
-          guests_over,
-          guests_under,
+          accommodation_subtotal,
+          sales_tax,
+          tourist_tax,
           total_price: parseFloat(total_price),
           amount_paid: fullPi.amount_received / 100,
+          guests_over,
+          guests_under,
           payment_method: "credit card",
           billing_name: billing.name,
           billing_address: billing.address?.line1,
@@ -84,6 +91,7 @@ export const stripeWebhookHandler = async (req, res) => {
           phone: billing.phone,
           status: "confirmed",
           payment_intent: [pi.id],
+          credit_fees,
         };
 
         const { error } = await supabase.from("reservations").insert([reservationData]);

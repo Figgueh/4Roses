@@ -48,7 +48,7 @@ import breakpoints from "assets/theme/base/breakpoints";
 
 //Images
 import MainLogo from "assets/images/small-logos/4RosesHeader.png";
-import { getProfilePicture } from "connection/users/getProfilePicture";
+import axios from "axios";
 
 import { useTranslation } from "react-i18next";
 import { supportedLanguages } from "i18n";
@@ -66,7 +66,7 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
   const [mobileView, setMobileView] = useState(false);
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [profilePicture, setProfilePicture] = useState("");
+  const [userInfo, setUserInfo] = useState({});
   const { session, signOut } = UserAuth();
   const { i18n } = useTranslation();
   const [dropdownLang, setDropdownLang] = useState(null);
@@ -105,11 +105,14 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
       // Check if the user is logged in
       if (session?.user?.id) {
         setIsLoggedIn(true);
-        const picture = await getProfilePicture(session.user.id);
-        setProfilePicture(picture);
+        const { data: userInfo } = await axios.get(
+          `${process.env.REACT_APP_BACKEND}/users/${session?.user?.id}`
+        );
+
+        setUserInfo(userInfo);
       } else {
         setIsLoggedIn(false);
-        setProfilePicture("");
+        setUserInfo({});
       }
     };
 
@@ -568,19 +571,29 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
           >
             {renderNavbarItems}
           </MKBox>
-          {/* Check if the user is logged in, if they are show the profile picture */}
-          {isLoggedIn && (
-            <Link to="/dashboard">
-              <MKBox ml={{ xs: "auto", lg: 0 }} mr={2}>
-                <MKAvatar
-                  src={profilePicture}
-                  alt="Profile picture"
-                  size="md"
-                  shadow="xl"
-                ></MKAvatar>
-              </MKBox>
-            </Link>
-          )}
+          <Link to="/dashboard">
+            {/* Check if the user is logged in, if they are show the profile picture */}
+            {isLoggedIn && !userInfo.avatar_url ? (
+              // If there isn't a saved avatar then show their first name.
+              <MKAvatar
+                sx={{ bgcolor: "#9fc5e8", fontSize: "0.60rem", mr: 2 }}
+                alt="Profile picture"
+                size="md"
+                shadow="xl"
+              >
+                {userInfo.first_name}
+              </MKAvatar>
+            ) : (
+              // Show the avatar image
+              <MKAvatar
+                src={userInfo.avatar_url}
+                sx={{ bgcolor: "#9fc5e8", mr: 2 }}
+                alt="Profile picture"
+                size="md"
+                shadow="xl"
+              />
+            )}
+          </Link>
 
           <MKBox ml={{ lg: 0 }} display={{ xs: "none", lg: "flex" }} alignItems="center" gap={1}>
             {/* Action Button */}
@@ -630,7 +643,6 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
               ))}
             </Menu>
           </MKBox>
-
           <MKBox
             display={{ xs: "inline-block", lg: "none" }}
             lineHeight={0}
