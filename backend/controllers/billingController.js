@@ -69,7 +69,7 @@ export const generatePDF = async (req, res) => {
   const { id } = req.params;
 
   // Load logo as Base64 for PDF usage
-  const logoPath = path.resolve("../src/assets/images/small-logos/4RosesHeader.png"); // adjust folder
+  const logoPath = path.resolve("assets/logo/4RosesHeader.png"); // adjust folder
   const logoBase64 = fs.readFileSync(logoPath, { encoding: "base64" });
 
   try {
