@@ -62,6 +62,35 @@ export const updateMonthlyPrice = async (req, res, next) => {
   }
 };
 
+const getBrowserExecutablePath = () => {
+  // Try common paths where Chrome/Chromium might be installed
+  const possiblePaths = [
+    "/usr/bin/chromium-browser",
+    "/usr/bin/chromium",
+    "/snap/bin/chromium",
+    "/app/node_modules/puppeteer/.local-chromium/linux-*/chrome-headless-shell/chrome-headless-shell",
+  ];
+
+  for (const p of possiblePaths) {
+    if (p.includes("*")) {
+      // Handle wildcard paths
+      const dir = path.dirname(p);
+      const pattern = path.basename(p);
+      try {
+        const files = fs.readdirSync(dir);
+        const match = files.find((f) => f.includes(pattern.replace("*", "")));
+        if (match) return path.join(dir, match);
+      } catch (e) {
+        // Directory doesn't exist, continue
+      }
+    } else if (fs.existsSync(p)) {
+      return p;
+    }
+  }
+
+  return null; // No browser found
+};
+
 // -----------------------------------------
 // Download Invoice as PDF
 // -----------------------------------------
@@ -313,9 +342,16 @@ export const generatePDF = async (req, res) => {
     // ---------------------------------------------------------
     // PDF GENERATION
     // ---------------------------------------------------------
+    const executablePath = getBrowserExecutablePath();
+    if (!executablePath) {
+      return res.status(500).json({
+        error: "Browser executable not found. Please check server configuration.",
+      });
+    }
+
     const browser = await puppeteer.launch({
       headless: true,
-      executablePath: "/usr/bin/chromium-browser",
+      executablePath: executablePath, // Use the found path
       args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
     });
 
