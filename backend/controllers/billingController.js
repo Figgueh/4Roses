@@ -1,6 +1,6 @@
 import supabase from "../config/supabaseClient.js";
 import Stripe from "stripe";
-import puppeteer from "puppeteer";
+import puppeteer from "puppeteer-extra";
 import dayjs from "dayjs";
 import fs from "fs";
 import path from "path";
