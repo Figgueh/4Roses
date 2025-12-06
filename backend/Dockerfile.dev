@@ -10,6 +10,9 @@ USER root
 COPY package*.json ./
 RUN npm install
 
+# Download Chromium during build
+RUN npx puppeteer browsers install chrome
+
 # Copy source files
 COPY . .
 
