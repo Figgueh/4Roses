@@ -1,9 +1,12 @@
 import supabase from "../config/supabaseClient.js";
 import Stripe from "stripe";
 import puppeteer from "puppeteer-extra";
+import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import dayjs from "dayjs";
 import fs from "fs";
 import path from "path";
+
+puppeteer.use(StealthPlugin());
 
 // GET price for all months
 //
@@ -314,7 +317,15 @@ export const generatePDF = async (req, res) => {
     // PDF GENERATION
     // ---------------------------------------------------------
     const browser = await puppeteer.launch({
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      headless: true,
+      executablePath: "/usr/bin/google-chrome-stable",
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-gpu",
+        "--no-zygote",
+      ],
     });
 
     const page = await browser.newPage();
