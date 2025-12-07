@@ -1,34 +1,33 @@
-# Use official Puppeteer image as base
-FROM ghcr.io/puppeteer/puppeteer:latest
+# Use the official Node.js image as the base image
+FROM node:18-slim
 
-WORKDIR /app
+# Set the working directory
+WORKDIR /usr/src/app
 
-USER root
+# We don't need the standalone Chromium
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
 
-# Copy package files
+# Install Google Chrome Stable and fonts
+# Note: this installs the necessary libs to make the browser work with Puppeteer.
+RUN apt-get update && apt-get install gnupg wget -y && \
+    wget --quiet --output-document=- https://dl-ssl.google.com/linux/linux_signing_key.pub | gpg --dearmor > /etc/apt/trusted.gpg.d/google-archive.gpg && \
+    sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' && \
+    apt-get update && \
+    apt-get install google-chrome-stable -y --no-install-recommends && \
+    rm -rf /var/lib/apt/lists/*
+
+# Verify that Chrome is installed at the expected location
+RUN ls -alh /usr/bin/google-chrome-stable && \
+    /usr/bin/google-chrome-stable --version
+
+# Copy package.json and package-lock.json
 COPY package*.json ./
 
-# Install dependencies
+# Install app dependencies including Puppeteer
 RUN npm install
 
-# Explicitly download browser using puppeteer
-# This creates /home/pptruser/.cache/puppeteer/chrome-headless-shell/...
-RUN npm exec puppeteer@latest browsers install chrome
-
-# Verify browser was downloaded
-RUN ls -la /home/pptruser/.cache/puppeteer/ || echo "Browser cache not found yet"
-
-# Copy application code
+# Bundle app source code
 COPY . .
-
-# Fix permissions
-RUN chown -R pptruser:pptruser /app /home/pptruser
-
-# Switch to non-root user
-USER pptruser
-
-# Verify browser is accessible by pptruser
-RUN ls -la /home/pptruser/.cache/puppeteer/chrome-headless-shell/ || echo "Checking browser..."
 
 EXPOSE 3001
 
