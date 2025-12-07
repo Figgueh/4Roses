@@ -76,8 +76,6 @@ export const generatePDF = async (req, res) => {
   const logoBase64 = fs.readFileSync(logoPath, { encoding: "base64" });
 
   try {
-    console.log(`[PDF] Fetching reservation ${id}...`);
-
     const { data: reservation, error } = await supabase
       .from("reservations")
       .select("*")
@@ -89,7 +87,6 @@ export const generatePDF = async (req, res) => {
       return res.status(404).json({ error: "Reservation not found." });
     }
 
-    console.log(`[PDF] Fetching user info...`);
     const { data: userInfo } = await supabase.auth.admin.getUserById(reservation.user_id);
 
     // Convert missing values safely
@@ -317,13 +314,14 @@ export const generatePDF = async (req, res) => {
 </html>
     `;
 
+    const isLocal = process.env.NODE_ENV === "development";
+
     // ---------------------------------------------------------
     // PDF GENERATION - Launch browser (puppeteer handles downloading automatically)
     // ---------------------------------------------------------
-    console.log("[PDF] Launching browser...");
     browser = await puppeteer.launch({
       headless: true,
-      executablePath: "/usr/bin/google-chrome-stable",
+      executablePath: isLocal ? puppeteer.executablePath() : "/usr/bin/google-chrome",
       args: [
         "--no-sandbox",
         "--disable-setuid-sandbox",
@@ -332,19 +330,15 @@ export const generatePDF = async (req, res) => {
       ],
     });
 
-    console.log("[PDF] Creating page...");
     const page = await browser.newPage();
 
-    console.log("[PDF] Setting page content...");
     await page.setContent(html, { waitUntil: "networkidle0" });
 
-    console.log("[PDF] Generating PDF...");
     const pdfBuffer = await page.pdf({
       format: "A4",
       printBackground: true,
     });
 
-    console.log(`[PDF] PDF generated successfully, size: ${pdfBuffer.length} bytes`);
     await browser.close();
 
     // Return file to client
@@ -370,11 +364,9 @@ export const generatePDF = async (req, res) => {
   } finally {
     if (browser) {
       try {
-        console.log("[PDF] Closing browser...");
         await browser.close();
-        console.log("[PDF] Browser closed successfully");
       } catch (e) {
-        console.error("[PDF] Error closing browser:", e.message);
+        console.error("Error closing browser:", e.message);
       }
     }
   }

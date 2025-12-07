@@ -277,7 +277,9 @@ export const createReservation = async (req, res) => {
 
 export const updateReservation = async (req, res) => {
   const { id } = req.params;
-  const { status, start_date, end_date } = req.body;
+  const { status, paid, start_date, end_date } = req.body;
+
+  console.log(status);
 
   if (!id) {
     return res.status(400).json({ error: "Reservation ID is required" });
@@ -311,7 +313,7 @@ export const updateReservation = async (req, res) => {
     // Update the reservation
     const { data, error: updateError } = await supabase
       .from("reservations")
-      .update({ status })
+      .update({ status, ...(status === "paid" && { amount_paid: paid }) })
       .eq("id", id)
       .select()
       .single();

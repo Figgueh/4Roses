@@ -61,7 +61,7 @@ export default function ReservationManager() {
   // --------------------------
   // Save Status (backend)
   // --------------------------
-  const handleSave = async (id) => {
+  const handleSave = async (id, status) => {
     const reservation = reservations.find((r) => r.id === id);
     if (!reservation) return;
 
@@ -71,7 +71,8 @@ export default function ReservationManager() {
       const { data } = await axios.put(`${process.env.REACT_APP_BACKEND}/bookings/${id}`, {
         start_date: reservation.start_date,
         end_date: reservation.end_date,
-        status: reservation.status,
+        paid: reservation.total_price,
+        ...(status ? { status: status } : { status: reservation.status }),
       });
 
       const updated = data.updated;
@@ -287,6 +288,22 @@ export default function ReservationManager() {
                         {saving[r.id] ? "Saving..." : "Save"}
                       </MKButton>
                     )}
+
+                    {/* confirm Iban deposit */}
+                    {(r.status === "pending" || r.status === "confirmed") &&
+                      r.payment_method === "iban" && (
+                        <MKButton
+                          variant="gradient"
+                          color="success"
+                          size="small"
+                          onClick={() =>
+                            handleSave(r.id, r.status === "pending" ? "confirmed" : "paid")
+                          }
+                          disabled={saving[r.id]}
+                        >
+                          confirm payment
+                        </MKButton>
+                      )}
 
                     {/* Delete reservation */}
                     {(r.status === "pending" || r.status === "cancelled") && (
