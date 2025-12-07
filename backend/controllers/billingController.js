@@ -1,12 +1,14 @@
 import supabase from "../config/supabaseClient.js";
 import Stripe from "stripe";
-import puppeteer from "puppeteer-core";
+import puppeteer from "puppeteer-extra";
+import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import dayjs from "dayjs";
 import fs from "fs";
 import path from "path";
 
+puppeteer.use(StealthPlugin());
+
 // GET price for all months
-//
 export const getMonthlyPrice = async (req, res, next) => {
   try {
     const { data, error } = await supabase
@@ -62,46 +64,20 @@ export const updateMonthlyPrice = async (req, res, next) => {
   }
 };
 
-const getBrowserExecutablePath = () => {
-  // Try common paths where Chrome/Chromium might be installed
-  const possiblePaths = [
-    "/usr/bin/chromium-browser",
-    "/usr/bin/chromium",
-    "/snap/bin/chromium",
-    "/app/node_modules/puppeteer/.local-chromium/linux-*/chrome-headless-shell/chrome-headless-shell",
-  ];
-
-  for (const p of possiblePaths) {
-    if (p.includes("*")) {
-      // Handle wildcard paths
-      const dir = path.dirname(p);
-      const pattern = path.basename(p);
-      try {
-        const files = fs.readdirSync(dir);
-        const match = files.find((f) => f.includes(pattern.replace("*", "")));
-        if (match) return path.join(dir, match);
-      } catch (e) {
-        // Directory doesn't exist, continue
-      }
-    } else if (fs.existsSync(p)) {
-      return p;
-    }
-  }
-
-  return null; // No browser found
-};
-
 // -----------------------------------------
 // Download Invoice as PDF
 // -----------------------------------------
 export const generatePDF = async (req, res) => {
   const { id } = req.params;
+  let browser;
 
   // Load logo as Base64 for PDF usage
-  const logoPath = path.resolve("assets/logo/4RosesHeader.png"); // adjust folder
+  const logoPath = path.resolve("assets/logo/4RosesHeader.png");
   const logoBase64 = fs.readFileSync(logoPath, { encoding: "base64" });
 
   try {
+    console.log(`[PDF] Fetching reservation ${id}...`);
+
     const { data: reservation, error } = await supabase
       .from("reservations")
       .select("*")
@@ -109,9 +85,11 @@ export const generatePDF = async (req, res) => {
       .single();
 
     if (error || !reservation) {
+      console.error(`[PDF] Reservation not found: ${id}`);
       return res.status(404).json({ error: "Reservation not found." });
     }
 
+    console.log(`[PDF] Fetching user info...`);
     const { data: userInfo } = await supabase.auth.admin.getUserById(reservation.user_id);
 
     // Convert missing values safely
@@ -251,11 +229,11 @@ export const generatePDF = async (req, res) => {
   }
 
   .col-box p {
-  margin: 3px 0;
+    margin: 3px 0;
   }
 
   .reservation-box p {
-  margin: 5px 1px;
+    margin: 5px 1px;
   }
 </style>
       </head>
@@ -340,29 +318,32 @@ export const generatePDF = async (req, res) => {
     `;
 
     // ---------------------------------------------------------
-    // PDF GENERATION
+    // PDF GENERATION - Launch browser (puppeteer handles downloading automatically)
     // ---------------------------------------------------------
-    const executablePath = getBrowserExecutablePath();
-    if (!executablePath) {
-      return res.status(500).json({
-        error: "Browser executable not found. Please check server configuration.",
-      });
-    }
-
-    const browser = await puppeteer.launch({
+    console.log("[PDF] Launching browser...");
+    browser = await puppeteer.launch({
       headless: true,
-      executablePath: executablePath, // Use the found path
-      args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-gpu",
+      ],
     });
 
+    console.log("[PDF] Creating page...");
     const page = await browser.newPage();
+
+    console.log("[PDF] Setting page content...");
     await page.setContent(html, { waitUntil: "networkidle0" });
 
+    console.log("[PDF] Generating PDF...");
     const pdfBuffer = await page.pdf({
       format: "A4",
       printBackground: true,
     });
 
+    console.log(`[PDF] PDF generated successfully, size: ${pdfBuffer.length} bytes`);
     await browser.close();
 
     // Return file to client
@@ -374,8 +355,27 @@ export const generatePDF = async (req, res) => {
 
     res.send(pdfBuffer);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to generate invoice." });
+    console.error("========== PDF GENERATION ERROR ==========");
+    console.error("Error Message:", err.message);
+    console.error("Error Code:", err.code);
+    console.error("Error Name:", err.name);
+    console.error("Stack:", err.stack);
+    console.error("==========================================");
+
+    res.status(500).json({
+      error: "Failed to generate invoice.",
+      details: err.message,
+    });
+  } finally {
+    if (browser) {
+      try {
+        console.log("[PDF] Closing browser...");
+        await browser.close();
+        console.log("[PDF] Browser closed successfully");
+      } catch (e) {
+        console.error("[PDF] Error closing browser:", e.message);
+      }
+    }
   }
 };
 
