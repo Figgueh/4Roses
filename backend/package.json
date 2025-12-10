@@ -7,6 +7,7 @@
   "scripts": {
     "start": "cross-env NODE_ENV=production nodemon index.js",
     "dev": "cross-env NODE_ENV=development nodemon index.js",
+    "staging": "cross-env NODE_ENV=staging nodemon index.js",
     "postinstall": "puppeteer browsers install chrome"
   },
   "keywords": [],
