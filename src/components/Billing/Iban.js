@@ -30,7 +30,7 @@ export default function Iban({ form, handleChange, booking, loading, handleSubmi
           </MKTypography>
 
           <MKTypography>Name: Joaquim Belo Figueiras</MKTypography>
-          <MKTypography>Email: joefigueiras@gmail.com</MKTypography>
+          <MKTypography>Email: {process.env.REACT_APP_ADMIN_EMAIL}</MKTypography>
           <MKTypography>Phone: +351 969 755 150</MKTypography>
 
           <MKTypography variant="body2" mt={2}>
