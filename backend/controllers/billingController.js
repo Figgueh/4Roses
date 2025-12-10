@@ -377,6 +377,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 export const createPaymentIntent = async (req, res) => {
   try {
     const {
+      id,
       user_id,
       check_in,
       check_out,
@@ -390,7 +391,7 @@ export const createPaymentIntent = async (req, res) => {
       credit_fees,
     } = req.body.payload;
 
-    if (!user_id || !amount_paid) {
+    if (!id || !user_id || !amount_paid) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
@@ -416,6 +417,7 @@ export const createPaymentIntent = async (req, res) => {
         },
       },
       metadata: {
+        id: id,
         user_id: String(user_id),
         check_in: String(check_in),
         check_out: String(check_out),
@@ -426,8 +428,9 @@ export const createPaymentIntent = async (req, res) => {
         guests_over: String(guests_over || 1),
         guests_under: String(guests_under),
         credit_fees: credit_fees,
-        type: "deposit",
+        type: "initialize_deposit",
       },
+      description: `Initial deposit for booking #${id}`,
     });
 
     return res.json({ clientSecret: paymentIntent.client_secret });

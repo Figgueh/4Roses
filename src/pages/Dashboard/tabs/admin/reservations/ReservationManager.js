@@ -78,8 +78,14 @@ export default function ReservationManager() {
       const updated = data.updated;
 
       setReservations((prev) => prev.map((r) => (r.id === id ? updated : r)));
-
       setBackupReservations((prev) => prev.map((r) => (r.id === id ? updated : r)));
+
+      // Send email
+      if (status === "confirmed" || status === "paid") {
+        await axios.post(`${process.env.REACT_APP_BACKEND}/email/confirmedBooking`, {
+          reservation_id: reservation.id,
+        });
+      }
 
       setError("");
     } catch (err) {
@@ -175,6 +181,11 @@ export default function ReservationManager() {
 
       setReservations((prev) => prev.map((r) => (r.id === id ? data.reservation : r)));
       setBackupReservations((prev) => prev.map((r) => (r.id === id ? data.reservation : r)));
+
+      // Send email
+      await axios.post(`${process.env.REACT_APP_BACKEND}/email/securityDepositSettled`, {
+        reservation_id: id,
+      });
 
       setMessage(`Security deposit settled. Reimbursed €${amount.toFixed(2)}.`);
     } catch (err) {

@@ -1,6 +1,15 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Grid, Radio, RadioGroup, FormControlLabel, FormControl, Divider } from "@mui/material";
+import {
+  Grid,
+  Radio,
+  RadioGroup,
+  FormControlLabel,
+  FormControl,
+  Divider,
+  Alert,
+  AlertTitle,
+} from "@mui/material";
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 
@@ -87,6 +96,7 @@ export default function BillingForm() {
 
       try {
         const payload = {
+          id: bookingId,
           user_id: user.id,
           check_in: checkIn,
           check_out: checkOut,
@@ -107,6 +117,7 @@ export default function BillingForm() {
           }
         );
 
+        console.log(payload.id);
         setClientSecret(data.clientSecret);
       } catch (err) {
         console.error(err);
@@ -184,6 +195,8 @@ export default function BillingForm() {
       billing_postal_code: form.billing_postal_code,
     };
 
+    console.log(payload);
+
     try {
       setLoading(true);
       setMessage("");
@@ -193,10 +206,14 @@ export default function BillingForm() {
         payload
       );
 
-      console.log(data);
-
       if (data.success) {
         setMessage("Reservation created! Please complete the bank transfer to confirm.");
+
+        // Send email
+        await axios.post(`${process.env.REACT_APP_BACKEND}/email/initializeBooking`, {
+          reservation_id: data.reservation.id,
+        });
+
         navigate("/booking-success", {
           state: { bookingId: data.reservation.id },
         });
@@ -319,15 +336,16 @@ export default function BillingForm() {
 
               {/* Message */}
               {message && (
-                <Grid item xs={12}>
-                  <MKTypography
-                    textAlign="center"
-                    fontSize="0.9rem"
-                    color={!message.includes("Error") ? "success" : "error"}
-                  >
-                    {message}
-                  </MKTypography>
-                </Grid>
+                <Alert
+                  sx={{ mt: 2, mb: 2 }}
+                  severity={!message.includes("Error") ? "success" : "error"}
+                  onClose={() => setMessage(null)}
+                >
+                  <AlertTitle>
+                    {!message.includes("Error") ? "Billing message" : "Billing issue"}
+                  </AlertTitle>
+                  {message}
+                </Alert>
               )}
             </Grid>
           </Grid>

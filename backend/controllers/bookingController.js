@@ -279,8 +279,6 @@ export const updateReservation = async (req, res) => {
   const { id } = req.params;
   const { status, paid, start_date, end_date } = req.body;
 
-  console.log(status);
-
   if (!id) {
     return res.status(400).json({ error: "Reservation ID is required" });
   }
