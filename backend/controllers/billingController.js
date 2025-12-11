@@ -321,13 +321,14 @@ export const generatePDF = async (req, res) => {
     // ---------------------------------------------------------
     browser = await puppeteer.launch({
       headless: true,
-      executablePath: "/usr/bin/google-chrome-stable",
       args: [
         "--no-sandbox",
         "--disable-setuid-sandbox",
         "--disable-dev-shm-usage",
         "--disable-gpu",
       ],
+      executablePath: "/usr/bin/google-chrome-stable",
+
     });
 
     const page = await browser.newPage();
