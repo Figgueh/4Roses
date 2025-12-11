@@ -321,7 +321,7 @@ export const generatePDF = async (req, res) => {
     // ---------------------------------------------------------
     browser = await puppeteer.launch({
       headless: true,
-      executablePath: isLocal ? puppeteer.executablePath() : "/usr/bin/google-chrome-stable",
+      executablePath: "/usr/bin/google-chrome-stable",
       args: [
         "--no-sandbox",
         "--disable-setuid-sandbox",
