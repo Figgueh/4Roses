@@ -7,7 +7,7 @@
   "scripts": {
     "start": "cross-env NODE_ENV=production nodemon index.js",
     "dev": "cross-env NODE_ENV=development nodemon index.js",
-    "postinstall": "puppeteer browsers install chrome"
+    "staging": "cross-env NODE_ENV=staging node index.js"
   },
   "keywords": [],
   "author": "",
@@ -17,15 +17,18 @@
     "@supabase/supabase-js": "^2.55.0",
     "axios": "^1.12.2",
     "cors": "^2.8.5",
+    "dayjs": "^1.11.19",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
     "jsdom": "^26.1.0",
     "multer": "^2.0.2",
     "node-fetch": "^3.3.2",
+    "pdfkit": "^0.17.2",
     "puppeteer": "^24.25.0",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
-    "resend": "^6.4.2"
+    "resend": "^6.4.2",
+    "stripe": "^20.0.0"
   },
   "devDependencies": {
     "cross-env": "^10.0.0",

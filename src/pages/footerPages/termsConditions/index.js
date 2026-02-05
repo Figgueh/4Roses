@@ -97,7 +97,7 @@ function TermsConditions() {
               </MKTypography>
               <MKTypography variant="body1" sx={{ whiteSpace: "pre-line" }}>
                 If you have questions about these Terms & Conditions, please contact us at:
-                joefigueiras@gmail.com
+                {process.env.REACT_APP_ADMIN_EMAIL}
               </MKTypography>
             </Card>
           </Grid>

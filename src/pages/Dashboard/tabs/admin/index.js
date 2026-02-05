@@ -10,15 +10,21 @@ import Typography from "@mui/material/Typography";
 import { ExpandLess, ExpandMore } from "@mui/icons-material";
 
 // Tools
-import PhotoUploader from "./PhotoUploader";
-import VideoUploader from "./VideoUploader";
-import ActivityEditor from "./ActivityEditor";
-import ArticleGenerator from "./ArticleGenerator";
-import AmenitiesEditor from "./AmenitiesEditor";
+import PhotoUploader from "./media/PhotoUploader";
+import VideoUploader from "./media/VideoUploader";
+import ActivityEditor from "./content/ActivityEditor";
+import ArticleGenerator from "./content/ArticleGenerator";
+import AmenitiesEditor from "./content/AmenitiesEditor";
+import PriceAdjuster from "./reservations/PriceAdjuster";
+import ReservationManager from "./reservations/ReservationManager";
 
 function AdminDash() {
   const [activeTool, setActiveTool] = useState("interior");
-  const [openPhotos, setOpenPhotos] = useState(true);
+
+  // Collapsible sections
+  const [openMedia, setOpenMedia] = useState(false);
+  const [openContent, setOpenContent] = useState(false);
+  const [openReservations, setOpenReservations] = useState(false);
 
   const renderTool = () => {
     switch (activeTool) {
@@ -34,13 +40,24 @@ function AdminDash() {
         return <ActivityEditor />;
       case "articles":
         return <ArticleGenerator />;
+      case "reservation manager":
+        return <ReservationManager />;
+      case "price manager":
+        return <PriceAdjuster />;
       default:
         return null;
     }
   };
 
   return (
-    <Box sx={{ display: "flex", minHeight: "100vh", backgroundColor: "#f8f9fa" }}>
+    <Box
+      sx={{
+        minWidth: activeTool === "reservation manager" ? "1600px" : "100%",
+        display: "flex",
+        minHeight: "100vh",
+        backgroundColor: "#f8f9fa",
+      }}
+    >
       {/* Sidebar */}
       <Box
         sx={{
@@ -58,19 +75,17 @@ function AdminDash() {
         <Typography variant="h5" fontWeight="bold" sx={{ mb: 2 }}>
           Admin Dashboard
         </Typography>
-
         <Divider />
 
         <List component="nav" sx={{ mt: 1 }}>
-          {/* Photos Group */}
+          {/* Media Section */}
           <ListItem disablePadding>
-            <ListItemButton onClick={() => setOpenPhotos(!openPhotos)}>
+            <ListItemButton onClick={() => setOpenMedia(!openMedia)}>
               <ListItemText primary="Media Manager" />
-              {openPhotos ? <ExpandLess /> : <ExpandMore />}
+              {openMedia ? <ExpandLess /> : <ExpandMore />}
             </ListItemButton>
           </ListItem>
-
-          <Collapse in={openPhotos} timeout="auto" unmountOnExit>
+          <Collapse in={openMedia} timeout="auto" unmountOnExit>
             <List component="div" disablePadding>
               <ListItemButton
                 selected={activeTool === "interior"}
@@ -79,7 +94,6 @@ function AdminDash() {
               >
                 <ListItemText primary="Interior Photos" />
               </ListItemButton>
-
               <ListItemButton
                 selected={activeTool === "exterior"}
                 sx={{ pl: 4 }}
@@ -87,8 +101,6 @@ function AdminDash() {
               >
                 <ListItemText primary="Exterior Photos" />
               </ListItemButton>
-            </List>
-            <ListItem disablePadding>
               <ListItemButton
                 selected={activeTool === "videos"}
                 sx={{ pl: 4 }}
@@ -96,37 +108,67 @@ function AdminDash() {
               >
                 <ListItemText primary="Videos" />
               </ListItemButton>
-            </ListItem>
+            </List>
           </Collapse>
 
-          {/* Other tools */}
-
+          {/* Reservations Section */}
           <ListItem disablePadding>
-            <ListItemButton
-              selected={activeTool === "amenities"}
-              onClick={() => setActiveTool("amenities")}
-            >
-              <ListItemText primary="Amenities Editor" />
+            <ListItemButton onClick={() => setOpenReservations(!openReservations)}>
+              <ListItemText primary="Reservations" />
+              {openReservations ? <ExpandLess /> : <ExpandMore />}
             </ListItemButton>
           </ListItem>
+          <Collapse in={openReservations} timeout="auto" unmountOnExit>
+            <List component="div" disablePadding>
+              <ListItemButton
+                selected={activeTool === "reservation manager"}
+                sx={{ pl: 4 }}
+                onClick={() => setActiveTool("reservation manager")}
+              >
+                <ListItemText primary="Reservations" />
+              </ListItemButton>
+              <ListItemButton
+                selected={activeTool === "price manager"}
+                sx={{ pl: 4 }}
+                onClick={() => setActiveTool("price manager")}
+              >
+                <ListItemText primary="Price Adjustments" />
+              </ListItemButton>
+            </List>
+          </Collapse>
 
+          {/* Content Section */}
           <ListItem disablePadding>
-            <ListItemButton
-              selected={activeTool === "activities"}
-              onClick={() => setActiveTool("activities")}
-            >
-              <ListItemText primary="Activity Editor" />
+            <ListItemButton onClick={() => setOpenContent(!openContent)}>
+              <ListItemText primary="Content Manager" />
+              {openContent ? <ExpandLess /> : <ExpandMore />}
             </ListItemButton>
           </ListItem>
-
-          <ListItem disablePadding>
-            <ListItemButton
-              selected={activeTool === "articles"}
-              onClick={() => setActiveTool("articles")}
-            >
-              <ListItemText primary="Article Generator" />
-            </ListItemButton>
-          </ListItem>
+          <Collapse in={openContent} timeout="auto" unmountOnExit>
+            <List component="div" disablePadding>
+              <ListItemButton
+                selected={activeTool === "amenities"}
+                sx={{ pl: 4 }}
+                onClick={() => setActiveTool("amenities")}
+              >
+                <ListItemText primary="Amenities Editor" />
+              </ListItemButton>
+              <ListItemButton
+                selected={activeTool === "activities"}
+                sx={{ pl: 4 }}
+                onClick={() => setActiveTool("activities")}
+              >
+                <ListItemText primary="Activity Editor" />
+              </ListItemButton>
+              <ListItemButton
+                selected={activeTool === "articles"}
+                sx={{ pl: 4 }}
+                onClick={() => setActiveTool("articles")}
+              >
+                <ListItemText primary="Article Generator" />
+              </ListItemButton>
+            </List>
+          </Collapse>
         </List>
       </Box>
 

@@ -6,9 +6,11 @@ import { JSDOM } from "jsdom";
 puppeteer.use(StealthPlugin());
 
 export const scrapePage = async (url, method = "new") => {
+  const isLocal = process.env.NODE_ENV === "development";
+
   const browser = await puppeteer.launch({
     headless: true,
-    executablePath: puppeteer.executablePath(),
+    executablePath: isLocal ? puppeteer.executablePath() : "/usr/bin/google-chrome",
     args: [
       "--disable-extensions",
       "--disable-default-apps",

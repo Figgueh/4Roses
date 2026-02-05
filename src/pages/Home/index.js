@@ -48,8 +48,8 @@ function Home() {
       <DefaultNavbar
         routes={translatedRoutes}
         action={{
-          type: "external",
-          route: "https://www.vrbo.com/en-ca/cottage-rental/p2905236vb",
+          type: "internal",
+          route: "/book",
           label: `${t("book")}`,
           color: "default",
         }}
