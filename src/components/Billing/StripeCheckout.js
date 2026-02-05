@@ -23,6 +23,7 @@ export default function StripeCheckout({ setMessage, setLoading }) {
     setMessage("");
     setSubmitted(true);
 
+    console.log(`${process.env.REACT_APP_FRONTEND}/booking-success`);
     try {
       // Confirm payment — Stripe will collect billing info from PaymentElement & AddressElement
       const result = await stripe.confirmPayment({
