@@ -25,6 +25,7 @@ export default function BookingsTab() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [downloadingId, setDownloadingId] = useState(null);
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -55,6 +56,8 @@ export default function BookingsTab() {
 
   const handleDownloadInvoice = async (id) => {
     try {
+      setDownloadingId(id);
+
       const response = await axios.get(`${process.env.REACT_APP_BACKEND}/billings/${id}/invoice`, {
         responseType: "blob",
       });
@@ -68,6 +71,8 @@ export default function BookingsTab() {
     } catch (err) {
       console.error(err);
       setError("Failed to download invoice.");
+    } finally {
+      setDownloadingId(null);
     }
   };
 
@@ -203,8 +208,13 @@ export default function BookingsTab() {
                         variant="gradient"
                         onClick={() => handleDownloadInvoice(booking.id)}
                         color="success"
+                        disabled={downloadingId === booking.id}
                       >
-                        Download invoice
+                        {downloadingId === booking.id ? (
+                          <CircularProgress size={20} color="inherit" />
+                        ) : (
+                          "Download invoice"
+                        )}
                       </MKButton>
                     </MKBox>
                   )}
