@@ -37,6 +37,7 @@ import Booking from "pages/Booking";
 import BookingSuccess from "pages/Booking/BookingSuccess";
 import BillingForm from "pages/Booking/BillingForm";
 import ContinuePayment from "pages/Booking/ContinuePayment";
+import ConfirmEmail from "pages/Register/confirm";
 
 export default function App() {
   const { pathname } = useLocation();
@@ -71,6 +72,7 @@ export default function App() {
         <Routes>
           {getRoutes(translatedRoutes)}
           <Route path="/" element={<Home />} />
+          <Route path="/confirm-email" element={<ConfirmEmail />} />
           <Route path="activities/:section/:slug" element={<ActivityBuilder />} />
           <Route path="activities/:section" element={<ActivityBuilder />} />
           <Route path="book" element={<Booking />} />

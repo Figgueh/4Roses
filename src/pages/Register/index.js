@@ -42,7 +42,7 @@ function Register() {
 
     if (result.success) {
       setMessage("User account created!");
-      navigate("/dashboard");
+      navigate("/confirm-email");
     }
     if (!result.success) {
       setMessage(result.error.message);

@@ -25,7 +25,8 @@ import DefaultNavbar from "components/DefaultNavbar";
 // Author page sections
 import Profile from "pages/AboutUs/sections/Profile";
 import Contact from "pages/AboutUs/sections/Contact";
-import Footer from "pages/AboutUs/sections/Footer";
+// import Footer from "pages/AboutUs/sections/Footer";
+import CenteredFooter from "components/Footers/CenteredFooter";
 
 // Routes
 import { routes } from "routes";
@@ -75,7 +76,7 @@ function AboutUs() {
           <Profile />
         </Card>
         <Contact />
-        <Footer />
+        <CenteredFooter />
       </MKBox>
     </>
   );

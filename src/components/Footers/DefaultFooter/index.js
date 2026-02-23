@@ -34,15 +34,45 @@ function DefaultFooter({ content }) {
   return (
     <MKBox component="footer">
       <Container>
-        <Grid container spacing={3}>
+        <Grid
+          container
+          spacing={3}
+          sx={{
+            ml: { xs: 0, md: "auto" },
+            mb: 3,
+            textAlign: { xs: "center", md: "left" },
+          }}
+        >
           <Grid item xs={12} md={3} sx={{ ml: "auto", mb: 3 }}>
             <MKBox>
               <Link to={brand.route}>
-                <MKBox component="img" src={brand.image} alt={brand.name} maxWidth="250px" mb={2} />
+                <MKBox
+                  component="img"
+                  src={brand.image}
+                  alt={brand.name}
+                  sx={{
+                    width: "100%",
+                    maxWidth: {
+                      xs: 120,
+                      sm: 160,
+                      md: 200,
+                      lg: 250,
+                    },
+                    height: "auto",
+                  }}
+                  mb={2}
+                />
               </Link>
               <MKTypography variant="h6">{brand.name}</MKTypography>
             </MKBox>
-            <MKBox display="flex" alignItems="center" mt={3}>
+            <MKBox
+              display="flex"
+              alignItems="center"
+              mt={3}
+              sx={{
+                justifyContent: { xs: "center", md: "flex-start" },
+              }}
+            >
               {socials.map(({ icon, link }, key) => (
                 <MKTypography
                   key={link}

@@ -1,7 +1,8 @@
-// @mui icons
+// @mui icons and other icons
 import FacebookIcon from "@mui/icons-material/Facebook";
 import YouTubeIcon from "@mui/icons-material/YouTube";
 import BookIcon from "@mui/icons-material/Hotel";
+import Vrbo from "assets/images/logos/gray-logos/small_vrbo.ico";
 
 // Material Kit 2 React components
 import MKTypography from "components/MKTypography";
@@ -27,7 +28,11 @@ export default {
       link: "https://www.youtube.com/@joaquimfigueiras8377",
     },
     {
-      icon: <BookIcon fontSize="small" />,
+      icon: <BookIcon />,
+      link: "/book",
+    },
+    {
+      icon: <img src={Vrbo} alt="Vrbo icon" />,
       link: "https://www.vrbo.com/2905236?dateless=true",
     },
   ],

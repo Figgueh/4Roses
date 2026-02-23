@@ -1,14 +1,14 @@
-Dashboard:
-- Make loading spanner show when generating PDF
-
 Reservations:
 - Make specialty prices for certain days
 - Make a feature to block off certain days
+- Make only account be able to see calendar
+
+Account creation:
+- Make admin accounts for owners
+- Make account email confirmation happen through the dns host
 
 Footer:
-- Fix image at the bottom
-- Fix social media links (Add button to Reservations)
-- Fix CenteredFooter links
+- Fix footer in about us
 
 Translations:
 - More info on articles section
