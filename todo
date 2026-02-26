@@ -7,8 +7,8 @@ Account creation:
 - Make admin accounts for owners
 - Make account sign in happen with Google and/or facebook button
 
-Footer:
-- Fix footer in about us
+Header:
+- When not signed in, make book now redirect you to booking webpage
 
 Translations:
 - More info on articles section

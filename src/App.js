@@ -38,6 +38,7 @@ import BookingSuccess from "pages/Booking/BookingSuccess";
 import BillingForm from "pages/Booking/BillingForm";
 import ContinuePayment from "pages/Booking/ContinuePayment";
 import ConfirmEmail from "pages/Register/confirm";
+import PrivateRoute from "connection/users/PrivateRoute";
 
 export default function App() {
   const { pathname } = useLocation();
@@ -75,10 +76,40 @@ export default function App() {
           <Route path="/confirm-email" element={<ConfirmEmail />} />
           <Route path="activities/:section/:slug" element={<ActivityBuilder />} />
           <Route path="activities/:section" element={<ActivityBuilder />} />
-          <Route path="book" element={<Booking />} />
-          <Route path="billing" element={<BillingForm />} />
-          <Route path="booking-success" element={<BookingSuccess />} />
-          <Route path="continue-payment/:id" element={<ContinuePayment />} />
+
+          {/* Private routes */}
+          <Route
+            path="book"
+            element={
+              <PrivateRoute>
+                <Booking />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="billing"
+            element={
+              <PrivateRoute>
+                <BillingForm />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="booking-success"
+            element={
+              <PrivateRoute>
+                <BookingSuccess />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="continue-payment/:id"
+            element={
+              <PrivateRoute>
+                <ContinuePayment />
+              </PrivateRoute>
+            }
+          />
 
           {/* Footer pages */}
           <Route path="contact-developer" element={<ContactDeveloperPage />} />

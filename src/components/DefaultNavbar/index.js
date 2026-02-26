@@ -100,6 +100,14 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
     navigate("/");
   };
 
+  // Checking if logged in for booking calendar.
+  const handleActionClick = (e) => {
+    if (action.route === "/book" && !isLoggedIn) {
+      e.preventDefault();
+      window.open("https://www.vrbo.com/2905236?dateless=true", "_blank");
+    }
+  };
+
   useEffect(() => {
     const init = async () => {
       if (session?.user?.id) {
@@ -629,6 +637,7 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
                   }
                   color={action.color ? action.color : "info"}
                   size="small"
+                  onClick={handleActionClick}
                 >
                   {action.label}
                 </MKButton>
