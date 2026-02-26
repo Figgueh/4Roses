@@ -5,7 +5,7 @@ Reservations:
 
 Account creation:
 - Make admin accounts for owners
-- Make account email confirmation happen through the dns host
+- Make account sign in happen with Google and/or facebook button
 
 Footer:
 - Fix footer in about us

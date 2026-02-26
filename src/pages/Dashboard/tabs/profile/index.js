@@ -29,7 +29,7 @@ function ProfileTab() {
       if (!session?.user?.id) return; // Wait for session to be available
       // Fetch existing user data
       const data = await getAllUserInfo(session?.user?.id);
-      const fullName = data.full_name;
+      const fullName = data.full_name ?? "";
       if (fullName.includes(" ")) {
         const splitName = fullName.split(" ");
         setFirstName(splitName[0]);
@@ -37,7 +37,7 @@ function ProfileTab() {
       } else {
         setFirstName(fullName);
       }
-      setAvatarUrl(data.avatar_url);
+      setAvatarUrl(data.avatar_url ?? "");
     };
     init();
   }, [session]);

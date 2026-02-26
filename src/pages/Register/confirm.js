@@ -13,13 +13,13 @@ import MKButton from "components/MKButton";
 
 // Material Kit 2 React example components
 import DefaultNavbar from "components/DefaultNavbar";
-import SimpleFooter from "components/Footers/SimpleFooter";
+import CenteredFooter from "components/Footers/CenteredFooter";
 
 // Routes
 import { routes } from "routes";
 
 // Images
-import bgImage from "assets/images/bg-sign-in-basic.jpeg";
+import bgImage from "assets/images/beach/reservado.jpg";
 import { UserAuth } from "connection/auth/authContext";
 
 import { useTranslation } from "react-i18next";
@@ -44,8 +44,8 @@ function ConfirmEmail() {
         routes={translatedRoutes}
         action={{
           type: "external",
-          route: "https://www.creative-tim.com/product/material-kit-react",
-          label: "free download",
+          route: "https://www.vrbo.com/2905236?dateless=true",
+          label: `${t("book")}`,
           color: "info",
         }}
         transparent
@@ -170,8 +170,8 @@ function ConfirmEmail() {
         </Grid>
       </MKBox>
 
-      <MKBox width="100%" position="absolute" zIndex={2} bottom="1.625rem">
-        <SimpleFooter light />
+      <MKBox width="100%" position="absolute" zIndex={2}>
+        <CenteredFooter />
       </MKBox>
     </>
   );

@@ -42,7 +42,6 @@ export default {
       items: [
         { name: "about our property", href: "/pages/landing-pages/AboutUs" },
         { name: "about us", href: "/pages/landing-pages/AboutUs" },
-        { name: "Contact us", href: "/pages/landing-pages/AboutUs/#contactUs", isHashLink: true },
       ],
     },
     {
@@ -55,7 +54,10 @@ export default {
     },
     {
       name: "help & support",
-      items: [{ name: "contact developer", href: "contact-developer" }],
+      items: [
+        { name: "Contact us", href: "/pages/landing-pages/AboutUs/#contactUs", isHashLink: true },
+        { name: "contact developer", href: "contact-developer" },
+      ],
     },
     {
       name: "legal",

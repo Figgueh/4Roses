@@ -38,13 +38,13 @@ import MKAlert from "components/MKAlert";
 
 // Material Kit 2 React example components
 import DefaultNavbar from "components/DefaultNavbar";
-import SimpleFooter from "components/Footers/SimpleFooter";
+import CenteredFooter from "components/Footers/CenteredFooter";
 
 // Material Kit 2 React page layout routes
 import { routes } from "routes";
 
 // Images
-import bgImage from "assets/images/bg-sign-in-basic.jpeg";
+import bgImage from "assets/images/beach/reservado.jpg";
 import { UserAuth } from "connection/auth/authContext";
 
 import { useTranslation } from "react-i18next";
@@ -63,7 +63,7 @@ function SignInBasic() {
     event.preventDefault();
     setMessage("");
 
-    let result = await signInUser(username, password);
+    let result = await signInUser(username, password, rememberMe);
 
     if (result.success) {
       navigate("/dashboard");
@@ -76,16 +76,20 @@ function SignInBasic() {
     if (location.state?.message) {
       setMessage(location.state.message);
     }
-
-    // check to see if the user is already signed in.
-    if (authLoading) {
-      return <p className="text-center text-gray-500">Loading...</p>;
-    }
-    if (session) navigate("/dashboard");
   }, [location.state]);
+
+  useEffect(() => {
+    if (session) {
+      navigate("/dashboard");
+    }
+  }, [session, navigate]);
 
   const [rememberMe, setRememberMe] = useState(false);
   const handleSetRememberMe = () => setRememberMe(!rememberMe);
+
+  if (authLoading) {
+    return <div className="text-center text-gray-500">Loading...</div>;
+  }
 
   return (
     <>
@@ -215,8 +219,8 @@ function SignInBasic() {
           </Grid>
         </Grid>
       </MKBox>
-      <MKBox width="100%" position="absolute" zIndex={2} bottom="1.625rem">
-        <SimpleFooter light />
+      <MKBox width="100%" position="absolute" zIndex={2}>
+        <CenteredFooter />
       </MKBox>
     </>
   );
