@@ -48,8 +48,6 @@ function ConfirmEmail() {
           label: `${t("book")}`,
           color: "info",
         }}
-        transparent
-        light
       />
       <MKBox
         position="absolute"

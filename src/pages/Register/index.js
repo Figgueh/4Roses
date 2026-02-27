@@ -29,7 +29,10 @@ import { Alert, AlertTitle } from "@mui/material";
 function Register() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [password, setPassword] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState("");
   const [message, setMessage] = useState("");
   const { session, authLoading, signUpUser } = UserAuth();
   const { t } = useTranslation();
@@ -39,7 +42,7 @@ function Register() {
     event.preventDefault();
     setMessage("");
 
-    const result = await signUpUser(email, password);
+    const result = await signUpUser(email, firstName, lastName, password, dateOfBirth);
 
     if (result.success) {
       setMessage("User account created!");
@@ -105,7 +108,7 @@ function Register() {
                 mb={1}
                 textAlign="center"
               >
-                <MKTypography variant="h4" fontWeight="medium" color="white" mt={1}>
+                <MKTypography variant="h4" fontWeight="medium" color="white" mt={1} mb={1}>
                   Account creation
                 </MKTypography>
               </MKBox>
@@ -128,10 +131,38 @@ function Register() {
                   </MKBox>
                   <MKBox mb={2}>
                     <MKInput
+                      type="first name"
+                      label={t("First name")}
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      fullWidth
+                    />
+                  </MKBox>
+                  <MKBox mb={2}>
+                    <MKInput
+                      type="last name"
+                      label={t("Last name")}
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      fullWidth
+                    />
+                  </MKBox>
+                  <MKBox mb={2}>
+                    <MKInput
                       type="password"
                       label="Password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
+                      fullWidth
+                    />
+                  </MKBox>
+                  <MKBox mb={2}>
+                    <MKInput
+                      type="date"
+                      label={t("Date of Birth")}
+                      value={dateOfBirth}
+                      onChange={(e) => setDateOfBirth(e.target.value)}
+                      InputLabelProps={{ shrink: true }}
                       fullWidth
                     />
                   </MKBox>

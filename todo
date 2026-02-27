@@ -1,17 +1,13 @@
 Reservations:
 - Make specialty prices for certain days
 - Make a feature to block off certain days
-- Make only account be able to see calendar
 
 Account creation:
 - Make admin accounts for owners
-- Make account sign in happen with Google and/or facebook button
-
-Header:
-- When not signed in, make book now redirect you to booking webpage
 
 Translations:
 - More info on articles section
 - My bookings tab
 - contact developer
 - terms and conditions
+- Registration page
