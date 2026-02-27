@@ -795,14 +795,20 @@ export const sendBookingPaidEmail = async (req, res) => {
     const html = `
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Balance Paid in Full</title>
+
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap');
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
     body {
       background-color: #f0ece4;
@@ -811,22 +817,32 @@ export const sendBookingPaidEmail = async (req, res) => {
       padding: 40px 16px;
     }
 
+    /* ─── Outer Layout ─── */
+
+    .outer {
+      background-color: #f0ece4;
+      width: 100%;
+    }
+
     .wrapper {
       max-width: 620px;
+      width: 100%;
       margin: 0 auto;
     }
 
-    /* Header */
+    /* ─── Header ─── */
+
     .header {
-      background-color: #8b4513;
+      background: linear-gradient(160deg, #8b4513 0%, #b85c2a 100%);
       border-radius: 16px 16px 0 0;
       padding: 36px 48px 32px;
       text-align: center;
     }
 
-    .header .badge {
+    .header-badge {
       display: inline-block;
-      background: #7eb89a;
+      background: rgba(255, 255, 255, 0.18);
+      border: 1px solid rgba(255, 255, 255, 0.3);
       color: #fff;
       font-weight: 500;
       font-size: 11px;
@@ -837,22 +853,24 @@ export const sendBookingPaidEmail = async (req, res) => {
       margin-bottom: 18px;
     }
 
-    .header h1 {
+    .header-title {
       font-family: 'Playfair Display', serif;
       font-size: 28px;
       font-weight: 600;
-      color: #f5f0e8;
+      color: #fff;
       line-height: 1.3;
+      text-shadow: 0 1px 6px rgba(80, 20, 0, 0.3);
     }
 
-    .header p {
+    .header-sub {
       margin-top: 8px;
-      color: #a09484;
+      color: rgba(255, 255, 255, 0.7);
       font-size: 13px;
       font-weight: 300;
     }
 
-    /* Body */
+    /* ─── Body ─── */
+
     .body {
       background: #ffffff;
       padding: 36px 48px;
@@ -864,180 +882,204 @@ export const sendBookingPaidEmail = async (req, res) => {
       color: #5c524a;
       margin-bottom: 32px;
       padding: 14px 18px;
-      background: #f2faf5;
-      border-left: 3px solid #7eb89a;
+      background: #fdf6f0;
+      border-left: 3px solid #8b4513;
       border-radius: 0 8px 8px 0;
     }
 
-    /* Section label */
+    /* ─── Section Label ─── */
+
     .section-label {
+      display: block;
       font-size: 10px;
       font-weight: 500;
       letter-spacing: 2.5px;
       text-transform: uppercase;
-      color: #7eb89a;
-      margin-bottom: 12px;
+      color: #8b4513;
       margin-top: 28px;
+      margin-bottom: 12px;
     }
 
-    .section-label:first-of-type {
-      margin-top: 0;
-    }
+    /* ─── Detail Table ─── */
 
-    /* Card */
-    .card {
+    .detail-table {
+      width: 100%;
       border: 1px solid #e8e0d4;
       border-radius: 12px;
-      overflow: hidden;
-      margin-bottom: 4px;
+      border-collapse: separate;
+      border-spacing: 0;
     }
 
-    .detail-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    .detail-table td {
       padding: 13px 20px;
-      border-bottom: 1px solid #f0ece4;
     }
 
-    .detail-row:last-child {
-      border-bottom: none;
+    .detail-table tr + tr td {
+      border-top: 1px solid #f0ece4;
     }
 
-    .detail-label {
+    .td-label {
       font-size: 12px;
       color: #9c8e82;
       font-weight: 400;
     }
 
-    .detail-value {
+    .td-value {
       font-size: 13px;
       color: #2c2825;
       font-weight: 500;
       text-align: right;
-      max-width: 60%;
     }
 
-    /* Payment hero */
+    /* ─── Payment Hero ─── */
+
     .payment-hero {
-      background: #1e1a17;
+      width: 100%;
+      background: linear-gradient(160deg, #8b4513 0%, #b85c2a 100%);
       border-radius: 12px;
-      padding: 22px 24px;
-      margin-bottom: 4px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin-top: 12px;
     }
 
-    .payment-hero .left .label {
+    .payment-hero td {
+      padding: 22px 24px;
+      vertical-align: middle;
+    }
+
+    .payment-label {
       font-size: 11px;
       letter-spacing: 1.5px;
       text-transform: uppercase;
-      color: #7a6e64;
+      color: rgba(255, 255, 255, 0.6);
       margin-bottom: 5px;
     }
 
-    .payment-hero .left .amount {
+    .payment-amount {
       font-family: 'Playfair Display', serif;
       font-size: 30px;
-      color: #f5f0e8;
+      color: #fff;
       font-weight: 600;
+      text-shadow: 0 1px 4px rgba(80, 20, 0, 0.2);
     }
 
-    .payment-hero .right {
+    .payment-right {
       text-align: right;
     }
 
-    .payment-hero .right .method {
+    .payment-method {
       font-size: 12px;
-      color: #7a6e64;
-      margin-bottom: 4px;
-      letter-spacing: 0.3px;
+      color: rgba(255, 255, 255, 0.6);
+      margin-bottom: 6px;
     }
 
-    .payment-hero .right .status-pill {
+    .payment-status {
       display: inline-block;
-      background: #2d3d2f;
+      background: rgba(255, 255, 255, 0.18);
+      border: 1px solid rgba(255, 255, 255, 0.3);
       border-radius: 6px;
       padding: 5px 12px;
       font-size: 12px;
-      color: #7eb89a;
+      color: #fff;
       font-weight: 500;
       letter-spacing: 0.5px;
     }
 
-    .payment-hero .right .status-dot {
+    .status-dot {
+      display: inline-block;
       width: 7px;
       height: 7px;
       border-radius: 50%;
-      background: #7eb89a;
-      display: inline-block;
+      background: #fff;
       margin-right: 5px;
+      vertical-align: middle;
     }
 
-    /* Breakdown grid */
-    .breakdown-grid {
+    /* ─── Breakdown Table ─── */
+
+    .breakdown-table {
+      width: 100%;
       border: 1px solid #e8e0d4;
       border-radius: 12px;
-      overflow: hidden;
-      margin-bottom: 4px;
+      border-collapse: separate;
+      border-spacing: 0;
     }
 
-    .breakdown-row {
-      display: flex;
-      justify-content: space-between;
+    .breakdown-table td {
       padding: 12px 20px;
-      border-bottom: 1px solid #f0ece4;
       font-size: 13px;
     }
 
-    .breakdown-row:last-child {
-      border-bottom: none;
+    .breakdown-table tr + tr td {
+      border-top: 1px solid #f0ece4;
+    }
+
+    .breakdown-table tr:last-child {
       background: #faf8f5;
+    }
+
+    .b-label {
+      color: #9c8e82;
+    }
+
+    .b-value {
+      color: #2c2825;
       font-weight: 500;
+      text-align: right;
     }
 
-    .breakdown-row .b-label { color: #9c8e82; }
-    .breakdown-row .b-value { color: #2c2825; font-weight: 500; }
+    /* ─── Two-Column Layout ─── */
 
-    /* Two-col grid */
-    .two-col {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 4px;
+    .two-col-outer {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
     }
 
-    .two-col .card {
-      flex: 1;
-      margin-bottom: 0;
+    .two-col-outer td {
+      vertical-align: top;
     }
 
-    /* Address block */
-    .address-block {
+    .col-gap {
+      width: 2%;
+    }
+
+    /* ─── Address Block ─── */
+
+    .address-table {
+      width: 100%;
       border: 1px solid #e8e0d4;
       border-radius: 12px;
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+
+    .address-table td {
       padding: 16px 20px;
       font-size: 13px;
       line-height: 1.8;
       color: #2c2825;
     }
 
-    .address-block .name {
+    .address-name {
       font-weight: 500;
       font-size: 14px;
       margin-bottom: 4px;
     }
 
-    .address-block .addr {
+    .address-addr {
       color: #7a6e64;
     }
 
-    /* Divider */
+    /* ─── Divider ─── */
+
     .divider {
       border: none;
       border-top: 1px solid #e8e0d4;
       margin: 28px 0;
     }
+
+    /* ─── Final Note ─── */
 
     .final-note {
       font-size: 13px;
@@ -1046,7 +1088,8 @@ export const sendBookingPaidEmail = async (req, res) => {
       text-align: center;
     }
 
-    /* Footer */
+    /* ─── Footer ─── */
+
     .footer {
       background: #f5f0e8;
       border-radius: 0 0 16px 16px;
@@ -1054,141 +1097,187 @@ export const sendBookingPaidEmail = async (req, res) => {
       text-align: center;
     }
 
-    .footer p {
+    .footer-text {
       font-size: 12px;
       color: #9c8e82;
       line-height: 1.7;
     }
 
-    .footer strong { color: #5c524a; }
+    .footer-text + .footer-text {
+      margin-top: 6px;
+    }
+
+    .footer-brand {
+      color: #5c524a;
+      font-weight: 500;
+    }
   </style>
+
 </head>
+
 <body>
-  <div class="wrapper">
 
-    <!-- Header -->
-    <div class="header">
-      <div class="badge">💳 Balance Paid in Full</div>
-      <h1>Full Payment Received</h1>
-      <p>The guest's reservation is now fully settled.</p>
-    </div>
+  <table class="outer" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+      <td align="center">
+        <table class="wrapper" cellpadding="0" cellspacing="0" border="0">
 
-    <!-- Body -->
-    <div class="body">
+          <!-- ─── HEADER ─── -->
+          <tr>
+            <td class="header">
+              <div class="header-badge">💳 Balance Paid in Full</div>
+              <div class="header-title">Full Payment Received</div>
+              <div class="header-sub">The guest's reservation is now fully settled.</div>
+            </td>
+          </tr>
 
-      <div class="intro">
-        The guest has paid the remaining balance for their reservation. No further action is required.
-      </div>
+          <!-- ─── BODY ─── -->
+          <tr>
+            <td class="body">
 
-      <!-- Reservation Details -->
-      <div class="section-label">Reservation Details</div>
-      <div class="card">
-        <div class="detail-row">
-          <span class="detail-label">Reservation ID</span>
-          <span class="detail-value">${reservation.id}</span>
-        </div>
-        <div class="detail-row">
-          <span class="detail-label">Status</span>
-          <span class="detail-value">${reservation.status}</span>
-        </div>
-        <div class="detail-row">
-          <span class="detail-label">Created</span>
-          <span class="detail-value">${reservation.created_at}</span>
-        </div>
-        <div class="detail-row">
-          <span class="detail-label">Check-in</span>
-          <span class="detail-value">${reservation.start_date}</span>
-        </div>
-        <div class="detail-row">
-          <span class="detail-label">Check-out</span>
-          <span class="detail-value">${reservation.end_date}</span>
-        </div>
-      </div>
+              <!-- Intro -->
+              <div class="intro">
+                The guest has paid the remaining balance for their reservation. No further action is required.
+              </div>
 
-      <!-- Payment Summary -->
-      <div class="section-label">Payment Summary</div>
-      <div class="payment-hero">
-        <div class="left">
-          <div class="label">Total Paid</div>
-          <div class="amount">€${reservation.total_price}</div>
-        </div>
-        <div class="right">
-          <div class="method">${reservation.payment_method}</div>
-          <div class="status-pill">
-            <span class="status-dot"></span>Paid in Full
-          </div>
-        </div>
-      </div>
+              <!-- Reservation Details -->
+              <span class="section-label">Reservation Details</span>
 
-      <!-- Breakdown -->
-      <div class="section-label">Updated Breakdown</div>
-      <div class="breakdown-grid">
-        <div class="breakdown-row">
-          <span class="b-label">Accommodation Subtotal</span>
-          <span class="b-value">€${reservation.accommodation_subtotal}</span>
-        </div>
-        <div class="breakdown-row">
-          <span class="b-label">Sales Tax</span>
-          <span class="b-value">€${reservation.sales_tax}</span>
-        </div>
-        <div class="breakdown-row">
-          <span class="b-label">Tourist Tax</span>
-          <span class="b-value">€${reservation.tourist_tax}</span>
-        </div>
-        <div class="breakdown-row">
-          <span class="b-label">Credit Fees</span>
-          <span class="b-value">€${reservation.credit_fees}</span>
-        </div>
-      </div>
+              <table class="detail-table" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td class="td-label">Reservation ID</td>
+                  <td class="td-value">${reservation.id}</td>
+                </tr>
+                <tr>
+                  <td class="td-label">Status</td>
+                  <td class="td-value">${reservation.status}</td>
+                </tr>
+                <tr>
+                  <td class="td-label">Created</td>
+                  <td class="td-value">${reservation.created_at}</td>
+                </tr>
+                <tr>
+                  <td class="td-label">Check-in</td>
+                  <td class="td-value">${reservation.start_date}</td>
+                </tr>
+                <tr>
+                  <td class="td-label">Check-out</td>
+                  <td class="td-value">${reservation.end_date}</td>
+                </tr>
+              </table>
 
-      <!-- Guests & Contact -->
-      <div class="section-label">Guests & Contact</div>
-      <div class="two-col">
-        <div class="card">
-          <div class="detail-row">
-            <span class="detail-label">Adults</span>
-            <span class="detail-value">${reservation.guests_over}</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">Children</span>
-            <span class="detail-value">${reservation.guests_under}</span>
-          </div>
-        </div>
-        <div class="card">
-          <div class="detail-row">
-            <span class="detail-label">Phone</span>
-            <span class="detail-value">${reservation.phone}</span>
-          </div>
-        </div>
-      </div>
+              <!-- Payment Summary -->
+              <span class="section-label">Payment Summary</span>
 
-      <!-- Billing -->
-      <div class="section-label">Billing Information</div>
-      <div class="address-block">
-        <div class="name">${reservation.billing_name}</div>
-        <div class="addr">
-          ${reservation.billing_address}<br/>
-          ${reservation.billing_city}, ${reservation.billing_state}<br/>
-          ${reservation.billing_postal_code}, ${reservation.billing_country}
-        </div>
-      </div>
+              <table class="payment-hero" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td>
+                    <div class="payment-label">Total Paid</div>
+                    <div class="payment-amount">€ ${reservation.total_price}</div>
+                  </td>
+                  <td class="payment-right" align="right" valign="middle">
+                    <div class="payment-method">${reservation.payment_method}</div>
+                    <div class="payment-status">
+                      <span class="status-dot"></span>
+                      Paid in Full
+                    </div>
+                  </td>
+                </tr>
+              </table>
 
-      <hr class="divider" />
+              <!-- Updated Breakdown -->
+              <span class="section-label">Updated Breakdown</span>
 
-      <p class="final-note">
-        The guest has now fully paid for their stay. No further action is required.
-      </p>
+              <table class="breakdown-table" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td class="b-label">Accommodation Subtotal</td>
+                  <td class="b-value">€ ${reservation.accommodation_subtotal}</td>
+                </tr>
+                <tr>
+                  <td class="b-label">Sales Tax</td>
+                  <td class="b-value">€ ${reservation.sales_tax}</td>
+                </tr>
+                <tr>
+                  <td class="b-label">Tourist Tax</td>
+                  <td class="b-value">€ ${reservation.tourist_tax}</td>
+                </tr>
+                <tr>
+                  <td class="b-label">Credit Fees</td>
+                  <td class="b-value">€ ${reservation.credit_fees}</td>
+                </tr>
+              </table>
 
-    </div>
+              <!-- Guests & Contact -->
+              <span class="section-label">Guests & Contact</span>
 
-    <!-- Footer -->
-    <div class="footer">
-      <p><strong>Four Roses</strong> · Internal Notification</p>
-      <p style="margin-top:6px;">© 2026 Four Roses · All rights reserved</p>
-    </div>
+              <table class="two-col-outer" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td width="49%">
+                    <table class="detail-table" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td class="td-label">Adults</td>
+                        <td class="td-value">${reservation.guests_over}</td>
+                      </tr>
+                      <tr>
+                        <td class="td-label">Children</td>
+                        <td class="td-value">${reservation.guests_under}</td>
+                      </tr>
+                    </table>
+                  </td>
+                  <td class="col-gap"></td>
+                  <td width="49%">
+                    <table class="detail-table" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td class="td-label">Phone</td>
+                        <td class="td-value">${reservation.phone}</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
 
-  </div>
+              <!-- Billing Information -->
+              <span class="section-label">Billing Information</span>
+
+              <table class="address-table" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td>
+                    <div class="address-name">${reservation.billing_name}</div>
+                    <div class="address-addr">
+                      ${reservation.billing_address}<br />
+                      ${reservation.billing_city}, ${reservation.billing_state}<br />
+                      ${reservation.billing_postal_code}, ${reservation.billing_country}
+                    </div>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Divider -->
+              <hr class="divider" />
+
+              <!-- Final Note -->
+              <p class="final-note">
+                The guest has now fully paid for their stay. No further action is required.
+              </p>
+
+            </td>
+          </tr>
+
+          <!-- ─── FOOTER ─── -->
+          <tr>
+            <td class="footer">
+              <p class="footer-text"><span class="footer-brand">Four Roses</span> · Internal Notification</p>
+              <p class="footer-text">© 2026 Four Roses · All rights reserved</p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+
 </body>
+
 </html>
 `;
 
@@ -1515,10 +1604,10 @@ export const sendBookingConfirmEmail = async (req, res) => {
               <p class="intro">
               ${
                 parseFloat(reservation.amount_paid) >= parseFloat(reservation.total_price)
-                  ? `Your IBAN bank transfer has been validated and your deposit has been processed.
-               The remaining balance is due prior to your reservation date. Please ensure the outstanding amount is settled <b>before</b> arrival.`
-                  : `Your IBAN bank transfer has been validated and your payment has been fully processed.
+                  ? `Your IBAN bank transfer has been validated and your payment has been fully processed.
                 Everything is in order — your booking is now complete.`
+                  : `Your IBAN bank transfer has been validated and your deposit has been processed.
+               The remaining balance is due prior to your reservation date. Please ensure the outstanding amount is settled <b>before</b> arrival.`
               }
               </p>
 
@@ -1539,13 +1628,14 @@ export const sendBookingConfirmEmail = async (req, res) => {
                   <td class="td-value">${reservation.end_date}</td>
                 </tr>
                 ${
-                  (parseFloat(reservation.amount_paid) != parseFloat(reservation.total_price)) &
-                  `<tr>
+                  parseFloat(reservation.amount_paid) < parseFloat(reservation.total_price)
+                    ? `<tr>
                   <td class="td-label">Remaining balance</td>
                   <td class="td-value">${
-                    parseFloat(reservation.amount_paid) - parseFloat(reservation.total_price)
+                    parseFloat(reservation.total_price) - parseFloat(reservation.amount_paid)
                   }</td>
                 </tr>`
+                    : ""
                 }
               </table>
 
