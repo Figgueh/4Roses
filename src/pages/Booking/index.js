@@ -17,7 +17,7 @@ import BookingOptions from "../../components/Booking/BookingOptions";
 export default function BookingPage() {
   const { t } = useTranslation();
   const translatedRoutes = routes(t);
-  const [bookingData, setBookingData] = useState({ selectedDates: {}, guests: 1 });
+  const [bookingData, setBookingData] = useState({ selectedDates: {}, guests_over: 1 });
 
   return (
     <>
