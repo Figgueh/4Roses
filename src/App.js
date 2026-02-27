@@ -28,7 +28,6 @@ import theme from "assets/theme";
 // Material Kit 2 React routes
 import { routes } from "routes";
 import Home from "pages/Home";
-import { AuthContextProvider } from "connection/auth/authContext";
 import ActivityBuilder from "pages/ActivityBuilder";
 import { useTranslation } from "react-i18next";
 import ContactDeveloperPage from "pages/footerPages/ContactDev";
@@ -37,6 +36,9 @@ import Booking from "pages/Booking";
 import BookingSuccess from "pages/Booking/BookingSuccess";
 import BillingForm from "pages/Booking/BillingForm";
 import ContinuePayment from "pages/Booking/ContinuePayment";
+import ConfirmEmail from "pages/Register/confirm";
+import PrivateRoute from "connection/users/PrivateRoute";
+import AuthCallback from "connection/auth/authCallback";
 
 export default function App() {
   const { pathname } = useLocation();
@@ -67,23 +69,56 @@ export default function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <AuthContextProvider>
-        <Routes>
-          {getRoutes(translatedRoutes)}
-          <Route path="/" element={<Home />} />
-          <Route path="activities/:section/:slug" element={<ActivityBuilder />} />
-          <Route path="activities/:section" element={<ActivityBuilder />} />
-          <Route path="book" element={<Booking />} />
-          <Route path="billing" element={<BillingForm />} />
-          <Route path="booking-success" element={<BookingSuccess />} />
-          <Route path="continue-payment/:id" element={<ContinuePayment />} />
+      <Routes>
+        {getRoutes(translatedRoutes)}
+        <Route path="/" element={<Home />} />
 
-          {/* Footer pages */}
-          <Route path="contact-developer" element={<ContactDeveloperPage />} />
-          <Route path="terms-and-conditions" element={<TermsConditions />} />
-          {/* <Route path="*" element={<Navigate to="/pages/landing-pages/home" />} /> */}
-        </Routes>
-      </AuthContextProvider>
+        {/* Account creation */}
+        <Route path="/confirm-email" element={<ConfirmEmail />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
+
+        <Route path="activities/:section/:slug" element={<ActivityBuilder />} />
+        <Route path="activities/:section" element={<ActivityBuilder />} />
+
+        {/* Private routes */}
+        <Route
+          path="book"
+          element={
+            <PrivateRoute>
+              <Booking />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="billing"
+          element={
+            <PrivateRoute>
+              <BillingForm />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="booking-success"
+          element={
+            <PrivateRoute>
+              <BookingSuccess />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="continue-payment/:id"
+          element={
+            <PrivateRoute>
+              <ContinuePayment />
+            </PrivateRoute>
+          }
+        />
+
+        {/* Footer pages */}
+        <Route path="contact-developer" element={<ContactDeveloperPage />} />
+        <Route path="terms-and-conditions" element={<TermsConditions />} />
+        {/* <Route path="*" element={<Navigate to="/pages/landing-pages/home" />} /> */}
+      </Routes>
     </ThemeProvider>
   );
 }

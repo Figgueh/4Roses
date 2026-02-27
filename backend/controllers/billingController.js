@@ -315,8 +315,6 @@ export const generatePDF = async (req, res) => {
     `;
 
     const isLocal = process.env.NODE_ENV === "development";
-    console.log("NODE_ENV =", process.env.NODE_ENV);
-
     // ---------------------------------------------------------
     // PDF GENERATION - Launch browser (puppeteer handles downloading automatically)
     // ---------------------------------------------------------
@@ -328,7 +326,7 @@ export const generatePDF = async (req, res) => {
         "--disable-dev-shm-usage",
         "--disable-gpu",
       ],
-      executablePath: "/usr/bin/google-chrome-stable",
+      executablePath: isLocal ? puppeteer.executablePath() : "/usr/bin/google-chrome-stable",
     });
 
     const page = await browser.newPage();

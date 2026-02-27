@@ -22,12 +22,6 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import Card from "@mui/material/Card";
 import Switch from "@mui/material/Switch";
 import Grid from "@mui/material/Grid";
-import MuiLink from "@mui/material/Link";
-
-// @mui icons
-import FacebookIcon from "@mui/icons-material/Facebook";
-import GitHubIcon from "@mui/icons-material/GitHub";
-import GoogleIcon from "@mui/icons-material/Google";
 
 // Material Kit 2 React components
 import MKBox from "components/MKBox";
@@ -38,13 +32,13 @@ import MKAlert from "components/MKAlert";
 
 // Material Kit 2 React example components
 import DefaultNavbar from "components/DefaultNavbar";
-import SimpleFooter from "components/Footers/SimpleFooter";
+import CenteredFooter from "components/Footers/CenteredFooter";
 
 // Material Kit 2 React page layout routes
 import { routes } from "routes";
 
 // Images
-import bgImage from "assets/images/bg-sign-in-basic.jpeg";
+import bgImage from "assets/images/beach/reservado.jpg";
 import { UserAuth } from "connection/auth/authContext";
 
 import { useTranslation } from "react-i18next";
@@ -63,7 +57,7 @@ function SignInBasic() {
     event.preventDefault();
     setMessage("");
 
-    let result = await signInUser(username, password);
+    let result = await signInUser(username, password, rememberMe);
 
     if (result.success) {
       navigate("/dashboard");
@@ -76,16 +70,20 @@ function SignInBasic() {
     if (location.state?.message) {
       setMessage(location.state.message);
     }
-
-    // check to see if the user is already signed in.
-    if (authLoading) {
-      return <p className="text-center text-gray-500">Loading...</p>;
-    }
-    if (session) navigate("/dashboard");
   }, [location.state]);
+
+  useEffect(() => {
+    if (session) {
+      navigate("/dashboard");
+    }
+  }, [session, navigate]);
 
   const [rememberMe, setRememberMe] = useState(false);
   const handleSetRememberMe = () => setRememberMe(!rememberMe);
+
+  if (authLoading) {
+    return <div className="text-center text-gray-500">Loading...</div>;
+  }
 
   return (
     <>
@@ -131,26 +129,9 @@ function SignInBasic() {
                 mb={1}
                 textAlign="center"
               >
-                <MKTypography variant="h4" fontWeight="medium" color="white" mt={1}>
+                <MKTypography variant="h4" fontWeight="medium" color="white" mt={1} mb={1}>
                   {t("Sign in")}
                 </MKTypography>
-                <Grid container spacing={2} justifyContent="center" sx={{ mt: 1, mb: 2 }}>
-                  <Grid item xs={2}>
-                    <MKTypography component={MuiLink} href="#" variant="body1" color="white">
-                      <FacebookIcon color="inherit" />
-                    </MKTypography>
-                  </Grid>
-                  <Grid item xs={2}>
-                    <MKTypography component={MuiLink} href="#" variant="body1" color="white">
-                      <GitHubIcon color="inherit" />
-                    </MKTypography>
-                  </Grid>
-                  <Grid item xs={2}>
-                    <MKTypography component={MuiLink} href="#" variant="body1" color="white">
-                      <GoogleIcon color="inherit" />
-                    </MKTypography>
-                  </Grid>
-                </Grid>
               </MKBox>
               <MKBox pt={4} pb={3} px={3}>
                 <MKBox component="form" role="form" onSubmit={handleSignInUser}>
@@ -215,8 +196,8 @@ function SignInBasic() {
           </Grid>
         </Grid>
       </MKBox>
-      <MKBox width="100%" position="absolute" zIndex={2} bottom="1.625rem">
-        <SimpleFooter light />
+      <MKBox width="100%" position="absolute" zIndex={2}>
+        <CenteredFooter />
       </MKBox>
     </>
   );

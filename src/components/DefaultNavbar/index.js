@@ -100,16 +100,34 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
     navigate("/");
   };
 
+  // Checking if logged in for booking calendar.
+  const handleActionClick = (e) => {
+    if (action.route === "/book" && !isLoggedIn) {
+      e.preventDefault();
+      window.open("https://www.vrbo.com/2905236?dateless=true", "_blank");
+    }
+  };
+
   useEffect(() => {
     const init = async () => {
-      // Check if the user is logged in
       if (session?.user?.id) {
         setIsLoggedIn(true);
-        const { data: userInfo } = await axios.get(
-          `${process.env.REACT_APP_BACKEND}/users/${session?.user?.id}`
-        );
+        try {
+          const { data: userInfo } = await axios.get(
+            `${process.env.REACT_APP_BACKEND}/users/${session.user.id}`
+          );
 
-        setUserInfo(userInfo);
+          // Guard against null response (e.g. newly confirmed user
+          // whose profile row hasn't been created yet)
+          if (userInfo) {
+            setUserInfo(userInfo);
+          } else {
+            setUserInfo({});
+          }
+        } catch (err) {
+          console.error("Failed to fetch user info:", err);
+          setUserInfo({});
+        }
       } else {
         setIsLoggedIn(false);
         setUserInfo({});
@@ -571,29 +589,39 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
           >
             {renderNavbarItems}
           </MKBox>
-          <Link to="/dashboard">
-            {/* Check if the user is logged in, if they are show the profile picture */}
-            {isLoggedIn && !userInfo.avatar_url ? (
-              // If there isn't a saved avatar then show their first name.
-              <MKAvatar
-                sx={{ bgcolor: "#9fc5e8", fontSize: "0.60rem", mr: 2 }}
-                alt="Profile picture"
-                size="md"
-                shadow="xl"
-              >
-                {userInfo.first_name}
-              </MKAvatar>
-            ) : (
-              // Show the avatar image
-              <MKAvatar
-                src={userInfo.avatar_url}
-                sx={{ bgcolor: "#9fc5e8", mr: 2 }}
-                alt="Profile picture"
-                size="md"
-                shadow="xl"
-              />
-            )}
-          </Link>
+          {isLoggedIn ? (
+            <Link to="/dashboard">
+              {!userInfo.avatar_url ? (
+                <MKAvatar
+                  sx={{ bgcolor: "#9fc5e8", fontSize: "0.60rem", mr: 2 }}
+                  alt="Profile picture"
+                  size="md"
+                  shadow="xl"
+                >
+                  {userInfo.first_name}
+                </MKAvatar>
+              ) : (
+                <MKAvatar
+                  src={userInfo.avatar_url}
+                  sx={{ bgcolor: "#9fc5e8", mr: 2 }}
+                  alt="Profile picture"
+                  size="md"
+                  shadow="xl"
+                />
+              )}
+            </Link>
+          ) : (
+            <MKButton
+              component={Link}
+              to="/sign-in"
+              variant="gradient"
+              color="info"
+              size="small"
+              sx={{ mr: 2 }}
+            >
+              Sign In
+            </MKButton>
+          )}
 
           <MKBox ml={{ lg: 0 }} display={{ xs: "none", lg: "flex" }} alignItems="center" gap={1}>
             {/* Action Button */}
@@ -609,6 +637,7 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
                   }
                   color={action.color ? action.color : "info"}
                   size="small"
+                  onClick={handleActionClick}
                 >
                   {action.label}
                 </MKButton>

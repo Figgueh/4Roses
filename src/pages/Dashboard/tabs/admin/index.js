@@ -17,6 +17,7 @@ import ArticleGenerator from "./content/ArticleGenerator";
 import AmenitiesEditor from "./content/AmenitiesEditor";
 import PriceAdjuster from "./reservations/PriceAdjuster";
 import ReservationManager from "./reservations/ReservationManager";
+import DateBlocker from "./reservations/DateBlocker";
 
 function AdminDash() {
   const [activeTool, setActiveTool] = useState("interior");
@@ -42,6 +43,8 @@ function AdminDash() {
         return <ArticleGenerator />;
       case "reservation manager":
         return <ReservationManager />;
+      case "date blocker":
+        return <DateBlocker />;
       case "price manager":
         return <PriceAdjuster />;
       default:
@@ -126,6 +129,13 @@ function AdminDash() {
                 onClick={() => setActiveTool("reservation manager")}
               >
                 <ListItemText primary="Reservations" />
+              </ListItemButton>
+              <ListItemButton
+                selected={activeTool === "date blocker"}
+                sx={{ pl: 4 }}
+                onClick={() => setActiveTool("date blocker")}
+              >
+                <ListItemText primary="Date Blocker" />
               </ListItemButton>
               <ListItemButton
                 selected={activeTool === "price manager"}

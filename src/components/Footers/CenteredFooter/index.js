@@ -21,10 +21,11 @@ import Link from "@mui/material/Link";
 import Grid from "@mui/material/Grid";
 import Stack from "@mui/material/Stack";
 
-// @mui icons
+// @mui icons and other icons
 import FacebookIcon from "@mui/icons-material/Facebook";
 import YoutubeIcon from "@mui/icons-material/YouTube";
 import BookIcon from "@mui/icons-material/Hotel";
+import Vrbo from "assets/images/logos/gray-logos/small_vrbo.ico";
 
 // Material Kit 2 React components
 import MKBox from "components/MKBox";
@@ -105,24 +106,29 @@ function CenteredFooter({ company, links, socials, light }) {
 CenteredFooter.defaultProps = {
   company: { href: "https://www.creative-tim.com/", name: "Joaquim & Aurora" },
   links: [
-    { href: "https://www.creative-tim.com/", name: "Company" },
-    { href: "https://www.creative-tim.com/presentation", name: "About Us" },
-    { href: "https://www.creative-tim.com/presentation", name: "Team" },
-    { href: "https://www.creative-tim.com/templates/react", name: "Products" },
-    { href: "https://www.creative-tim.com/blog", name: "Blog" },
+    { href: "/", name: "Homepage" },
+    { href: "/pages/landing-pages/AboutUs", name: "About Us" },
+    { href: "/pages/albums/interior", name: "Interior photos" },
+    { href: "/pages/albums/exterior", name: "Exterior photos" },
+    { href: "/pages/albums/videos", name: "Videos" },
+    { href: "/terms-and-conditions", name: "Terms & conditions" },
     { href: "https://www.creative-tim.com/license", name: "License" },
   ],
   socials: [
     {
       icon: <FacebookIcon fontSize="small" />,
-      link: "https://www.facebook.com/groups/1226682227365251/",
+      link: "https://www.facebook.com/maria.aurora.abrantes",
     },
     {
       icon: <YoutubeIcon fontSize="small" />,
       link: "https://www.youtube.com/@joaquimfigueiras8377",
     },
     {
-      icon: <BookIcon fontSize="small" />,
+      icon: <BookIcon />,
+      link: "/book",
+    },
+    {
+      icon: <img src={Vrbo} alt="Vrbo icon" />,
       link: "https://www.vrbo.com/2905236?dateless=true",
     },
   ],

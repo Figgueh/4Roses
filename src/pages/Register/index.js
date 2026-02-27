@@ -14,21 +14,25 @@ import MKButton from "components/MKButton";
 
 // Material Kit 2 React example components
 import DefaultNavbar from "components/DefaultNavbar";
-import SimpleFooter from "components/Footers/SimpleFooter";
+import CenteredFooter from "components/Footers/CenteredFooter";
 
 // Material Kit 2 React page layout routes
 import { routes } from "routes";
 
 // Images
-import bgImage from "assets/images/bg-sign-in-basic.jpeg";
+import bgImage from "assets/images/beach/reservado.jpg";
 import { UserAuth } from "connection/auth/authContext";
 
 import { useTranslation } from "react-i18next";
+import { Alert, AlertTitle } from "@mui/material";
 
 function Register() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [password, setPassword] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState("");
   const [message, setMessage] = useState("");
   const { session, authLoading, signUpUser } = UserAuth();
   const { t } = useTranslation();
@@ -38,24 +42,27 @@ function Register() {
     event.preventDefault();
     setMessage("");
 
-    const result = await signUpUser(email, password);
+    const result = await signUpUser(email, firstName, lastName, password, dateOfBirth);
 
     if (result.success) {
       setMessage("User account created!");
-      navigate("/dashboard");
+      navigate("/confirm-email");
     }
     if (!result.success) {
-      setMessage(result.error.message);
+      console.log(result);
+      setMessage(result.error.message || "An unexpected error occurred.");
     }
   };
 
   useEffect(() => {
-    // check to see if the user is already signed in.
-    if (authLoading) {
-      return <p className="text-center text-gray-500">Loading...</p>;
+    if (session) {
+      navigate("/dashboard");
     }
-    if (session) navigate("/dashboard");
-  }, []);
+  }, [session, navigate]);
+
+  if (authLoading) {
+    return <div className="text-center text-gray-500">Loading...</div>;
+  }
 
   return (
     <>
@@ -63,12 +70,10 @@ function Register() {
         routes={translatedRoutes}
         action={{
           type: "external",
-          route: "https://www.creative-tim.com/product/material-kit-react",
-          label: "free download",
+          route: "https://www.vrbo.com/en-ca/cottage-rental/p2905236vb",
+          label: t("book"),
           color: "info",
         }}
-        transparent
-        light
       />
       <MKBox
         position="absolute"
@@ -103,13 +108,16 @@ function Register() {
                 mb={1}
                 textAlign="center"
               >
-                <MKTypography variant="h4" fontWeight="medium" color="white" mt={1}>
+                <MKTypography variant="h4" fontWeight="medium" color="white" mt={1} mb={1}>
                   Account creation
                 </MKTypography>
-                <Grid container spacing={2} justifyContent="center" sx={{ mt: 1, mb: 2 }}>
-                  {message && <>{message}</>}
-                </Grid>
               </MKBox>
+              {message && (
+                <Alert sx={{ m: 2 }} severity="error" onClose={() => setMessage(null)}>
+                  <AlertTitle>Account creation error</AlertTitle>
+                  {message}
+                </Alert>
+              )}
               <MKBox pt={4} pb={3} px={3}>
                 <MKBox component="form" role="form" onSubmit={handleSignUpUser}>
                   <MKBox mb={2}>
@@ -123,10 +131,38 @@ function Register() {
                   </MKBox>
                   <MKBox mb={2}>
                     <MKInput
+                      type="first name"
+                      label={t("First name")}
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      fullWidth
+                    />
+                  </MKBox>
+                  <MKBox mb={2}>
+                    <MKInput
+                      type="last name"
+                      label={t("Last name")}
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      fullWidth
+                    />
+                  </MKBox>
+                  <MKBox mb={2}>
+                    <MKInput
                       type="password"
                       label="Password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
+                      fullWidth
+                    />
+                  </MKBox>
+                  <MKBox mb={2}>
+                    <MKInput
+                      type="date"
+                      label={t("Date of Birth")}
+                      value={dateOfBirth}
+                      onChange={(e) => setDateOfBirth(e.target.value)}
+                      InputLabelProps={{ shrink: true }}
                       fullWidth
                     />
                   </MKBox>
@@ -156,8 +192,8 @@ function Register() {
           </Grid>
         </Grid>
       </MKBox>
-      <MKBox width="100%" position="absolute" zIndex={2} bottom="1.625rem">
-        <SimpleFooter light />
+      <MKBox width="100%" position="absolute" zIndex={2}>
+        <CenteredFooter />
       </MKBox>
     </>
   );
