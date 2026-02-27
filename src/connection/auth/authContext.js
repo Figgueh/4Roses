@@ -18,6 +18,12 @@ export const AuthContextProvider = ({ children }) => {
     let { data, error } = await supabase.auth.signUp({
       email: email,
       password: password,
+      options: {
+        data: {
+          full_name: `${firstName} ${lastName}`.trim(),
+          date_of_birth: dateOfBirth || null,
+        },
+      },
     });
 
     if (error) {
@@ -30,26 +36,7 @@ export const AuthContextProvider = ({ children }) => {
       return { success: false, error: duplicateError };
     }
 
-    console.log("HERE", data.user.id);
-
-    // Get the user data on the public table
-    const { data: account, error: profileError } = await supabase.from("users").upsert(
-      {
-        id: data.user.id,
-        full_name: `${firstName} ${lastName}`.trim(),
-        date_of_birth: dateOfBirth || null,
-      },
-      { onConflict: "id" }
-    );
-
-    console.log(account);
-
-    if (profileError) {
-      console.error("Failed to create user profile:", profileError.message);
-      return { success: true, data, profileWarning: profileError.message };
-    }
-
-    return { success: true, data };
+    return { success: true, account: data };
   };
 
   const signInUser = async (email, password, rememberMe = false) => {

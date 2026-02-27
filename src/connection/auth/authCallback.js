@@ -28,7 +28,7 @@ function AuthCallback() {
     };
 
     handleCallback();
-  }, [navigate]);
+  }, [navigate, searchParams]);
 
   return (
     <div

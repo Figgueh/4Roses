@@ -42,6 +42,25 @@ function Register() {
     event.preventDefault();
     setMessage("");
 
+    // Age validation
+    if (!dateOfBirth) {
+      setMessage("Please enter your date of birth.");
+      return;
+    }
+
+    const today = new Date();
+    const dob = new Date(dateOfBirth);
+    const age = today.getFullYear() - dob.getFullYear();
+    const monthDiff = today.getMonth() - dob.getMonth();
+    const isUnder18 =
+      age < 18 ||
+      (age === 18 && (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())));
+
+    if (isUnder18) {
+      setMessage("You must be at least 18 years old to create an account.");
+      return;
+    }
+
     const result = await signUpUser(email, firstName, lastName, password, dateOfBirth);
 
     if (result.success) {
