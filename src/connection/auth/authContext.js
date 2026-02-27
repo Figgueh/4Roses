@@ -48,13 +48,11 @@ export const AuthContextProvider = ({ children }) => {
     if (error) return { success: false, error };
 
     if (!rememberMe) {
-      // Move the session from localStorage to sessionStorage
-      // so it clears when the browser tab/window closes
-      const key = "sb-session";
-      const stored = localStorage.getItem(key);
+      // Move session to sessionStorage so it clears on tab close
+      const stored = localStorage.getItem("sb-session");
       if (stored) {
-        sessionStorage.setItem(key, stored);
-        localStorage.removeItem(key);
+        sessionStorage.setItem("sb-session", stored);
+        localStorage.removeItem("sb-session");
       }
     }
 

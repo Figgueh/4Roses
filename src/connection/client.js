@@ -8,6 +8,7 @@ const supabase = createClient(
     auth: {
       persistSession: true,
       storageKey: "sb-session",
+      storage: sessionStorage.getItem("sb-session") ? sessionStorage : localStorage,
     },
   }
 );
