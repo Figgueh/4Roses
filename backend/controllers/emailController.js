@@ -1644,7 +1644,7 @@ export const sendBookingConfirmEmail = async (req, res) => {
                   parseFloat(reservation.amount_paid) < parseFloat(reservation.total_price)
                     ? `<tr>
                   <td class="td-label">Remaining balance</td>
-                  <td class="td-value">${(
+                  <td class="td-value">€ ${(
                     parseFloat(reservation.total_price) - parseFloat(reservation.amount_paid)
                   ).toFixed(2)}</td>
                 </tr>`

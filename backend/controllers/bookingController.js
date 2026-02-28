@@ -74,13 +74,13 @@ export const checkReservation = async (req, res, next) => {
   const { check_in, check_out } = req.params;
 
   try {
-    // Check if the dates are available
-    const { data: existing } = await supabase
+    const { data: existing, error } = await supabase
       .from("reservations")
       .select("*")
-      .eq("status", "confirmed")
-      .lte("start_date", check_out)
-      .gte("end_date", check_in);
+      .in("status", ["confirmed", "paid", "completed"])
+      .or(`and(start_date.lte.${check_out}, end_date.gte.${check_in})`);
+
+    if (error) throw error;
 
     res.json({ isBooked: existing?.length > 0 });
   } catch (err) {
@@ -293,10 +293,8 @@ export const updateReservation = async (req, res) => {
       const { data: existing, error: conflictError } = await supabase
         .from("reservations")
         .select("*")
-        .in("status", ["confirmed", "completed", "paid"])
-        .neq("id", id) // exclude the current reservation
-        .gte("start_date", start_date)
-        .lte("end_date", end_date);
+        .in("status", ["confirmed", "paid", "completed"])
+        .or(`and(start_date.lte.${end_date}, end_date.gte.${start_date})`);
 
       if (conflictError) {
         console.error("Supabase conflict query error:", conflictError);
