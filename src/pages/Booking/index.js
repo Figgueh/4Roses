@@ -98,6 +98,7 @@ export default function BookingPage() {
           onSelectionChange={(selectedDates) =>
             setBookingData((prev) => ({ ...prev, selectedDates }))
           }
+          isContinuousCheck={true}
         />
         {Object.keys(bookingData.selectedDates).length > 0 && (
           <>
