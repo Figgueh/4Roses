@@ -57,6 +57,7 @@ export default function AvailabilityCalendar({
   const [dragStartDate, setDragStartDate] = useState(null);
   const [dragEndDate, setDragEndDate] = useState(null);
   const [dragMode, setDragMode] = useState(null);
+  const [priceOverrides, setPriceOverrides] = useState([]);
   const [monthlyPrices, setMonthlyPrices] = useState({});
   const [error, setError] = useState("");
   const cancelRef = useRef(false);
@@ -69,14 +70,17 @@ export default function AvailabilityCalendar({
   // Load monthly prices
   useEffect(() => {
     let mounted = true;
-    fetch(`${process.env.REACT_APP_BACKEND}/billings/monthlyPrice`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (mounted) setMonthlyPrices(data || {});
+    Promise.all([
+      fetch(`${process.env.REACT_APP_BACKEND}/billings/monthlyPrice`).then((r) => r.json()),
+      fetch(`${process.env.REACT_APP_BACKEND}/billings/priceOverrides`).then((r) => r.json()),
+    ])
+      .then(([monthly, overrides]) => {
+        if (mounted) {
+          setMonthlyPrices(monthly || {});
+          setPriceOverrides(overrides || []);
+        }
       })
-      .catch((e) => {
-        console.error("failed to fetch monthly prices", e);
-      });
+      .catch((e) => console.error("failed to fetch pricing", e));
     return () => {
       mounted = false;
     };
@@ -158,7 +162,14 @@ export default function AvailabilityCalendar({
   const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-  const getPriceForDate = (date) => monthlyPrices[date.getMonth()] ?? "--";
+  const getPriceForDate = (date) => {
+    const iso = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
+      date.getDate()
+    ).padStart(2, "0")}`;
+    const override = priceOverrides.find((o) => iso >= o.start_date && iso <= o.end_date);
+    if (override) return override.price_per_night;
+    return monthlyPrices[date.getMonth()] ?? "--";
+  };
 
   // helpers - don't mutate passed Date objects
   const cloneDate = (d) => new Date(d.getTime());
@@ -338,12 +349,32 @@ export default function AvailabilityCalendar({
 
                 {!blockedDay && !pastDay && (
                   <MKTypography variant="caption" mt={0.5}>
-                    €
-                    {getPriceForDate(date).toLocaleString(undefined, {
-                      minimumFractionDigits: 2,
-                    })}
+                    €{getPriceForDate(date).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                   </MKTypography>
                 )}
+                {/* Small dot to indicate a price override is active */}
+                {!blockedDay &&
+                  !pastDay &&
+                  (() => {
+                    const iso = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+                      2,
+                      "0"
+                    )}-${String(date.getDate()).padStart(2, "0")}`;
+                    const hasOverride = priceOverrides.some(
+                      (o) => iso >= o.start_date && iso <= o.end_date
+                    );
+                    return hasOverride ? (
+                      <div
+                        style={{
+                          width: 4,
+                          height: 4,
+                          borderRadius: "50%",
+                          background: "#8b4513",
+                          marginTop: 2,
+                        }}
+                      />
+                    ) : null;
+                  })()}
 
                 {blockedDay && sourceName && (
                   <MKTypography
