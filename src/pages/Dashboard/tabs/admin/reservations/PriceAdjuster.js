@@ -450,15 +450,30 @@ function DateRangeOverrides() {
                       />
                     </TableCell>
                     <TableCell>
-                      {o.profiles ? (
-                        <Box>
-                          <Typography variant="body2" sx={{ fontSize: "13px", color: "#2c2420" }}>
-                            {o.profiles.full_name || "—"}
-                          </Typography>
-                          <Typography variant="caption" sx={{ color: "#9e8a80" }}>
-                            {o.profiles.email}
-                          </Typography>
-                        </Box>
+                      {o.account_id ? (
+                        (() => {
+                          const account = accounts.find((a) => a.id === o.account_id);
+                          return account ? (
+                            <Box>
+                              <Typography
+                                variant="body2"
+                                sx={{ fontSize: "13px", color: "#2c2420" }}
+                              >
+                                {account.full_name || "—"}
+                              </Typography>
+                              <Typography variant="caption" sx={{ color: "#9e8a80" }}>
+                                {account.email}
+                              </Typography>
+                            </Box>
+                          ) : (
+                            <Typography
+                              variant="caption"
+                              sx={{ color: "#b0978a", fontStyle: "italic" }}
+                            >
+                              Unknown account
+                            </Typography>
+                          );
+                        })()
                       ) : (
                         <Typography
                           variant="caption"
