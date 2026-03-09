@@ -1,47 +1,20 @@
-/**
-=========================================================
-* Material Kit 2 React - v2.1.0
-=========================================================
-
-* Product Page: https://www.creative-tim.com/product/material-kit-react
-* Copyright 2023 Creative Tim (https://www.creative-tim.com)
-
-Coded by www.creative-tim.com
-
- =========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-*/
-
 import { useEffect, useState } from "react";
-
-// react-router-dom components
 import { Link, useNavigate, useLocation } from "react-router-dom";
-
-// @mui material components
 import Card from "@mui/material/Card";
 import Switch from "@mui/material/Switch";
 import Grid from "@mui/material/Grid";
-
-// Material Kit 2 React components
 import MKBox from "components/MKBox";
 import MKTypography from "components/MKTypography";
 import MKInput from "components/MKInput";
 import MKButton from "components/MKButton";
 import MKAlert from "components/MKAlert";
-
-// Material Kit 2 React example components
 import DefaultNavbar from "components/DefaultNavbar";
 import CenteredFooter from "components/Footers/CenteredFooter";
-
-// Material Kit 2 React page layout routes
 import { routes } from "routes";
-
-// Images
 import bgImage from "assets/images/beach/reservado.jpg";
 import { UserAuth } from "connection/auth/authContext";
-
 import { useTranslation } from "react-i18next";
+import supabase from "connection/client";
 
 function SignInBasic() {
   const navigate = useNavigate();
@@ -49,6 +22,10 @@ function SignInBasic() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
+  const [messageColor, setMessageColor] = useState("error");
+  const [forgotMode, setForgotMode] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotLoading, setForgotLoading] = useState(false);
   const { session, authLoading, signInUser } = UserAuth();
   const { t } = useTranslation();
   const translatedRoutes = routes(t);
@@ -62,8 +39,28 @@ function SignInBasic() {
     if (result.success) {
       navigate("/dashboard");
     } else {
+      setMessageColor("error");
       setMessage(result.error.message);
     }
+  };
+
+  const handleForgotPassword = async (event) => {
+    event.preventDefault();
+    setForgotLoading(true);
+    setMessage("");
+
+    const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+
+    if (error) {
+      setMessageColor("error");
+      setMessage(error.message);
+    } else {
+      setMessageColor("success");
+      setMessage(t("Password reset email sent. Check your inbox."));
+    }
+    setForgotLoading(false);
   };
 
   useEffect(() => {
@@ -130,67 +127,141 @@ function SignInBasic() {
                 textAlign="center"
               >
                 <MKTypography variant="h4" fontWeight="medium" color="white" mt={1} mb={1}>
-                  {t("Sign in")}
+                  {forgotMode ? t("Reset Password") : t("Sign in")}
                 </MKTypography>
               </MKBox>
+
               <MKBox pt={4} pb={3} px={3}>
-                <MKBox component="form" role="form" onSubmit={handleSignInUser}>
-                  <MKBox mb={2}>
-                    <MKInput
-                      type="email"
-                      label={t("Email")}
-                      onChange={(e) => setUsername(e.target.value)}
-                      fullWidth
-                    />
-                  </MKBox>
-                  <MKBox mb={2}>
-                    <MKInput
-                      type="password"
-                      label={t("Password")}
-                      onChange={(e) => setPassword(e.target.value)}
-                      fullWidth
-                    />
-                  </MKBox>
-                  <MKBox display="flex" alignItems="center" ml={-1}>
-                    <Switch checked={rememberMe} onChange={handleSetRememberMe} />
-                    <MKTypography
-                      variant="button"
-                      fontWeight="regular"
-                      color="text"
-                      onClick={handleSetRememberMe}
-                      sx={{ cursor: "pointer", userSelect: "none", ml: -1 }}
-                    >
-                      &nbsp;&nbsp;{t("Remember me")}
+                {forgotMode ? (
+                  /* ── Forgot password form ── */
+                  <MKBox component="form" role="form" onSubmit={handleForgotPassword}>
+                    <MKTypography variant="body2" color="text" mb={2}>
+                      {t("Enter your email and we'll send you a reset link.")}
                     </MKTypography>
-                  </MKBox>
-                  <MKBox mt={4} mb={1}>
-                    <MKButton type="submit" variant="gradient" color="info" fullWidth>
-                      {t("Sign in")}
-                    </MKButton>
-                  </MKBox>
-                  <MKBox>
-                    {message && (
-                      <MKAlert color="error" sx={{ mt: 1.5 }}>
-                        {message}
-                      </MKAlert>
-                    )}
-                  </MKBox>
-                  <MKBox mt={3} mb={1} textAlign="center">
-                    <MKTypography variant="button" color="text">
-                      {t("Don't have an account?")}{" "}
+                    <MKBox mb={2}>
+                      <MKInput
+                        type="email"
+                        label={t("Email")}
+                        value={forgotEmail}
+                        onChange={(e) => setForgotEmail(e.target.value)}
+                        fullWidth
+                        required
+                      />
+                    </MKBox>
+                    <MKBox mt={4} mb={1}>
+                      <MKButton
+                        type="submit"
+                        variant="gradient"
+                        color="info"
+                        fullWidth
+                        disabled={forgotLoading}
+                      >
+                        {forgotLoading ? t("Sending...") : t("Send Reset Link")}
+                      </MKButton>
+                    </MKBox>
+                    <MKBox>
+                      {message && (
+                        <MKAlert color={messageColor} sx={{ mt: 1.5 }}>
+                          {message}
+                        </MKAlert>
+                      )}
+                    </MKBox>
+                    <MKBox mt={3} mb={1} textAlign="center">
                       <MKTypography
-                        component={Link}
-                        to="/register"
                         variant="button"
                         color="info"
                         fontWeight="medium"
                         textGradient
+                        sx={{ cursor: "pointer" }}
+                        onClick={() => {
+                          setForgotMode(false);
+                          setMessage("");
+                        }}
                       >
-                        {t("Sign up")}
+                        {t("Back to Sign in")}
                       </MKTypography>
-                    </MKTypography>
+                    </MKBox>
                   </MKBox>
-                </MKBox>
+                ) : (
+                  /* ── Sign in form ── */
+                  <MKBox component="form" role="form" onSubmit={handleSignInUser}>
+                    <MKBox mb={2}>
+                      <MKInput
+                        type="email"
+                        label={t("Email")}
+                        onChange={(e) => setUsername(e.target.value)}
+                        fullWidth
+                      />
+                    </MKBox>
+                    <MKBox mb={2}>
+                      <MKInput
+                        type="password"
+                        label={t("Password")}
+                        onChange={(e) => setPassword(e.target.value)}
+                        fullWidth
+                      />
+                    </MKBox>
+                    <MKBox
+                      display="flex"
+                      alignItems="center"
+                      justifyContent="space-between"
+                      ml={-1}
+                    >
+                      <MKBox display="flex" alignItems="center">
+                        <Switch checked={rememberMe} onChange={handleSetRememberMe} />
+                        <MKTypography
+                          variant="button"
+                          fontWeight="regular"
+                          color="text"
+                          onClick={handleSetRememberMe}
+                          sx={{ cursor: "pointer", userSelect: "none", ml: -1 }}
+                        >
+                          &nbsp;&nbsp;{t("Remember me")}
+                        </MKTypography>
+                      </MKBox>
+                      <MKTypography
+                        variant="button"
+                        color="info"
+                        fontWeight="medium"
+                        textGradient
+                        sx={{ cursor: "pointer" }}
+                        onClick={() => {
+                          setForgotMode(true);
+                          setMessage("");
+                        }}
+                      >
+                        {t("Forgot password?")}
+                      </MKTypography>
+                    </MKBox>
+                    <MKBox mt={4} mb={1}>
+                      <MKButton type="submit" variant="gradient" color="info" fullWidth>
+                        {t("Sign in")}
+                      </MKButton>
+                    </MKBox>
+                    <MKBox>
+                      {message && (
+                        <MKAlert color={messageColor} sx={{ mt: 1.5 }}>
+                          {message}
+                        </MKAlert>
+                      )}
+                    </MKBox>
+                    <MKBox mt={3} mb={1} textAlign="center">
+                      <MKTypography variant="button" color="text">
+                        {t("Don't have an account?")}{" "}
+                        <MKTypography
+                          component={Link}
+                          to="/register"
+                          variant="button"
+                          color="info"
+                          fontWeight="medium"
+                          textGradient
+                        >
+                          {t("Sign up")}
+                        </MKTypography>
+                      </MKTypography>
+                    </MKBox>
+                  </MKBox>
+                )}
               </MKBox>
             </Card>
           </Grid>

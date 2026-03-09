@@ -26,12 +26,19 @@ export const getIcs = async (req, res, next) => {
 export const generateCalendar = async (req, res, next) => {
   try {
     // Fetch confirmed reservations
-    const { data: reservations, error } = await supabase
+    const { data: reservations, error: resError } = await supabase
       .from("reservations")
       .select("id, start_date, end_date, billing_name, status")
       .in("status", ["confirmed", "paid", "completed"]);
 
-    if (error) throw error;
+    if (resError) throw resError;
+
+    // Fetch manually blocked days
+    const { data: blockedDays, error: blockError } = await supabase
+      .from("blocked_days")
+      .select("id, start_date, end_date");
+
+    if (blockError) throw blockError;
 
     // Build iCal content
     let ical = `BEGIN:VCALENDAR
@@ -43,16 +50,34 @@ METHOD:PUBLISH
 
     reservations.forEach((r) => {
       const dtStart = dayjs(r.start_date).format("YYYYMMDD");
-      const dtEnd = dayjs(r.end_date).format("YYYYMMDD");
+      // iCal DTEND for all-day events is exclusive, so add 1 day
+      const dtEnd = dayjs(r.end_date).add(1, "day").format("YYYYMMDD");
 
       ical += `
 BEGIN:VEVENT
-UID:${r.id}@4roses.fignet.ca
+UID:reservation-${r.id}@4roses.fignet.ca
 DTSTAMP:${dayjs().format("YYYYMMDDTHHmmss")}Z
 DTSTART;VALUE=DATE:${dtStart}
 DTEND;VALUE=DATE:${dtEnd}
 SUMMARY:Reservation - ${r.billing_name || "Guest"}
 DESCRIPTION:Blocked (Reservation ID ${r.id})
+END:VEVENT
+`;
+    });
+
+    blockedDays.forEach((b) => {
+      const dtStart = dayjs(b.start_date).format("YYYYMMDD");
+      // blocked days don't require an extra day for cleanup.
+      const dtEnd = dayjs(b.end_date).format("YYYYMMDD");
+
+      ical += `
+BEGIN:VEVENT
+UID:blocked-${b.id}@4roses.fignet.ca
+DTSTAMP:${dayjs().format("YYYYMMDDTHHmmss")}Z
+DTSTART;VALUE=DATE:${dtStart}
+DTEND;VALUE=DATE:${dtEnd}
+SUMMARY:Blocked
+DESCRIPTION:Manually blocked dates
 END:VEVENT
 `;
     });
@@ -74,13 +99,13 @@ export const checkReservation = async (req, res, next) => {
   const { check_in, check_out } = req.params;
 
   try {
-    // Check if the dates are available
-    const { data: existing } = await supabase
+    const { data: existing, error } = await supabase
       .from("reservations")
       .select("*")
-      .eq("status", "confirmed")
-      .lte("start_date", check_out)
-      .gte("end_date", check_in);
+      .in("status", ["confirmed", "paid", "completed"])
+      .or(`and(start_date.lte.${check_out}, end_date.gte.${check_in})`);
+
+    if (error) throw error;
 
     res.json({ isBooked: existing?.length > 0 });
   } catch (err) {
@@ -293,10 +318,8 @@ export const updateReservation = async (req, res) => {
       const { data: existing, error: conflictError } = await supabase
         .from("reservations")
         .select("*")
-        .in("status", ["confirmed", "completed", "paid"])
-        .neq("id", id) // exclude the current reservation
-        .gte("start_date", start_date)
-        .lte("end_date", end_date);
+        .in("status", ["confirmed", "paid", "completed"])
+        .or(`and(start_date.lte.${end_date}, end_date.gte.${start_date})`);
 
       if (conflictError) {
         console.error("Supabase conflict query error:", conflictError);

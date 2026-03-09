@@ -39,6 +39,7 @@ import ContinuePayment from "pages/Booking/ContinuePayment";
 import ConfirmEmail from "pages/Register/confirm";
 import PrivateRoute from "connection/users/PrivateRoute";
 import AuthCallback from "connection/auth/authCallback";
+import ResetPassword from "pages/SignIn/ResetPassword";
 
 export default function App() {
   const { pathname } = useLocation();
@@ -74,6 +75,7 @@ export default function App() {
         <Route path="/" element={<Home />} />
 
         {/* Account creation */}
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/confirm-email" element={<ConfirmEmail />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
 

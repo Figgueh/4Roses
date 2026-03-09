@@ -63,8 +63,13 @@ const handleInitialDeposit = async (event) => {
       return;
     }
 
-    // Send email
+    // Send email to admin
     await axios.post(`${process.env.BACKEND_URL}/email/initializeBooking`, {
+      reservation_id: reservation.id,
+    });
+
+    // Send email to client
+    await axios.post(`${process.env.BACKEND_URL}/email/confirmedBooking`, {
       reservation_id: reservation.id,
     });
   } catch (err) {
@@ -96,8 +101,13 @@ const handleRemainBalance = async (event) => {
 
   if (updateError) throw updateError;
 
-  // Send email
+  // Send email to admin
   await axios.post(`${process.env.BACKEND_URL}/email/paidBooking`, {
+    reservation_id: reservationId,
+  });
+
+  // Send email to client
+  await axios.post(`${process.env.BACKEND_URL}/email/confirmedBooking`, {
     reservation_id: reservationId,
   });
 };

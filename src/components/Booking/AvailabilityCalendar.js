@@ -43,9 +43,16 @@ function parseICS(data, sourceName) {
     .filter(Boolean);
 }
 
-export default function AvailabilityCalendar({ icsUrls, selectedDates, onSelectionChange }) {
+export default function AvailabilityCalendar({
+  icsUrls,
+  selectedDates,
+  onSelectionChange,
+  isContinuousCheck,
+  currentDate: controlledDate,
+  onMonthChange,
+}) {
   const [blockedDates, setBlockedDates] = useState(new Set());
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [internalDate, setInternalDate] = useState(new Date());
   const [isDragging, setIsDragging] = useState(false);
   const [dragStartDate, setDragStartDate] = useState(null);
   const [dragEndDate, setDragEndDate] = useState(null);
@@ -54,6 +61,11 @@ export default function AvailabilityCalendar({ icsUrls, selectedDates, onSelecti
   const [error, setError] = useState("");
   const cancelRef = useRef(false);
 
+  const currentDate = controlledDate ?? internalDate;
+  const setCurrentDate = (d) => {
+    if (onMonthChange) onMonthChange(d);
+    else setInternalDate(d);
+  };
   // Load monthly prices
   useEffect(() => {
     let mounted = true;
@@ -194,7 +206,7 @@ export default function AvailabilityCalendar({ icsUrls, selectedDates, onSelecti
       if (dragMode === "unselect") delete newSelected[key];
     }
 
-    if (!validateContinuousDates(newSelected)) {
+    if (!validateContinuousDates(newSelected) & isContinuousCheck) {
       setError("Selected dates must be continuous!");
     } else {
       onSelectionChange?.(newSelected);
@@ -360,4 +372,9 @@ AvailabilityCalendar.propTypes = {
   ).isRequired,
   selectedDates: PropTypes.objectOf(PropTypes.number),
   onSelectionChange: PropTypes.func,
+  isContinuousCheck: PropTypes.bool,
+
+  //For tracking the currently selected month
+  currentDate: PropTypes.instanceOf(Date),
+  onMonthChange: PropTypes.func,
 };

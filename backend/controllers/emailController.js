@@ -1283,7 +1283,7 @@ export const sendBookingPaidEmail = async (req, res) => {
 
     // Send the email
     const response = await resend.emails.send({
-      from: `4 Roses Bookings <Booking@fourroses.fignet.ca>`,
+      from: `Four Roses Bookings <Booking@fourroses.fignet.ca>`,
       to: adminEmail,
       reply_to: "booking@fourroses.fignet.ca",
       subject: `Balance Fully Paid - ${reservation.billing_name}`,
@@ -1589,8 +1589,12 @@ export const sendBookingConfirmEmail = async (req, res) => {
           <!-- ─── HEADER ─── -->
           <tr>
             <td class="header">
-              <div class="header-badge">✓ Payment Confirmed</div>
-              <div class="header-title">Your Stay is Confirmed</div>
+              <div class="header-badge">✓ Payment received</div>
+              <div class="header-title">Your Stay is ${
+                parseFloat(reservation.amount_paid) >= parseFloat(reservation.total_price)
+                  ? "Confirmed"
+                  : "Reserved"
+              }</div>
               <div class="header-sub">We can't wait to welcome you.</div>
             </td>
           </tr>
@@ -1604,9 +1608,18 @@ export const sendBookingConfirmEmail = async (req, res) => {
               <p class="intro">
               ${
                 parseFloat(reservation.amount_paid) >= parseFloat(reservation.total_price)
-                  ? `Your IBAN bank transfer has been validated and your payment has been fully processed.
+                  ? `Your ${
+                      reservation.payment_method == "iban"
+                        ? `IBAN bank transfer`
+                        : `credit card payment`
+                    } 
+                  has been validated and your payment has been fully processed.
                 Everything is in order — your booking is now complete.`
-                  : `Your IBAN bank transfer has been validated and your deposit has been processed.
+                  : `Your ${
+                      reservation.payment_method == "iban"
+                        ? `IBAN bank transfer`
+                        : `credit card payment`
+                    }  has been validated and your deposit has been processed.
                The remaining balance is due prior to your reservation date. Please ensure the outstanding amount is settled <b>before</b> arrival.`
               }
               </p>
@@ -1631,9 +1644,9 @@ export const sendBookingConfirmEmail = async (req, res) => {
                   parseFloat(reservation.amount_paid) < parseFloat(reservation.total_price)
                     ? `<tr>
                   <td class="td-label">Remaining balance</td>
-                  <td class="td-value">${
+                  <td class="td-value">€ ${(
                     parseFloat(reservation.total_price) - parseFloat(reservation.amount_paid)
-                  }</td>
+                  ).toFixed(2)}</td>
                 </tr>`
                     : ""
                 }
