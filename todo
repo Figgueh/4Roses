@@ -1,9 +1,5 @@
 Reservations:
 - Make specialty prices for certain days
-- Make a feature to block off certain days
-
-Account creation:
-- Make admin accounts for owners
 
 Translations:
 - More info on articles section
@@ -11,3 +7,4 @@ Translations:
 - contact developer
 - terms and conditions
 - Registration page
+- Reset password
