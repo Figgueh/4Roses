@@ -318,6 +318,7 @@ export const updateReservation = async (req, res) => {
       const { data: existing, error: conflictError } = await supabase
         .from("reservations")
         .select("*")
+        .neq("id", id)
         .in("status", ["confirmed", "paid", "completed"])
         .or(`and(start_date.lte.${end_date}, end_date.gte.${start_date})`);
 

@@ -155,7 +155,7 @@ export const generatePDF = async (req, res) => {
       font-family: 'Inter', Arial, sans-serif;
       background: #f5ede4;
       color: #2c2420;
-      padding: 40px 24px 60px;
+      padding: 1px 24px 8px;
       -webkit-font-smoothing: antialiased;
     }
 
@@ -173,7 +173,7 @@ export const generatePDF = async (req, res) => {
       border: 1px solid #ede5db;
       border-radius: 16px;
       padding: 28px 36px;
-      margin-bottom: 24px;
+      margin-bottom: 15px;
       box-shadow: 0 4px 20px rgba(139,69,19,0.07);
     }
 
@@ -201,7 +201,7 @@ export const generatePDF = async (req, res) => {
     .two-column {
       display: flex;
       gap: 20px;
-      margin-bottom: 24px;
+      margin-bottom: 15px;
     }
 
     .col-box {
@@ -243,7 +243,7 @@ export const generatePDF = async (req, res) => {
       border: 1px solid #ede5db;
       border-radius: 12px;
       padding: 24px 28px;
-      margin-bottom: 24px;
+      margin-bottom: 15px;
       box-shadow: 0 2px 12px rgba(139,69,19,0.05);
     }
 
@@ -280,7 +280,7 @@ export const generatePDF = async (req, res) => {
       border: 1px solid #ede5db;
       border-radius: 12px;
       padding: 24px 28px;
-      margin-bottom: 24px;
+      margin-bottom: 0px;
       box-shadow: 0 2px 12px rgba(139,69,19,0.05);
     }
 
@@ -344,8 +344,7 @@ export const generatePDF = async (req, res) => {
       text-align: center;
       font-size: 12px;
       color: #9e8a80;
-      margin-top: 32px;
-      padding-top: 20px;
+      margin-top: 0px;
       border-top: 1px solid #ede5db;
     }
 
