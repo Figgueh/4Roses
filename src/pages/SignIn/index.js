@@ -75,7 +75,7 @@ function SignInBasic() {
     }
   }, [session, navigate]);
 
-  const [rememberMe, setRememberMe] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   const handleSetRememberMe = () => setRememberMe(!rememberMe);
 
   if (authLoading) {
