@@ -1,13 +1,51 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import PropTypes from "prop-types";
 
-import { Skeleton, Grid } from "@mui/material";
+import { Skeleton, Grid, Box } from "@mui/material";
 import MKBox from "components/MKBox";
 import MKTypography from "components/MKTypography";
 
 import CenteredBlogCard from "..";
 import { useTranslation } from "react-i18next";
 import axios from "axios";
+
+// eslint-disable-next-line react/prop-types
+function FadeInBox({ children, delay = 0, sx = {} }) {
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          el.style.opacity = "1";
+          el.style.transform = "translateY(0)";
+        } else if (entry.boundingClientRect.top > 0) {
+          el.style.opacity = "0";
+          el.style.transform = "translateY(28px)";
+        }
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <Box
+      ref={ref}
+      sx={{
+        opacity: 0,
+        transform: "translateY(28px)",
+        transition: `opacity 0.7s ease ${delay}s, transform 0.7s ease ${delay}s`,
+        ...sx,
+      }}
+    >
+      {children}
+    </Box>
+  );
+}
 
 function MediaCard({ toDisplay, containsHeader }) {
   const { t } = useTranslation();
@@ -94,37 +132,43 @@ function MediaCard({ toDisplay, containsHeader }) {
   } else {
     message += ".";
   }
+
   return (
     <Grid>
       {containsHeader && (
-        <MKBox>
-          <MKTypography align="center" mt={2} variant="h2" fontWeight="regular">
-            {t("Experience the beauty of our property")}
-          </MKTypography>
-          <MKTypography align="center" mt={2} variant="h4" fontWeight="regular">
-            {message}
-          </MKTypography>
-        </MKBox>
+        <FadeInBox>
+          <MKBox>
+            <MKTypography align="center" mt={2} variant="h2" fontWeight="regular">
+              {t("Experience the beauty of our property")}
+            </MKTypography>
+            <MKTypography align="center" mt={2} variant="h4" fontWeight="regular">
+              {message}
+            </MKTypography>
+          </MKBox>
+        </FadeInBox>
       )}
+
       <Grid container spacing={3} mt={4} justifyContent="center" alignItems="stretch">
-        {toDisplay.map((item) => (
+        {toDisplay.map((item, idx) => (
           <Grid key={item} item xs={12} sm={6} lg={4} style={{ display: "flex" }}>
-            {loading ? (
-              <Skeleton
-                variant="rectangular"
-                width="100%"
-                height={600} // match your card height
-                sx={{ borderRadius: 2 }}
-              />
-            ) : (
-              <CenteredBlogCard
-                image={mediaData[item]?.image}
-                title={mediaData[item]?.title}
-                description={mediaData[item]?.description}
-                action={mediaData[item]?.action}
-                style={{ flex: 1, display: "flex", flexDirection: "column" }}
-              />
-            )}
+            <FadeInBox delay={idx * 0.1} sx={{ width: "100%", display: "flex" }}>
+              {loading ? (
+                <Skeleton
+                  variant="rectangular"
+                  width="100%"
+                  height={600}
+                  sx={{ borderRadius: 2 }}
+                />
+              ) : (
+                <CenteredBlogCard
+                  image={mediaData[item]?.image}
+                  title={mediaData[item]?.title}
+                  description={mediaData[item]?.description}
+                  action={mediaData[item]?.action}
+                  style={{ flex: 1, display: "flex", flexDirection: "column" }}
+                />
+              )}
+            </FadeInBox>
           </Grid>
         ))}
       </Grid>
