@@ -3,6 +3,8 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 
+import villaPhoto from "assets/images/property/exterior/backViewBright.JPG";
+
 const serif = "'Cormorant Garamond', serif";
 const brown = "#8b4513";
 const brownFaint = "#fdf8f3";
@@ -181,18 +183,28 @@ export default function About() {
                     },
                   }}
                 >
-                  <Typography
-                    sx={{
-                      fontFamily: serif,
-                      fontSize: "11px",
-                      letterSpacing: "0.18em",
-                      textTransform: "uppercase",
-                      color: "#c8b8b0",
-                      mb: 1,
-                    }}
-                  >
-                    0{i + 1}
-                  </Typography>
+                  {isHero && (
+                    <Box
+                      component="img"
+                      src={villaPhoto}
+                      alt="Villa"
+                      sx={{
+                        display: { xs: "none", xl: "block" },
+                        position: "absolute",
+                        top: 0,
+                        right: 0,
+                        height: "100%",
+                        width: "50%",
+                        objectFit: "cover",
+                        objectPosition: "center",
+                        zIndex: 0,
+                        maskImage:
+                          "linear-gradient(to right, transparent 20%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,1) 100%)",
+                        WebkitMaskImage:
+                          "linear-gradient(to right, transparent 20%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,1) 100%)",
+                      }}
+                    />
+                  )}
                   <Typography
                     sx={{
                       fontFamily: serif,
