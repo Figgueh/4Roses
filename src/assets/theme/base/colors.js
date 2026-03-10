@@ -59,6 +59,11 @@ export default {
     focus: "#1662C4",
   },
 
+  brown: {
+    main: "#8b4513",
+    focus: "#7a3c10",
+  },
+
   success: {
     main: "#4CAF50",
     focus: "#67bb6a",
