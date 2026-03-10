@@ -38,6 +38,7 @@ import Amenities from "pages/Home/sections/Amenities";
 import MediaCard from "components/Cards/BlogCards/CenteredBlogCard/MediaCard";
 
 import { useTranslation } from "react-i18next";
+import About from "./sections/About";
 
 function Home() {
   const { t } = useTranslation();
@@ -109,6 +110,7 @@ function Home() {
         }}
       >
         <MainFeatures />
+        <About />
         <MediaCard toDisplay={["exterior", "interior"]} containsHeader={true} />
         <Amenities />
       </Card>

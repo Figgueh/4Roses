@@ -1,11 +1,12 @@
 // react-router-dom components
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 
 // @mui material components
 import Container from "@mui/material/Container";
 import Skeleton from "@mui/material/Skeleton";
 import Grid from "@mui/material/Grid";
+import Box from "@mui/material/Box";
 
 // Material Kit 2 React components
 import MKBox from "components/MKBox";
@@ -17,6 +18,42 @@ import ExampleCard from "components/Cards/ExampleCard";
 import axios from "axios";
 import { slugify } from "utils";
 import { useTranslation } from "react-i18next";
+
+// eslint-disable-next-line react/prop-types
+function FadeInBox({ children, delay = 0, sx = {} }) {
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          el.style.opacity = "1";
+          el.style.transform = "translateY(0)";
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <Box
+      ref={ref}
+      sx={{
+        opacity: 0,
+        transform: "translateY(28px)",
+        transition: `opacity 0.7s ease ${delay}s, transform 0.7s ease ${delay}s`,
+        ...sx,
+      }}
+    >
+      {children}
+    </Box>
+  );
+}
 
 function Amenities() {
   const { t } = useTranslation();
@@ -46,7 +83,6 @@ function Amenities() {
     loadData();
   }, []);
 
-  // When the language changes, fetch the translations.
   useEffect(() => {
     axios
       .get(`${process.env.REACT_APP_BACKEND}/amenities/small?lang=${i18n.language}`)
@@ -93,54 +129,67 @@ function Amenities() {
 
   const renderData = data.map(({ title, description, items, smallItems }) => (
     <Grid container spacing={3} sx={{ mb: 10 }} key={title}>
+      {/* Sticky section label */}
       <Grid item xs={12} lg={3}>
-        <MKBox position="sticky" top="100px" pb={{ xs: 2, lg: 6 }}>
-          <MKTypography variant="h3" fontWeight="bold" mb={1}>
-            {title}
-          </MKTypography>
-          <MKTypography variant="body2" fontWeight="regular" color="secondary" mb={1} pr={2}>
-            {description}
-          </MKTypography>
-        </MKBox>
+        <FadeInBox>
+          <MKBox position="sticky" top="100px" pb={{ xs: 2, lg: 6 }}>
+            <MKTypography variant="h3" fontWeight="bold" mb={1}>
+              {title}
+            </MKTypography>
+            <MKTypography variant="body2" fontWeight="regular" color="secondary" mb={1} pr={2}>
+              {description}
+            </MKTypography>
+          </MKBox>
+        </FadeInBox>
       </Grid>
+
+      {/* Main cards */}
       <Grid item xs={12} lg={9}>
         {loading ? (
-          // Skeletons here are for when the server starts.
           renderSkeletons(6)
         ) : (
           <Grid container spacing={3}>
             {items.length > 0 &&
-              items.map(({ image, title, description, slug, pro }) => (
-                <Grid item xs={12} md={4} sx={{ mb: 2 }} id={slugify(title)} key={title}>
-                  {slug ? (
-                    // Cards for the activities
-                    <Link to={slug}>
-                      <ExampleCard image={image} name={title} description={description} pro={pro} />
-                    </Link>
-                  ) : (
-                    // Cards for the amenities
-                    <ExampleCard
-                      image={image}
-                      name={title}
-                      description={description}
-                      pro={pro}
-                      sx={{ transform: "none" }}
-                    />
-                  )}
+              items.map(({ image, title: itemTitle, description: itemDesc, slug, pro }, idx) => (
+                <Grid item xs={12} md={4} sx={{ mb: 2 }} id={slugify(itemTitle)} key={itemTitle}>
+                  <FadeInBox delay={idx * 0.06}>
+                    {slug ? (
+                      <Link to={slug}>
+                        <ExampleCard
+                          image={image}
+                          name={itemTitle}
+                          description={itemDesc}
+                          pro={pro}
+                        />
+                      </Link>
+                    ) : (
+                      <ExampleCard
+                        image={image}
+                        name={itemTitle}
+                        description={itemDesc}
+                        pro={pro}
+                        sx={{ transform: "none" }}
+                      />
+                    )}
+                  </FadeInBox>
                 </Grid>
               ))}
           </Grid>
         )}
       </Grid>
+
+      {/* Small items */}
       <Grid container spacing={10} pt={4} pl={3}>
         {smallItems.length > 0 &&
-          smallItems.map(({ image, title, description }) => (
-            <Grid item xs={12} md={3} sx={{ mb: 1 }} id={title} key={title}>
-              <MKBox component="img" src={image} alt={title} width="50px" />
-              <MKTypography variant="h6">{title}</MKTypography>
-              <MKTypography variant="h6" fontWeight="regular">
-                {description}
-              </MKTypography>
+          smallItems.map(({ image, title: itemTitle, description: itemDesc }, idx) => (
+            <Grid item xs={12} md={3} sx={{ mb: 1 }} id={itemTitle} key={itemTitle}>
+              <FadeInBox delay={idx * 0.05}>
+                <MKBox component="img" src={image} alt={itemTitle} width="50px" />
+                <MKTypography variant="h6">{itemTitle}</MKTypography>
+                <MKTypography variant="h6" fontWeight="regular">
+                  {itemDesc}
+                </MKTypography>
+              </FadeInBox>
             </Grid>
           ))}
       </Grid>
@@ -149,24 +198,28 @@ function Amenities() {
 
   return (
     <MKBox component="section" my={6} py={6}>
+      {/* Section header */}
       <Container>
-        <Grid
-          container
-          item
-          xs={12}
-          lg={6}
-          flexDirection="column"
-          alignItems="center"
-          sx={{ textAlign: "center", my: 6, mx: "auto", px: 0.75 }}
-        >
-          <MKTypography variant="h2" fontWeight="bold">
-            {t("All the amenities and activities")}
-          </MKTypography>
-          <MKTypography variant="body1" color="text">
-            {t("We got everything you could want and enough to keep busy")}
-          </MKTypography>
-        </Grid>
+        <FadeInBox>
+          <Grid
+            container
+            item
+            xs={12}
+            lg={6}
+            flexDirection="column"
+            alignItems="center"
+            sx={{ textAlign: "center", my: 6, mx: "auto", px: 0.75 }}
+          >
+            <MKTypography variant="h2" fontWeight="bold">
+              {t("All the amenities and activities")}
+            </MKTypography>
+            <MKTypography variant="body1" color="text">
+              {t("We got everything you could want and enough to keep busy")}
+            </MKTypography>
+          </Grid>
+        </FadeInBox>
       </Container>
+
       <Container sx={{ mt: 6 }}>{renderData}</Container>
     </MKBox>
   );

@@ -18,7 +18,7 @@ import { Fragment, useState, useEffect } from "react";
 import { UserAuth } from "connection/auth/authContext";
 
 // react-router components
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 // prop-types is a library for typechecking of props.
 import PropTypes from "prop-types";
 
@@ -65,6 +65,8 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
   const [mobileNavbar, setMobileNavbar] = useState(false);
   const [mobileView, setMobileView] = useState(false);
 
+  const location = useLocation();
+  const isSignInPage = location.pathname === "/sign-in";
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userInfo, setUserInfo] = useState({});
   const { session, signOut } = UserAuth();
@@ -590,37 +592,44 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
             {renderNavbarItems}
           </MKBox>
           {isLoggedIn ? (
-            <Link to="/dashboard">
-              {!userInfo.avatar_url ? (
-                <MKAvatar
-                  sx={{ bgcolor: "#9fc5e8", fontSize: "0.60rem", mr: 2 }}
-                  alt="Profile picture"
-                  size="md"
-                  shadow="xl"
-                >
-                  {userInfo.first_name}
-                </MKAvatar>
-              ) : (
-                <MKAvatar
-                  src={userInfo.avatar_url}
-                  sx={{ bgcolor: "#9fc5e8", mr: 2 }}
-                  alt="Profile picture"
-                  size="md"
-                  shadow="xl"
-                />
-              )}
-            </Link>
+            <MKBox display={{ xs: "none", lg: "flex" }} alignItems="center" gap={1} mr={1}>
+              <Link to="/dashboard">
+                {!userInfo.avatar_url ? (
+                  <MKAvatar
+                    sx={{ bgcolor: "#9fc5e8", fontSize: "0.60rem" }}
+                    alt="Profile picture"
+                    size="md"
+                    shadow="xl"
+                  >
+                    {userInfo.first_name}
+                  </MKAvatar>
+                ) : (
+                  <MKAvatar
+                    src={userInfo.avatar_url}
+                    sx={{ bgcolor: "#9fc5e8" }}
+                    alt="Profile picture"
+                    size="md"
+                    shadow="xl"
+                  />
+                )}
+              </Link>
+              <MKButton variant="gradient" color="dark" size="small" onClick={handleSignOut}>
+                Sign Out
+              </MKButton>
+            </MKBox>
           ) : (
-            <MKButton
-              component={Link}
-              to="/sign-in"
-              variant="gradient"
-              color="info"
-              size="small"
-              sx={{ mr: 2 }}
-            >
-              Sign In
-            </MKButton>
+            !isSignInPage && (
+              <MKButton
+                component={Link}
+                to="/sign-in"
+                variant="gradient"
+                color="info"
+                size="small"
+                sx={{ mr: 1 }}
+              >
+                Sign In
+              </MKButton>
+            )
           )}
 
           <MKBox ml={{ lg: 0 }} display={{ xs: "none", lg: "flex" }} alignItems="center" gap={1}>
@@ -677,7 +686,7 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
             lineHeight={0}
             py={1.5}
             pl={1.5}
-            color={transparent ? "white" : "inherit"}
+            color={{ xs: "dark", lg: transparent ? "white" : "dark" }}
             sx={{ cursor: "pointer" }}
             onClick={openMobileNavbar}
           >

@@ -269,7 +269,7 @@ export default function BlockedDays() {
                   fontSize: "11px",
                   background: "#8b4513",
                   "&:hover": { background: "#7a3c10" },
-                  color: "white",
+                  color: "#fff",
                 }}
               >
                 Confirm Block

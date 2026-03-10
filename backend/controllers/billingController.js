@@ -141,126 +141,241 @@ export const generatePDF = async (req, res) => {
     };
 
     const html = `
-      <html>
-      <head>
-        <meta charset="UTF-8" />
-        <title>Invoice</title>
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    padding: 0;
-    margin: 0;
-    color: #333;
-  }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Invoice</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Inter:wght@400;500;600&display=swap');
 
-  .container {
-    padding: 32px;
-    max-width: 800px;
-    margin: auto;
-  }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
-  .box,
-  .reservation-box {
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 28px;
-  }
+    body {
+      font-family: 'Inter', Arial, sans-serif;
+      background: #f5ede4;
+      color: #2c2420;
+      padding: 1px 24px 8px;
+      -webkit-font-smoothing: antialiased;
+    }
 
-  .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-bottom: 22px;
-    border-bottom: 2px solid #eee;
-    margin-bottom: 32px;
-  }
+    .container {
+      max-width: 780px;
+      margin: auto;
+    }
 
-  .logo {
-    max-width: 140px;
-  }
+    /* ── Header ── */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #ffffff;
+      border: 1px solid #ede5db;
+      border-radius: 16px;
+      padding: 28px 36px;
+      margin-bottom: 15px;
+      box-shadow: 0 4px 20px rgba(139,69,19,0.07);
+    }
 
-  h2 {
-    margin: 0 0 14px 0;
-    font-size: 20px;
-  }
+    .logo { max-width: 130px; }
 
-  h3 {
-    margin: 0 0 12px 0;
-    font-size: 17px;
-  }
+    .invoice-meta { text-align: right; }
 
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 14px;
-  }
+    .invoice-number {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 26px;
+      font-weight: 600;
+      color: #8b4513;
+      letter-spacing: 0.03em;
+    }
 
-  th, td {
-    padding: 10px 8px;
-    text-align: left;
-    border-bottom: 1px solid #eee;
-  }
+    .invoice-label {
+      font-size: 11px;
+      color: #9e8a80;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
 
-  th {
-    background: #f5f5f5;
-  }
+    /* ── Two column ── */
+    .two-column {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 15px;
+    }
 
-  .total-row td {
-    font-weight: bold;
-    font-size: 17px;
-  }
+    .col-box {
+      flex: 1;
+      background: #ffffff;
+      border: 1px solid #ede5db;
+      border-radius: 12px;
+      padding: 24px 28px;
+      box-shadow: 0 2px 12px rgba(139,69,19,0.05);
+    }
 
-  .two-column {
-    display: flex;
-    justify-content: space-between;
-    gap: 20px;
-    margin-bottom: 32px;
-  }
+    .section-title {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 16px;
+      font-weight: 600;
+      color: #8b4513;
+      letter-spacing: 0.04em;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #ede5db;
+    }
 
-  .col-box {
-    flex: 1;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 10px;
-  }
+    .col-box p {
+      font-size: 13px;
+      color: #4a3830;
+      line-height: 1.9;
+    }
 
-  .col-box p {
-    margin: 3px 0;
-  }
+    .col-box p strong {
+      color: #2c2420;
+      font-weight: 500;
+      min-width: 90px;
+      display: inline-block;
+    }
 
-  .reservation-box p {
-    margin: 5px 1px;
-  }
-</style>
-      </head>
+    /* ── Reservation box ── */
+    .reservation-box {
+      background: #ffffff;
+      border: 1px solid #ede5db;
+      border-radius: 12px;
+      padding: 24px 28px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 12px rgba(139,69,19,0.05);
+    }
 
+    .reservation-box p {
+      font-size: 13px;
+      color: #4a3830;
+      line-height: 1.9;
+    }
+
+    .reservation-box p strong {
+      color: #2c2420;
+      font-weight: 500;
+      min-width: 140px;
+      display: inline-block;
+    }
+
+    /* ── Status badge ── */
+    .status-badge {
+      display: inline-block;
+      background: #f0faf3;
+      color: #2d7a4f;
+      border: 1px solid #a8dbb9;
+      border-radius: 20px;
+      padding: 2px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    /* ── Charges table ── */
+    .charges-box {
+      background: #ffffff;
+      border: 1px solid #ede5db;
+      border-radius: 12px;
+      padding: 24px 28px;
+      margin-bottom: 0px;
+      box-shadow: 0 2px 12px rgba(139,69,19,0.05);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 4px;
+    }
+
+    thead tr {
+      background: #fdf8f3;
+    }
+
+    th {
+      padding: 11px 14px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      color: #9e8a80;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border-bottom: 1px solid #ede5db;
+    }
+
+    td {
+      padding: 11px 14px;
+      font-size: 13px;
+      color: #4a3830;
+      border-bottom: 1px solid #f5ede4;
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    .subtotal-row td {
+      font-weight: 600;
+      color: #2c2420;
+      background: #fdf8f3;
+      border-top: 1px solid #ede5db;
+      border-bottom: 1px solid #ede5db;
+    }
+
+    .total-row td {
+      font-size: 15px;
+      font-weight: 600;
+      color: #ffffff;
+      background: #8b4513;
+    }
+
+    .total-row td:first-child {
+      border-radius: 0 0 0 8px;
+    }
+
+    .total-row td:last-child {
+      border-radius: 0 0 8px 0;
+    }
+
+    .amount { text-align: right; }
+
+    /* ── Footer ── */
+    .footer-note {
+      text-align: center;
+      font-size: 12px;
+      color: #9e8a80;
+      margin-top: 0px;
+      border-top: 1px solid #ede5db;
+    }
+
+    .footer-note a { color: #8b4513; text-decoration: none; }
+  </style>
+</head>
 <body>
   <div class="container">
 
     <!-- HEADER -->
     <div class="header">
       <img class="logo" src="data:image/png;base64,${logoBase64}" alt="Logo" />
-      <div style="font-size: 24px; font-weight: bold;">
-        Invoice #${invoiceData.invoice_number}
+      <div class="invoice-meta">
+        <div class="invoice-label">Invoice</div>
+        <div class="invoice-number">#${invoiceData.invoice_number}</div>
+        <div style="font-size: 12px; color: #9e8a80; margin-top: 4px;">${invoiceData.date_issued}</div>
       </div>
     </div>
 
     <!-- CUSTOMER + BILLING -->
     <div class="two-column">
 
-      <!-- Customer Details -->
       <div class="col-box">
-        <h3>Customer Details</h3>
-        <p><strong>Name:</strong> ${invoiceData.customer_name}</p>
-        <p><strong>Email:</strong> ${invoiceData.customer_email}</p>
-        <p><strong>Phone:</strong> ${invoiceData.phone}</p>
-        <p><strong>Date Issued:</strong> ${invoiceData.date_issued}</p>
+        <div class="section-title">Customer Details</div>
+        <p><strong>Name</strong>${invoiceData.customer_name}</p>
+        <p><strong>Email</strong>${invoiceData.customer_email}</p>
+        <p><strong>Phone</strong>${invoiceData.phone}</p>
       </div>
 
-      <!-- Billing Address -->
       <div class="col-box">
-        <h3>Billing Address</h3>
+        <div class="section-title">Billing Address</div>
         <p>${invoiceData.billing.name}</p>
         <p>${invoiceData.billing.address}</p>
         <p>${invoiceData.billing.city}, ${invoiceData.billing.state}</p>
@@ -272,42 +387,43 @@ export const generatePDF = async (req, res) => {
 
     <!-- RESERVATION INFO -->
     <div class="reservation-box">
-      <h2>Reservation Information</h2>
-      <p><strong>Reservation ID:</strong> ${invoiceData.reservation_id}</p>
-      <p><strong>Payment method:</strong> ${invoiceData.payment_method}</p>
-      <p><strong>Check-in:</strong> ${invoiceData.check_in}</p>
-      <p><strong>Check-out:</strong> ${invoiceData.check_out}</p>
-      <p><strong>Guests:</strong> ${invoiceData.guests_over} adults, ${invoiceData.guests_under} children</p>
-      <p><strong>Status:</strong> ${invoiceData.status}</p>
+      <div class="section-title">Reservation Information</div>
+      <p><strong>Reservation ID</strong>${invoiceData.reservation_id}</p>
+      <p><strong>Payment Method</strong>${invoiceData.payment_method}</p>
+      <p><strong>Check-in</strong>${invoiceData.check_in}</p>
+      <p><strong>Check-out</strong>${invoiceData.check_out}</p>
+      <p><strong>Guests</strong>${invoiceData.guests_over} adults, ${invoiceData.guests_under} children</p>
+      <p><strong>Status</strong><span class="status-badge">${invoiceData.status}</span></p>
     </div>
 
     <!-- CHARGES SUMMARY -->
-    <div class="box">
-      <h2>Charges Summary</h2>
+    <div class="charges-box">
+      <div class="section-title">Charges Summary</div>
 
       <table>
-        <tr><th>Description</th><th>Amount (€)</th></tr>
-
-        <tr><td>Accommodation Subtotal</td><td>${invoiceData.accommodation_subtotal}</td></tr>
-        <tr><td>Sales Tax</td><td>${invoiceData.sales_tax}</td></tr>
-        <tr><td>Tourist Tax</td><td>${invoiceData.tourist_tax}</td></tr>
-        <tr><td>Credit Card Fees</td><td>${invoiceData.credit_fees}</td></tr>
-        <tr><td>Security Deposit Charge</td><td>${invoiceData.security_deposit_charge}</td></tr>
-
-        <tr class="total-row">
-          <td>Total</td>
-          <td>${invoiceData.subtotal}</td>
-        </tr>
-
-        <tr><td>Security Deposit Refunded</td><td> - ${invoiceData.security_deposit_refunded_amount}</td></tr>
-        <tr class="total-row"><td>Grand Total</td><td>${invoiceData.total}</td></tr>
+        <thead>
+          <tr>
+            <th>Description</th>
+            <th class="amount">Amount (€)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Accommodation Subtotal</td><td class="amount">${invoiceData.accommodation_subtotal}</td></tr>
+          <tr><td>Sales Tax</td><td class="amount">${invoiceData.sales_tax}</td></tr>
+          <tr><td>Tourist Tax</td><td class="amount">${invoiceData.tourist_tax}</td></tr>
+          <tr><td>Credit Card Fees</td><td class="amount">${invoiceData.credit_fees}</td></tr>
+          <tr><td>Security Deposit Charge</td><td class="amount">${invoiceData.security_deposit_charge}</td></tr>
+          <tr class="subtotal-row"><td>Subtotal</td><td class="amount">${invoiceData.subtotal}</td></tr>
+          <tr><td>Security Deposit Refunded</td><td class="amount">− ${invoiceData.security_deposit_refunded_amount}</td></tr>
+          <tr class="total-row"><td>Grand Total</td><td class="amount">${invoiceData.total}</td></tr>
+        </tbody>
       </table>
-
     </div>
 
-    <p style="text-align:center; color:#888; margin-top:40px;">
-      Thank you for your booking. Contact support if you have questions.
-    </p>
+    <div class="footer-note">
+      Thank you for choosing Four Roses. &nbsp;·&nbsp;
+      Questions? <a href="mailto:support@4roses.ca">Contact us</a>
+    </div>
 
   </div>
 </body>
@@ -475,5 +591,47 @@ export const continuePaymentIntent = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to create payment intent" });
+  }
+};
+
+// GET all price overrides
+export const getPriceOverrides = async (req, res, next) => {
+  try {
+    const { data, error } = await supabase
+      .from("price_overrides")
+      .select("*")
+      .order("start_date", { ascending: true });
+    if (error) throw error;
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// POST new price override
+export const addPriceOverride = async (req, res, next) => {
+  try {
+    const { start_date, end_date, price_per_night, account_id } = req.body;
+    const { data, error } = await supabase
+      .from("price_overrides")
+      .insert({ start_date, end_date, price_per_night, account_id: account_id ?? null })
+      .select()
+      .single();
+    if (error) throw error;
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// DELETE price override by id
+export const deletePriceOverride = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { error } = await supabase.from("price_overrides").delete().eq("id", id);
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
   }
 };

@@ -4,6 +4,7 @@ import Grid from "@mui/material/Grid";
 import MKBox from "components/MKBox";
 import MKButton from "components/MKButton";
 import MKTypography from "components/MKTypography";
+import { UserAuth } from "connection/auth/authContext";
 import { Alert, AlertTitle } from "@mui/material";
 
 const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -57,9 +58,13 @@ export default function AvailabilityCalendar({
   const [dragStartDate, setDragStartDate] = useState(null);
   const [dragEndDate, setDragEndDate] = useState(null);
   const [dragMode, setDragMode] = useState(null);
+  const [priceOverrides, setPriceOverrides] = useState([]);
   const [monthlyPrices, setMonthlyPrices] = useState({});
   const [error, setError] = useState("");
   const cancelRef = useRef(false);
+
+  const { session } = UserAuth();
+  const accountId = session?.user?.id ?? null;
 
   const currentDate = controlledDate ?? internalDate;
   const setCurrentDate = (d) => {
@@ -69,14 +74,17 @@ export default function AvailabilityCalendar({
   // Load monthly prices
   useEffect(() => {
     let mounted = true;
-    fetch(`${process.env.REACT_APP_BACKEND}/billings/monthlyPrice`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (mounted) setMonthlyPrices(data || {});
+    Promise.all([
+      fetch(`${process.env.REACT_APP_BACKEND}/billings/monthlyPrice`).then((r) => r.json()),
+      fetch(`${process.env.REACT_APP_BACKEND}/billings/priceOverrides`).then((r) => r.json()),
+    ])
+      .then(([monthly, overrides]) => {
+        if (mounted) {
+          setMonthlyPrices(monthly || {});
+          setPriceOverrides(overrides || []);
+        }
       })
-      .catch((e) => {
-        console.error("failed to fetch monthly prices", e);
-      });
+      .catch((e) => console.error("failed to fetch pricing", e));
     return () => {
       mounted = false;
     };
@@ -158,8 +166,26 @@ export default function AvailabilityCalendar({
   const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-  const getPriceForDate = (date) => monthlyPrices[date.getMonth()] ?? "--";
+  const getPriceForDate = (date) => {
+    const iso = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
+      date.getDate()
+    ).padStart(2, "0")}`;
 
+    // 1. Account-specific override takes highest priority
+    const accountOverride = priceOverrides.find(
+      (o) => iso >= o.start_date && iso <= o.end_date && o.account_id === accountId
+    );
+    if (accountOverride) return accountOverride.price_per_night;
+
+    // 2. Global override (no account) is next
+    const globalOverride = priceOverrides.find(
+      (o) => iso >= o.start_date && iso <= o.end_date && o.account_id === null
+    );
+    if (globalOverride) return globalOverride.price_per_night;
+
+    // 3. Fall back to monthly base rate
+    return monthlyPrices[date.getMonth()] ?? "--";
+  };
   // helpers - don't mutate passed Date objects
   const cloneDate = (d) => new Date(d.getTime());
 
@@ -338,12 +364,35 @@ export default function AvailabilityCalendar({
 
                 {!blockedDay && !pastDay && (
                   <MKTypography variant="caption" mt={0.5}>
-                    €
-                    {getPriceForDate(date).toLocaleString(undefined, {
-                      minimumFractionDigits: 2,
-                    })}
+                    €{getPriceForDate(date).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                   </MKTypography>
                 )}
+                {/* Small dot to indicate a price override is active */}
+                {!blockedDay &&
+                  !pastDay &&
+                  (() => {
+                    const iso = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+                      2,
+                      "0"
+                    )}-${String(date.getDate()).padStart(2, "0")}`;
+                    const hasOverride = priceOverrides.some((o) => {
+                      if (!(iso >= o.start_date && iso <= o.end_date)) return false;
+                      if (o.account_id !== null && o.account_id !== accountId) return false;
+                      const basePrice = monthlyPrices[date.getMonth()] ?? "--";
+                      return o.price_per_night !== basePrice;
+                    });
+                    return hasOverride ? (
+                      <div
+                        style={{
+                          width: 4,
+                          height: 4,
+                          borderRadius: "50%",
+                          background: "#8b4513",
+                          marginTop: 2,
+                        }}
+                      />
+                    ) : null;
+                  })()}
 
                 {blockedDay && sourceName && (
                   <MKTypography
