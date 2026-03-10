@@ -127,6 +127,7 @@ CenteredBlogCard.propTypes = {
       "error",
       "dark",
       "light",
+      "brown",
     ]),
     label: PropTypes.string.isRequired,
   }).isRequired,

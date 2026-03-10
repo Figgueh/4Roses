@@ -84,7 +84,7 @@ function MediaCard({ toDisplay, containsHeader }) {
       action: {
         type: "internal",
         route: "/pages/albums/exterior",
-        color: "info",
+        color: "brown",
         label: `${t("View more exterior pictures")}`,
       },
     },
@@ -97,7 +97,7 @@ function MediaCard({ toDisplay, containsHeader }) {
       action: {
         type: "internal",
         route: "/pages/albums/interior",
-        color: "info",
+        color: "brown",
         label: `${t("View more interior pictures")}`,
       },
     },
@@ -110,7 +110,7 @@ function MediaCard({ toDisplay, containsHeader }) {
       action: {
         type: "internal",
         route: "/pages/albums/videos",
-        color: "info",
+        color: "brown",
         label: t("Watch videos"),
       },
     },
