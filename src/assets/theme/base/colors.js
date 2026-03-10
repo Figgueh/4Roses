@@ -141,6 +141,11 @@ export default {
       main: "#42424a",
       state: "#191919",
     },
+
+    brown: {
+      main: "#c47a3a",
+      state: "#8b4513",
+    },
   },
 
   socialMediaColors: {
