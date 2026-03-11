@@ -1,37 +1,13 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 
 import villaPhoto from "assets/images/property/exterior/backViewBright.JPG";
 
-const serif = "'Cormorant Garamond', serif";
-const brown = "#8b4513";
-const brownFaint = "#fdf8f3";
-const border = "1px solid #ede5db";
+import Skeleton from "@mui/material/Skeleton";
+import axios from "axios";
 
-const sections = [
-  {
-    heading: "The Villa",
-    body: "Four Roses Alvor Villa sits in the quiet residential area of Montes de Alvor, just outside the picturesque fishing town of Alvor. This fantastic 5-bedroom property offers free Wi-Fi and Cable, a private swimming pool, a spacious orchard and cactus garden — all fully enclosed by a wall and iron railings. Free parking on site. An excellent choice for a relaxing family holiday in the sun.",
-  },
-  {
-    heading: "Location",
-    body: "Nestled between the fishing village of Alvor (2 km) and the city of Portimão, the villa sits in a calm residential neighbourhood of privately owned homes. Downtown Portimão is home to Aqua Shopping Center, unlimited restaurants, and every amenity you could need.",
-  },
-  {
-    heading: "Things To Do",
-    body: "Walk along the coastal cliffs in Portimão — an absolute must. Explore Monchique mountain, a haven for walkers and birdwatchers. Visit the lovely fishing town of Ferragudo to the east. Try skydiving at Aerodrome de Portimão (750 m) or take a spin at the International Karting Track (15 min drive). Enjoy the 3.5 km boardwalk stretching from Praia dos 3 Irmãos to Foz da Ribeira de Odiaxere.",
-  },
-  {
-    heading: "Beaches",
-    body: "The closest beach is Alvor, followed by Prainha, Meia Praia and the famous Praia da Rocha. The gentle south coast shoreline is perfect for swimming, beachcombing and sunbathing with ample space for all. The wilder west coast offers dramatic cliffs and excellent surfing and bodyboarding.",
-  },
-  {
-    heading: "Getting Here",
-    body: "The nearest airport is Faro, a 46-minute drive via the A22 — or take the train/bus in about an hour. Car rental is recommended and best reserved in advance, especially in high season. Lisbon Airport is roughly 3 hours by bus or train.",
-  },
-];
 import SmokeFreeOutlined from "@mui/icons-material/SmokeFreeOutlined";
 import BadgeOutlined from "@mui/icons-material/BadgeOutlined";
 import ChildFriendlyOutlined from "@mui/icons-material/ChildFriendlyOutlined";
@@ -40,6 +16,11 @@ import LogoutOutlined from "@mui/icons-material/LogoutOutlined";
 import PetsOutlined from "@mui/icons-material/PetsOutlined";
 import EventBusyIcon from "@mui/icons-material/EventBusy";
 import EuroIcon from "@mui/icons-material/Euro";
+
+const serif = "'Cormorant Garamond', serif";
+const brown = "#8b4513";
+const brownFaint = "#fdf8f3";
+const border = "1px solid #ede5db";
 
 const houseRules = [
   { icon: <LoginOutlined />, label: "Check-in", value: "After 4:00 PM" },
@@ -122,6 +103,19 @@ function SectionHeading({ label, title }) {
 }
 
 export default function About() {
+  const [sections, setSections] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadData = async () => {
+      const sectionsRequest = await axios.get(`${process.env.REACT_APP_BACKEND}/about`);
+      setSections(sectionsRequest.data);
+      setLoading(false);
+    };
+
+    loadData();
+  }, []);
+
   return (
     <Box sx={{ background: brownFaint, position: "relative" }}>
       {/* Fade from white */}
@@ -151,87 +145,117 @@ export default function About() {
             gap: 3,
           }}
         >
-          {sections.map((s, i) => {
-            const isHero = i === 0;
-            return (
-              <FadeInBox
-                key={s.heading}
-                delay={i * 0.07}
-                sx={{ gridColumn: isHero ? { md: "1 / -1" } : "auto" }}
-              >
-                <Box
-                  sx={{
-                    background: "#fff",
-                    border,
-                    borderRadius: 3,
-                    p: { xs: 3, md: isHero ? 5 : 4 },
-                    height: "100%",
-                    position: "relative",
-                    overflow: "hidden",
-                    boxShadow: "0 2px 16px rgba(139,69,19,0.05)",
-                    transition: "box-shadow 0.25s",
-                    "&:hover": { boxShadow: "0 8px 32px rgba(139,69,19,0.10)" },
-                    "&::before": {
-                      content: '""',
-                      position: "absolute",
-                      left: 0,
-                      top: "15%",
-                      height: "70%",
-                      width: "3px",
-                      background: brown,
-                      borderRadius: "0 2px 2px 0",
-                      opacity: 0.35,
-                    },
-                  }}
-                >
-                  {isHero && (
-                    <Box
-                      component="img"
-                      src={villaPhoto}
-                      alt="Villa"
-                      sx={{
-                        display: { xs: "none", xl: "block" },
-                        position: "absolute",
-                        top: 0,
-                        right: 0,
-                        height: "100%",
-                        width: "50%",
-                        objectFit: "cover",
-                        objectPosition: "center",
-                        zIndex: 0,
-                        maskImage:
-                          "linear-gradient(to right, transparent 20%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,1) 100%)",
-                        WebkitMaskImage:
-                          "linear-gradient(to right, transparent 20%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,1) 100%)",
-                      }}
+          {loading
+            ? // ── Skeletons ──
+              [0, 1, 2, 3, 4].map((i) => {
+                const isHero = i === 0;
+                return (
+                  <Box
+                    key={i}
+                    sx={{
+                      gridColumn: isHero ? { md: "1 / -1" } : "auto",
+                      background: "#fff",
+                      border,
+                      borderRadius: 3,
+                      p: { xs: 3, md: isHero ? 5 : 4 },
+                      boxShadow: "0 2px 16px rgba(139,69,19,0.05)",
+                    }}
+                  >
+                    <Skeleton
+                      width={isHero ? 220 : 140}
+                      height={isHero ? 44 : 32}
+                      sx={{ borderRadius: 1, mb: 2 }}
                     />
-                  )}
-                  <Typography
-                    sx={{
-                      fontFamily: serif,
-                      fontSize: isHero ? { xs: "26px", md: "34px" } : { xs: "20px", md: "24px" },
-                      fontWeight: 600,
-                      color: brown,
-                      lineHeight: 1.15,
-                      mb: 2,
-                    }}
+                    <Skeleton width="100%" />
+                    <Skeleton width="97%" />
+                    <Skeleton width="91%" />
+                    {isHero && <Skeleton width="78%" />}
+                  </Box>
+                );
+              })
+            : sections.map((s, i) => {
+                const isHero = i === 0;
+                return (
+                  <FadeInBox
+                    key={s.heading}
+                    delay={i * 0.07}
+                    sx={{ gridColumn: isHero ? { md: "1 / -1" } : "auto" }}
                   >
-                    {s.heading}
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontSize: isHero ? "16px" : "14px",
-                      color: "#4a3830",
-                      lineHeight: 1.85,
-                      maxWidth: isHero ? 720 : "100%",
-                    }}
-                  >
-                    {s.body}
-                  </Typography>
-                </Box>
-              </FadeInBox>
-            );
-          })}
+                    <Box
+                      sx={{
+                        background: "#fff",
+                        border,
+                        borderRadius: 3,
+                        p: { xs: 3, md: isHero ? 5 : 4 },
+                        height: "100%",
+                        position: "relative",
+                        overflow: "hidden",
+                        boxShadow: "0 2px 16px rgba(139,69,19,0.05)",
+                        transition: "box-shadow 0.25s",
+                        "&:hover": { boxShadow: "0 8px 32px rgba(139,69,19,0.10)" },
+                        "&::before": {
+                          content: '""',
+                          position: "absolute",
+                          left: 0,
+                          top: "15%",
+                          height: "70%",
+                          width: "3px",
+                          background: brown,
+                          borderRadius: "0 2px 2px 0",
+                          opacity: 0.35,
+                        },
+                      }}
+                    >
+                      {isHero && (
+                        <Box
+                          component="img"
+                          src={villaPhoto}
+                          alt="Villa"
+                          sx={{
+                            display: { xs: "none", xl: "block" },
+                            position: "absolute",
+                            top: 0,
+                            right: 0,
+                            height: "100%",
+                            width: "50%",
+                            objectFit: "cover",
+                            objectPosition: "center",
+                            zIndex: 0,
+                            maskImage:
+                              "linear-gradient(to right, transparent 20%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,1) 100%)",
+                            WebkitMaskImage:
+                              "linear-gradient(to right, transparent 20%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,1) 100%)",
+                          }}
+                        />
+                      )}
+                      <Typography
+                        sx={{
+                          fontFamily: serif,
+                          fontSize: isHero
+                            ? { xs: "26px", md: "34px" }
+                            : { xs: "20px", md: "24px" },
+                          fontWeight: 600,
+                          color: brown,
+                          lineHeight: 1.15,
+                          mb: 2,
+                        }}
+                      >
+                        {s.heading}
+                      </Typography>
+                      <Typography
+                        sx={{
+                          fontSize: isHero ? "16px" : "14px",
+                          color: "#4a3830",
+                          lineHeight: 1.85,
+                          maxWidth: isHero ? 720 : "100%",
+                        }}
+                      >
+                        {s.body}
+                      </Typography>
+                    </Box>
+                  </FadeInBox>
+                );
+              })}
         </Box>
       </Container>
 
