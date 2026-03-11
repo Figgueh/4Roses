@@ -40,22 +40,22 @@ export default {
     {
       name: "company",
       items: [
-        { name: "about our property", href: "/pages/landing-pages/AboutUs" },
-        { name: "about us", href: "/pages/landing-pages/AboutUs" },
+        { name: "about our property", href: "/#about" },
+        { name: "about us", href: "/AboutUs" },
       ],
     },
     {
       name: "Albums",
       items: [
-        { name: "interior album", href: "pages/albums/interior" },
-        { name: "exterior album", href: "pages/albums/exterior" },
-        { name: "video album", href: "pages/albums/videos" },
+        { name: "interior album", href: "/albums/interior" },
+        { name: "exterior album", href: "/albums/exterior" },
+        { name: "video album", href: "/albums/videos" },
       ],
     },
     {
       name: "help & support",
       items: [
-        { name: "Contact us", href: "/pages/landing-pages/AboutUs/#contactUs", isHashLink: true },
+        { name: "Contact us", href: "/AboutUs/#contactUs", isHashLink: true },
         { name: "contact developer", href: "contact-developer" },
       ],
     },
