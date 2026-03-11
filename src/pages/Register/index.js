@@ -32,6 +32,7 @@ function Register() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [message, setMessage] = useState("");
   const { session, authLoading, signUpUser } = UserAuth();
@@ -48,16 +49,22 @@ function Register() {
       return;
     }
 
+    // Password validation
+    if (password != confirmPassword) {
+      setMessage("The confirm password isn't the same as the password entered.");
+      return;
+    }
+
     const today = new Date();
     const dob = new Date(dateOfBirth);
     const age = today.getFullYear() - dob.getFullYear();
     const monthDiff = today.getMonth() - dob.getMonth();
-    const isUnder18 =
-      age < 18 ||
-      (age === 18 && (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())));
+    const isUnder21 =
+      age < 21 ||
+      (age === 21 && (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())));
 
-    if (isUnder18) {
-      setMessage("You must be at least 18 years old to create an account.");
+    if (isUnder21) {
+      setMessage("You must be at least 21 years old to create an account.");
       return;
     }
 
@@ -172,6 +179,15 @@ function Register() {
                       label="Password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
+                      fullWidth
+                    />
+                  </MKBox>
+                  <MKBox mb={2}>
+                    <MKInput
+                      type="confirm password"
+                      label="confirm Password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
                       fullWidth
                     />
                   </MKBox>

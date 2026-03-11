@@ -272,8 +272,8 @@ export default function PriceSummary({ bookingData }) {
               const start_date = sortedAll[0];
               const end_date = sortedAll[sortedAll.length - 1];
 
-              if (totalNights < 7) {
-                setError("The minimum stay is 7 nights.");
+              if (totalNights < 6) {
+                setError("The minimum stay is 6 nights.");
                 return;
               } else {
                 setError("");
