@@ -68,7 +68,7 @@ export const routes = (t) => [
           },
           {
             name: t("About Us"),
-            route: "/pages/landing-pages/AboutUs",
+            route: "/AboutUs",
             component: <AboutUs />,
           },
         ],
@@ -119,17 +119,17 @@ export const routes = (t) => [
         collapse: [
           {
             name: t("Interior"),
-            route: "/pages/albums/interior",
+            route: "/albums/interior",
             component: <Interior />,
           },
           {
             name: t("Exterior"),
-            route: "/pages/albums/exterior",
+            route: "/albums/exterior",
             component: <Exterior />,
           },
           {
             name: t("Videos"),
-            route: "/pages/albums/videos",
+            route: "/albums/videos",
             component: <Videos />,
           },
         ],

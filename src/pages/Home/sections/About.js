@@ -126,6 +126,7 @@ export default function About() {
     <Box sx={{ background: brownFaint, position: "relative" }}>
       {/* Fade from white */}
       <Box
+        id="about"
         sx={{
           position: "absolute",
           top: 0,
