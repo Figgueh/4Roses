@@ -14,6 +14,7 @@ import {
   ArticleOutlined,
   StarOutlined,
   EmojiNatureOutlined,
+  AutoStoriesOutlined,
 } from "@mui/icons-material";
 
 // Tools
@@ -25,6 +26,7 @@ import AmenitiesEditor from "./content/AmenitiesEditor";
 import PriceAdjuster from "./reservations/PriceAdjuster";
 import ReservationManager from "./reservations/ReservationManager";
 import DateBlocker from "./reservations/DateBlocker";
+import AboutEditor from "./content/AboutEditor";
 
 const serif = "'Cormorant Garamond', serif";
 const brown = "#8b4513";
@@ -65,6 +67,7 @@ const NAV = [
     label: "Content",
     icon: <ArticleOutlined sx={{ fontSize: 16 }} />,
     items: [
+      { key: "about", label: "about", icon: <AutoStoriesOutlined sx={{ fontSize: 14 }} /> },
       { key: "amenities", label: "Amenities", icon: <StarOutlined sx={{ fontSize: 14 }} /> },
       {
         key: "activities",
@@ -87,6 +90,7 @@ const TOOL_LABELS = {
   "reservation manager": "Reservations",
   "date blocker": "Date Blocker",
   "price manager": "Price Adjustments",
+  about: "About Section",
   amenities: "Amenities",
   activities: "Activities",
   articles: "Article Generator",
@@ -106,6 +110,8 @@ function renderTool(activeTool) {
       return <ActivityEditor />;
     case "articles":
       return <ArticleGenerator />;
+    case "about":
+      return <AboutEditor />;
     case "reservation manager":
       return <ReservationManager />;
     case "date blocker":
