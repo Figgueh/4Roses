@@ -314,7 +314,14 @@ function DateRangeOverrides() {
             type="date"
             size="small"
             value={form.start_date}
-            onChange={(e) => setForm((f) => ({ ...f, start_date: e.target.value }))}
+            onChange={(e) => {
+              const newStart = e.target.value;
+              setForm((f) => ({
+                ...f,
+                start_date: newStart,
+                end_date: !f.end_date || f.end_date < newStart ? newStart : f.end_date,
+              }));
+            }}
             InputLabelProps={{ shrink: true }}
             sx={{ ...inputSx, width: 160 }}
           />
