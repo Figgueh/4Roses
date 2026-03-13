@@ -6,6 +6,7 @@ import Container from "@mui/material/Container";
 import villaPhoto from "assets/images/property/exterior/backViewBright.JPG";
 
 import Skeleton from "@mui/material/Skeleton";
+import { useTranslation } from "react-i18next";
 import axios from "axios";
 
 import SmokeFreeOutlined from "@mui/icons-material/SmokeFreeOutlined";
@@ -30,7 +31,7 @@ const houseRules = [
   { icon: <EventBusyIcon />, label: "Events", value: "Not allowed" },
   { icon: <PetsOutlined />, label: "Pets", value: "Not allowed" },
   { icon: <SmokeFreeOutlined />, label: "Smoking", value: "Not permitted" },
-  { icon: <EuroIcon />, label: "Cash Payment", value: "Possible upon request" },
+  { icon: <EuroIcon />, label: "Cash Payment", value: "Upon request" },
 ];
 
 // eslint-disable-next-line react/prop-types
@@ -103,18 +104,48 @@ function SectionHeading({ label, title }) {
 }
 
 export default function About() {
+  const { i18n } = useTranslation();
+
   const [sections, setSections] = useState([]);
+  const [aboutImage, setAboutImage] = useState(villaPhoto);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadData = async () => {
-      const sectionsRequest = await axios.get(`${process.env.REACT_APP_BACKEND}/about`);
-      setSections(sectionsRequest.data);
-      setLoading(false);
+      try {
+        const [sectionsRes, imageRes] = await Promise.all([
+          axios.get(`${process.env.REACT_APP_BACKEND}/about?lang=${i18n.language}`),
+          axios.get(`${process.env.REACT_APP_BACKEND}/about/aboutImage`),
+        ]);
+        setSections(sectionsRes.data);
+        console.log(imageRes);
+        if (imageRes.data?.url) setAboutImage(imageRes.data.url);
+      } catch {
+        // silently fall back to defaults
+      } finally {
+        setLoading(false);
+      }
     };
-
     loadData();
   }, []);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [sectionsRes, imageRes] = await Promise.all([
+          axios.get(`${process.env.REACT_APP_BACKEND}/about?lang=${i18n.language}`),
+          axios.get(`${process.env.REACT_APP_BACKEND}/about/aboutImage`),
+        ]);
+        setSections(sectionsRes.data);
+        if (imageRes.data?.url) setAboutImage(imageRes.data.url);
+      } catch {
+        // silently fall back to defaults
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, [i18n.language]);
 
   return (
     <Box sx={{ background: brownFaint, position: "relative" }}>
@@ -209,7 +240,7 @@ export default function About() {
                       {isHero && (
                         <Box
                           component="img"
-                          src={villaPhoto}
+                          src={aboutImage}
                           alt="Villa"
                           sx={{
                             display: { xs: "none", xl: "block" },
