@@ -17,6 +17,7 @@ import {
   ExpandLessOutlined,
   EditOutlined,
 } from "@mui/icons-material";
+import { useTranslation } from "react-i18next";
 
 const serif = "'Cormorant Garamond', serif";
 const brown = "#8b4513";
@@ -33,6 +34,7 @@ const DEFAULT_SECTIONS = [
 ];
 
 export default function AboutEditor() {
+  const { i18n } = useTranslation();
   const [sections, setSections] = useState(DEFAULT_SECTIONS);
   const [backup, setBackup] = useState(DEFAULT_SECTIONS);
   const [loading, setLoading] = useState(true);
@@ -40,6 +42,10 @@ export default function AboutEditor() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [expanded, setExpanded] = useState({});
+  const [autoTranslate, setAutoTranslate] = useState(false);
+  const [pendingImage, setPendingImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [dragging, setDragging] = useState(false);
 
   useEffect(() => {
     const fetchSections = async () => {
@@ -58,6 +64,19 @@ export default function AboutEditor() {
     fetchSections();
   }, []);
 
+  useEffect(() => {
+    const loadTranslation = async () => {
+      const sectionsRequest = await axios.get(
+        `${process.env.REACT_APP_BACKEND}/about?lang=${i18n.language}`
+      );
+      setSections(sectionsRequest.data);
+      setBackup(sectionsRequest.data);
+      setLoading(false);
+    };
+
+    loadTranslation();
+  }, [i18n.language]);
+
   const toggleExpand = (id) => setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
 
   const handleChange = (id, field, value) =>
@@ -68,13 +87,34 @@ export default function AboutEditor() {
     if (!section) return;
     setSaving((prev) => ({ ...prev, [id]: true }));
     try {
-      await axios.put(`${process.env.REACT_APP_BACKEND}/about/${id}`, {
-        heading: section.heading,
-        body: section.body,
-      });
+      await axios.put(
+        `${process.env.REACT_APP_BACKEND}/about/${id}?lang=${i18n.language}&toTranslate=${autoTranslate}`,
+        {
+          heading: section.heading,
+          body: section.body,
+        }
+      );
       setBackup((prev) => prev.map((s) => (s.id === id ? { ...section } : s)));
       setMessage(`"${section.heading}" saved successfully.`);
       setError("");
+
+      // Send the image:
+      const sectionIndex = sections.findIndex((sec) => sec.id === id);
+      if (pendingImage && sectionIndex === 0) {
+        const formData = new FormData();
+        // Force the filename to always be "aboutUs" + original extension
+        const ext = pendingImage.name.split(".").pop();
+        const renamedFile = new File([pendingImage], `aboutUs.${ext}`, { type: pendingImage.type });
+        formData.append("image", renamedFile);
+
+        await axios.put(`${process.env.REACT_APP_BACKEND}/about/aboutImage`, formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+
+        setPendingImage(null);
+      }
     } catch {
       setError(`Failed to save "${section.heading}".`);
       setSections((prev) => prev.map((s) => (s.id === id ? backup.find((b) => b.key === id) : s)));
@@ -289,9 +329,192 @@ export default function AboutEditor() {
                   >
                     {s.body.length} characters
                   </Typography>
+                  {i === 0 && (
+                    <>
+                      <Typography
+                        sx={{
+                          fontSize: "10px",
+                          fontWeight: 600,
+                          letterSpacing: "0.1em",
+                          textTransform: "uppercase",
+                          color: "#9e8a80",
+                          mb: 0.75,
+                        }}
+                      >
+                        Hero Image
+                      </Typography>
 
+                      <Box
+                        onClick={() => document.getElementById("hero-image-input").click()}
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          setDragging(true);
+                        }}
+                        onDragLeave={() => setDragging(false)}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          setDragging(false);
+                          const file = e.dataTransfer.files[0];
+                          if (file?.type.startsWith("image/")) {
+                            if (imagePreview) URL.revokeObjectURL(imagePreview);
+                            setPendingImage(file);
+                            setImagePreview(URL.createObjectURL(file));
+                          }
+                        }}
+                        sx={{
+                          mb: 1.5,
+                          height: imagePreview ? 180 : 110,
+                          border: dragging ? `2px dashed ${brown}` : "2px dashed #d4c2b8",
+                          borderRadius: 2.5,
+                          background: dragging ? "#fdf0e8" : imagePreview ? "#000" : bg,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          cursor: "pointer",
+                          overflow: "hidden",
+                          position: "relative",
+                          transition: "all 0.2s",
+                          "&:hover": {
+                            borderColor: brown,
+                            background: imagePreview ? "#000" : "#fdf0e8",
+                          },
+                        }}
+                      >
+                        {imagePreview ? (
+                          <>
+                            <Box
+                              component="img"
+                              src={imagePreview}
+                              sx={{
+                                width: "100%",
+                                height: "100%",
+                                objectFit: "cover",
+                                opacity: 0.8,
+                              }}
+                            />
+                            <Typography
+                              sx={{
+                                position: "absolute",
+                                fontSize: "11px",
+                                color: "#fff",
+                                background: "rgba(0,0,0,0.45)",
+                                px: 1.5,
+                                py: 0.5,
+                                borderRadius: 1,
+                              }}
+                            >
+                              Click or drag to replace
+                            </Typography>
+                          </>
+                        ) : (
+                          <Box sx={{ textAlign: "center", pointerEvents: "none" }}>
+                            <Typography sx={{ fontSize: "22px", mb: 0.5 }}>🖼️</Typography>
+                            <Typography sx={{ fontSize: "12px", color: "#9e8a80" }}>
+                              Drag & drop or{" "}
+                              <span style={{ color: brown, fontWeight: 600 }}>browse</span>
+                            </Typography>
+                            <Typography sx={{ fontSize: "10px", color: "#b0978a", mt: 0.3 }}>
+                              JPG, PNG, WEBP
+                            </Typography>
+                          </Box>
+                        )}
+                      </Box>
+
+                      {pendingImage && (
+                        <Typography sx={{ fontSize: "11px", color: "#9e8a80", mb: 1.5 }}>
+                          📎 {pendingImage.name} ({(pendingImage.size / 1024 / 1024).toFixed(2)} MB)
+                          — will upload on Save
+                        </Typography>
+                      )}
+
+                      <input
+                        id="hero-image-input"
+                        type="file"
+                        hidden
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files[0];
+                          if (!file) return;
+
+                          // Revoke old preview URL to avoid memory leak
+                          if (imagePreview) URL.revokeObjectURL(imagePreview);
+
+                          setPendingImage(file);
+                          setImagePreview(URL.createObjectURL(file));
+
+                          // Reset input so selecting the same file again still fires onChange
+                          e.target.value = "";
+                        }}
+                      />
+                    </>
+                  )}
                   {/* Actions */}
+
                   <Box sx={{ display: "flex", gap: 1, justifyContent: "flex-end" }}>
+                    {/* Only show when editing English */}
+                    {i18n.language === "en" && (
+                      <Box
+                        onClick={() => setAutoTranslate((prev) => !prev)}
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1.5,
+                          cursor: "pointer",
+                          userSelect: "none",
+                          opacity: dirty ? 1 : 0.35,
+                          pointerEvents: dirty ? "auto" : "none",
+                          transition: "opacity 0.2s",
+                        }}
+                      >
+                        {/* Pill track */}
+                        <Box
+                          sx={{
+                            width: 36,
+                            height: 20,
+                            borderRadius: "10px",
+                            background: autoTranslate ? brown : "#d6cbc4",
+                            position: "relative",
+                            flexShrink: 0,
+                            transition: "background 0.25s ease",
+                            border: "1px solid",
+                            borderColor: autoTranslate ? brown : "#c8b8b0",
+                          }}
+                        >
+                          {/* Thumb */}
+                          <Box
+                            sx={{
+                              position: "absolute",
+                              top: "2px",
+                              left: autoTranslate ? "17px" : "2px",
+                              width: 14,
+                              height: 14,
+                              borderRadius: "50%",
+                              background: "#fff",
+                              boxShadow: "0 1px 4px rgba(0,0,0,0.25)",
+                              transition: "left 0.25s ease",
+                            }}
+                          />
+                        </Box>
+                        <Box>
+                          <Typography
+                            sx={{
+                              fontSize: "11px",
+                              fontWeight: 600,
+                              letterSpacing: "0.08em",
+                              textTransform: "uppercase",
+                              color: autoTranslate ? brown : "#9e8a80",
+                              lineHeight: 1,
+                              transition: "color 0.2s",
+                            }}
+                          >
+                            Auto-translate
+                          </Typography>
+                          <Typography sx={{ fontSize: "10px", color: "#b0978a", mt: 0.3 }}>
+                            All languages
+                          </Typography>
+                        </Box>
+                      </Box>
+                    )}
                     {dirty && (
                       <MKButton
                         size="small"
@@ -312,7 +535,7 @@ export default function AboutEditor() {
                       disableRipple
                       disableTouchRipple
                       onClick={() => handleSave(s.id)}
-                      disabled={saving[s.id] || !dirty}
+                      disabled={saving[s.id] || (!dirty && pendingImage == null)}
                       sx={{
                         fontSize: "11px",
                         background: dirty ? brown : "#e0d5cc",
