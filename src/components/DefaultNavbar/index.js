@@ -70,7 +70,7 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userInfo, setUserInfo] = useState({});
   const { session, signOut } = UserAuth();
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
   const [dropdownLang, setDropdownLang] = useState(null);
 
   const normalizeLang = (lang) => lang.split("-")[0].toLowerCase();
@@ -614,7 +614,7 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
                 )}
               </Link>
               <MKButton variant="gradient" color="dark" size="small" onClick={handleSignOut}>
-                Sign Out
+                {t("sign out")}
               </MKButton>
             </MKBox>
           ) : (
@@ -627,7 +627,7 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
                 size="small"
                 sx={{ mr: 1 }}
               >
-                Sign In
+                {t("Sign in")}
               </MKButton>
             )
           )}
@@ -686,8 +686,10 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
             lineHeight={0}
             py={1.5}
             pl={1.5}
-            color={{ xs: "dark", lg: transparent ? "white" : "dark" }}
-            sx={{ cursor: "pointer" }}
+            sx={{
+              cursor: "pointer",
+              color: transparent ? "white" : "dark",
+            }}
             onClick={openMobileNavbar}
           >
             <Icon fontSize="default">{mobileNavbar ? "close" : "menu"}</Icon>

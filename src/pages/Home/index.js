@@ -43,6 +43,7 @@ import About from "./sections/About";
 function Home() {
   const { t } = useTranslation();
   const translatedRoutes = routes(t);
+  const translatedFooterRoutes = footerRoutes(t);
 
   return (
     <>
@@ -115,7 +116,7 @@ function Home() {
         <Amenities />
       </Card>
       <MKBox pt={6} px={1} mt={6}>
-        <DefaultFooter content={footerRoutes} />
+        <DefaultFooter content={translatedFooterRoutes} />
       </MKBox>
     </>
   );

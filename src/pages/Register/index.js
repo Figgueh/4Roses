@@ -45,13 +45,13 @@ function Register() {
 
     // Age validation
     if (!dateOfBirth) {
-      setMessage("Please enter your date of birth.");
+      setMessage(t("Please enter your date of birth."));
       return;
     }
 
     // Password validation
     if (password != confirmPassword) {
-      setMessage("The confirm password isn't the same as the password entered.");
+      setMessage(t("The confirm password isn't the same as the password entered."));
       return;
     }
 
@@ -64,19 +64,19 @@ function Register() {
       (age === 21 && (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())));
 
     if (isUnder21) {
-      setMessage("You must be at least 21 years old to create an account.");
+      setMessage(t("You must be at least 21 years old to create an account."));
       return;
     }
 
     const result = await signUpUser(email, firstName, lastName, password, dateOfBirth);
 
     if (result.success) {
-      setMessage("User account created!");
+      setMessage(t("User account created!"));
       navigate("/confirm-email");
     }
     if (!result.success) {
       console.log(result);
-      setMessage(result.error.message || "An unexpected error occurred.");
+      setMessage(result.error.message || t("An unexpected error occurred."));
     }
   };
 
@@ -135,12 +135,12 @@ function Register() {
                 textAlign="center"
               >
                 <MKTypography variant="h4" fontWeight="medium" color="white" mt={1} mb={1}>
-                  Account creation
+                  {t("Account creation")}
                 </MKTypography>
               </MKBox>
               {message && (
                 <Alert sx={{ m: 2 }} severity="error" onClose={() => setMessage(null)}>
-                  <AlertTitle>Account creation error</AlertTitle>
+                  <AlertTitle>{t("Account creation error")}</AlertTitle>
                   {message}
                 </Alert>
               )}
@@ -149,7 +149,7 @@ function Register() {
                   <MKBox mb={2}>
                     <MKInput
                       type="email"
-                      label="Email"
+                      label={t("Email")}
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       fullWidth
@@ -176,7 +176,7 @@ function Register() {
                   <MKBox mb={2}>
                     <MKInput
                       type="password"
-                      label="Password"
+                      label={t("Password")}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       fullWidth
@@ -184,8 +184,8 @@ function Register() {
                   </MKBox>
                   <MKBox mb={2}>
                     <MKInput
-                      type="confirm password"
-                      label="confirm Password"
+                      type="password"
+                      label={t("confirm Password")}
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       fullWidth
@@ -203,12 +203,12 @@ function Register() {
                   </MKBox>
                   <MKBox mt={4} mb={1}>
                     <MKButton type="submit" variant="gradient" color="info" fullWidth>
-                      Create account
+                      {t("Create account")}
                     </MKButton>
                   </MKBox>
                   <MKBox mt={3} mb={1} textAlign="center">
                     <MKTypography variant="button" color="text">
-                      already have an account?{" "}
+                      {t("already have an account?")}{" "}
                       <MKTypography
                         component={Link}
                         to="/sign-in"
@@ -217,7 +217,7 @@ function Register() {
                         fontWeight="medium"
                         textGradient
                       >
-                        Login
+                        {t("Login")}
                       </MKTypography>
                     </MKTypography>
                   </MKBox>

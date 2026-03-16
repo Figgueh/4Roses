@@ -31,12 +31,24 @@ import Vrbo from "assets/images/logos/gray-logos/small_vrbo.ico";
 import MKBox from "components/MKBox";
 import MKTypography from "components/MKTypography";
 
+import { useTranslation } from "react-i18next";
+
 function CenteredFooter({ company, links, socials, light }) {
   const { href, name } = company;
+  const { t } = useTranslation();
 
   const year = new Date().getFullYear();
 
-  const renderLinks = links.map((link) => (
+  const defaultLinks = links ?? [
+    { href: "/", name: t("home").charAt(0).toUpperCase() + t("home").slice(1) },
+    { href: "/AboutUs", name: t("About Us") },
+    { href: "/albums/interior", name: t("Interior photos") },
+    { href: "/albums/exterior", name: t("Exterior photos") },
+    { href: "/albums/videos", name: t("Watch videos") },
+    { href: "/terms-and-conditions", name: t("Terms & conditions") },
+  ];
+
+  const renderLinks = defaultLinks.map((link) => (
     <MKTypography
       key={link.name}
       component={Link}
@@ -83,7 +95,7 @@ function CenteredFooter({ company, links, socials, light }) {
         </Grid>
         <Grid item xs={12} lg={8} sx={{ textAlign: "center" }}>
           <MKTypography variant="body2" color={light ? "white" : "secondary"}>
-            Copyright &copy; {year} Material by{" "}
+            {t("Copyright")} &copy; {year} {t("Material by")}{" "}
             <MKTypography
               component={Link}
               href={href}
@@ -104,16 +116,8 @@ function CenteredFooter({ company, links, socials, light }) {
 
 // Setting default values for the props of CenteredFooter
 CenteredFooter.defaultProps = {
-  company: { href: "https://www.creative-tim.com/", name: "Joaquim & Aurora" },
-  links: [
-    { href: "/", name: "Homepage" },
-    { href: "/AboutUs", name: "About Us" },
-    { href: "/albums/interior", name: "Interior photos" },
-    { href: "/albums/exterior", name: "Exterior photos" },
-    { href: "/albums/videos", name: "Videos" },
-    { href: "/terms-and-conditions", name: "Terms & conditions" },
-    { href: "https://www.creative-tim.com/license", name: "License" },
-  ],
+  company: { href: "/AboutUs", name: "Joaquim & Aurora" },
+  links: null,
   socials: [
     {
       icon: <FacebookIcon fontSize="small" />,

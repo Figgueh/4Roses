@@ -83,7 +83,7 @@ function ConfirmEmail() {
                 textAlign="center"
               >
                 <MKTypography variant="h4" fontWeight="medium" color="white" mt={1}>
-                  Check your email
+                  {t("Check your email")}
                 </MKTypography>
               </MKBox>
 
@@ -101,12 +101,14 @@ function ConfirmEmail() {
                 </MKBox>
 
                 <MKTypography variant="body1" color="text" mb={1}>
-                  We&apos;ve sent a confirmation link to your email address.
+                  {t("We've sent a confirmation link to your email address.")}
                 </MKTypography>
 
                 <MKTypography variant="body2" color="text" mb={3}>
-                  Please open it and click the link to activate your account. The link expires in{" "}
-                  <strong>24 hours</strong>.
+                  {t(
+                    "Please open it and click the link to activate your account. The link expires in"
+                  )}{" "}
+                  <strong>{t("24 hours")}</strong>.
                 </MKTypography>
 
                 <MKBox
@@ -125,16 +127,16 @@ function ConfirmEmail() {
                     mb={0.5}
                     fontWeight="bold"
                   >
-                    Can&apos;t find the email?
+                    {t("Can't find the email?")}
                   </MKTypography>
                   <MKTypography variant="caption" color="text" display="block">
-                    • Check your spam or junk folder
+                    • {t("Check your spam or junk folder")}
                   </MKTypography>
                   <MKTypography variant="caption" color="text" display="block">
-                    • Make sure you entered the correct email address
+                    • {t("Make sure you entered the correct email address")}
                   </MKTypography>
                   <MKTypography variant="caption" color="text" display="block">
-                    • Allow a few minutes for the email to arrive
+                    • {t("Allow a few minutes for the email to arrive")}
                   </MKTypography>
                 </MKBox>
 
@@ -144,7 +146,7 @@ function ConfirmEmail() {
                   fullWidth
                   onClick={() => navigate("/sign-in")}
                 >
-                  Back to Sign In
+                  {t("Back to Sign In")}
                 </MKButton>
 
                 <MKBox mt={2}>
@@ -158,7 +160,7 @@ function ConfirmEmail() {
                       sx={{ cursor: "pointer", textDecoration: "underline" }}
                       onClick={() => navigate("/register")}
                     >
-                      Sign up again
+                      {t("Sign up again")}
                     </MKTypography>
                   </MKTypography>
                 </MKBox>
