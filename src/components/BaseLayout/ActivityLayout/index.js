@@ -41,7 +41,7 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
   const [error, setError] = useState("");
   const [status, setStatus] = useState(null);
   const [progress, setProgress] = useState(0);
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
 
   useEffect(() => {
     const defaultArticle = {
@@ -399,13 +399,13 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
                     }))
                   }
                 >
-                  {editedArticle.showInfo ? "Hide info" : "Show info"}
+                  {editedArticle.showInfo ? t("Hide info") : t("Show info")}
                 </MKButton>
 
                 {editedArticle.showInfo && editedArticle.url && (
                   <>
                     <MKTypography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                      Website link:
+                      {t("Website link:")}
                     </MKTypography>
                     <MKTypography
                       variant="body2"
@@ -431,7 +431,7 @@ function ActivityLayout({ breadcrumb, title, item, setItem }) {
                 {editedArticle.showInfo && editedArticle.address && (
                   <>
                     <MKTypography variant="subtitle2" sx={{ fontWeight: 600, mt: 1 }}>
-                      Company address:
+                      {t("Company address:")}
                     </MKTypography>
                     <MKTypography
                       variant="body2"

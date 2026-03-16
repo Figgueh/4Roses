@@ -3,8 +3,6 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 
-import villaPhoto from "assets/images/property/exterior/backViewBright.JPG";
-
 import Skeleton from "@mui/material/Skeleton";
 import { useTranslation } from "react-i18next";
 import axios from "axios";
@@ -22,17 +20,6 @@ const serif = "'Cormorant Garamond', serif";
 const brown = "#8b4513";
 const brownFaint = "#fdf8f3";
 const border = "1px solid #ede5db";
-
-const houseRules = [
-  { icon: <LoginOutlined />, label: "Check-in", value: "After 4:00 PM" },
-  { icon: <LogoutOutlined />, label: "Check-out", value: "Before 11:00 AM" },
-  { icon: <BadgeOutlined />, label: "Minimum age", value: "21 years" },
-  { icon: <ChildFriendlyOutlined />, label: "Children", value: "Allowed · child friendly" },
-  { icon: <EventBusyIcon />, label: "Events", value: "Not allowed" },
-  { icon: <PetsOutlined />, label: "Pets", value: "Not allowed" },
-  { icon: <SmokeFreeOutlined />, label: "Smoking", value: "Not permitted" },
-  { icon: <EuroIcon />, label: "Cash Payment", value: "Upon request" },
-];
 
 // eslint-disable-next-line react/prop-types
 function FadeInBox({ children, delay = 0, sx = {} }) {
@@ -105,10 +92,22 @@ function SectionHeading({ label, title }) {
 
 export default function About() {
   const { i18n } = useTranslation();
+  const { t } = useTranslation();
 
   const [sections, setSections] = useState([]);
-  const [aboutImage, setAboutImage] = useState(villaPhoto);
+  const [aboutImage, setAboutImage] = useState();
   const [loading, setLoading] = useState(true);
+
+  const houseRules = [
+    { icon: <LoginOutlined />, label: t("Check-in"), value: t("After 4:00 PM") },
+    { icon: <LogoutOutlined />, label: t("Check-out"), value: t("Before 11:00 AM") },
+    { icon: <BadgeOutlined />, label: t("Minimum age"), value: t("21 years") },
+    { icon: <ChildFriendlyOutlined />, label: t("Children"), value: t("Allowed · child friendly") },
+    { icon: <EventBusyIcon />, label: t("Events"), value: t("Not allowed") },
+    { icon: <PetsOutlined />, label: t("Pets"), value: t("Not allowed") },
+    { icon: <SmokeFreeOutlined />, label: t("Smoking"), value: t("Not permitted") },
+    { icon: <EuroIcon />, label: t("Cash Payment"), value: t("Upon request") },
+  ];
 
   useEffect(() => {
     const loadData = async () => {
@@ -167,7 +166,7 @@ export default function About() {
 
       {/* ── About sections ── */}
       <Container maxWidth="lg" sx={{ pt: { xs: 6, md: 10 }, pb: { xs: 4, md: 6 } }}>
-        <SectionHeading label="Algarve · Portugal" title="About the Villa" />
+        <SectionHeading label="Algarve · Portugal" title={t("About the Villa")} />
 
         <Box
           sx={{
@@ -295,7 +294,7 @@ export default function About() {
 
       {/* ── House Rules ── */}
       <Container maxWidth="lg" sx={{ pb: { xs: 4, md: 6 } }}>
-        <SectionHeading label="Stay Requirements" title="House Rules" />
+        <SectionHeading label={t("Stay Requirements")} title={t("House Rules")} />
 
         <FadeInBox>
           <Box
@@ -363,9 +362,10 @@ export default function About() {
           >
             <Typography sx={{ fontSize: "18px", flexShrink: 0, mt: 0.1 }}>⚠️</Typography>
             <Typography pt={0.5} sx={{ fontSize: "13px", color: "#4a3830", lineHeight: 1.7 }}>
-              <strong>Damage & Incidentals: </strong>
-              You will be responsible for any damage to the rental property caused by you or your
-              party during your stay.
+              <strong>{t("Damage & Incidentals: ")}</strong>
+              {t(
+                "You will be responsible for any damage to the rental property caused by you or your party during your stay."
+              )}
             </Typography>
           </Box>
         </FadeInBox>

@@ -17,6 +17,7 @@ import MKTypography from "components/MKTypography";
 import { UserAuth } from "connection/auth/authContext";
 import MKButton from "components/MKButton";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 export default function BookingsTab() {
   const { session } = UserAuth();
@@ -26,11 +27,12 @@ export default function BookingsTab() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [downloadingId, setDownloadingId] = useState(null);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const fetchBookings = async () => {
       if (!session?.user?.id) {
-        setError("User not logged in");
+        setError(t("User not logged in"));
         setLoading(false);
         return;
       }
@@ -70,7 +72,7 @@ export default function BookingsTab() {
       window.URL.revokeObjectURL(url);
     } catch (err) {
       console.error(err);
-      setError("Failed to download invoice.");
+      setError(t("Failed to download invoice."));
     } finally {
       setDownloadingId(null);
     }
@@ -78,7 +80,7 @@ export default function BookingsTab() {
 
   const cancelBooking = async (id) => {
     const confirmed = window.confirm(
-      "Are you sure you want to cancel this booking? This action cannot be undone."
+      t("Are you sure you want to cancel this booking? This action cannot be undone.")
     );
     if (!confirmed) return;
 
@@ -92,17 +94,17 @@ export default function BookingsTab() {
       });
 
       if (error) {
-        console.error("cancelled Booking failed:", error);
-        alert("Failed to cancel booking. Please try again.");
+        console.error(t("cancelled Booking failed:"), error);
+        alert(t("Failed to cancel booking. Please try again."));
         return;
       }
 
-      setMessage("Booking cancelled successfully.");
+      setMessage(t("Booking cancelled successfully."));
       // Refresh your list after cancel
       setBookings((prev) => prev.filter((b) => b.id !== id));
     } catch (err) {
       console.error(err);
-      alert("Unexpected error canceling booking.");
+      alert(t("Unexpected error canceling booking."));
     }
   };
 
@@ -127,7 +129,7 @@ export default function BookingsTab() {
   if (bookings.length === 0) {
     return (
       <MKBox mt={4}>
-        <MKTypography textAlign="center">You have no bookings yet.</MKTypography>
+        <MKTypography textAlign="center">{t("You have no bookings yet.")}</MKTypography>
       </MKBox>
     );
   }
@@ -136,13 +138,13 @@ export default function BookingsTab() {
     <MKBox mt={2}>
       {message && (
         <Alert sx={{ mt: 2, mb: 2 }} severity="success" onClose={() => setMessage(null)}>
-          <AlertTitle>My bookings status</AlertTitle>
+          <AlertTitle>{t("My bookings status")}</AlertTitle>
           {message}
         </Alert>
       )}
       {error && (
         <Alert sx={{ mt: 2, mb: 2 }} severity="error" onClose={() => setError(null)}>
-          <AlertTitle>My bookings error</AlertTitle>
+          <AlertTitle>{t("My bookings error")}</AlertTitle>
           {error}
         </Alert>
       )}
@@ -150,14 +152,14 @@ export default function BookingsTab() {
         <Table>
           <TableHead sx={{ display: "table-header-group" }}>
             <TableRow>
-              <TableCell>Booking ID</TableCell>
-              <TableCell>Check-In</TableCell>
-              <TableCell>Check-Out</TableCell>
-              <TableCell>Guests</TableCell>
-              <TableCell>Total (€)</TableCell>
-              <TableCell>Amount Paid (€)</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell align="center">Actions</TableCell>
+              <TableCell>{t("Booking ID")}</TableCell>
+              <TableCell>{t("Check-In")}</TableCell>
+              <TableCell>{t("Check-Out")}</TableCell>
+              <TableCell>{t("Guests")}</TableCell>
+              <TableCell>{t("Total")} (€)</TableCell>
+              <TableCell>{t("Amount Paid")} (€)</TableCell>
+              <TableCell>{t("Status")}</TableCell>
+              <TableCell align="center">{t("Actions")}</TableCell>
             </TableRow>
           </TableHead>
 
@@ -170,7 +172,7 @@ export default function BookingsTab() {
                 <TableCell>{booking.guests_under + booking.guests_over}</TableCell>
                 <TableCell>{booking.total_price.toFixed(2)}</TableCell>
                 <TableCell>{booking.amount_paid.toFixed(2)}</TableCell>
-                <TableCell>{booking.status || "Pending"}</TableCell>
+                <TableCell>{booking.status || t("Pending")}</TableCell>
                 <TableCell align="center">
                   {/* Show Pay button ONLY if balance is due and confirmed that the first payment was made. */}
                   {booking.amount_paid < booking.total_price && booking.status === "confirmed" && (
@@ -180,7 +182,8 @@ export default function BookingsTab() {
                         onClick={() => (window.location.href = `/continue-payment/${booking.id}`)}
                         color="success"
                       >
-                        Pay Balance (€{(booking.total_price - booking.amount_paid).toFixed(2)})
+                        {t("Pay Balance")} (€
+                        {(booking.total_price - booking.amount_paid).toFixed(2)})
                       </MKButton>
                     </MKBox>
                   )}
@@ -191,14 +194,14 @@ export default function BookingsTab() {
                         color="success"
                         onClick={() => navigate(`/continue-payment/${booking.id}`)}
                       >
-                        View IBAN information
+                        {t("View IBAN information")}
                       </MKButton>
                       <MKButton
                         variant="gradient"
                         color="error"
                         onClick={() => cancelBooking(booking.id)}
                       >
-                        Cancel
+                        {t("Cancel")}
                       </MKButton>
                     </MKBox>
                   )}
@@ -213,7 +216,7 @@ export default function BookingsTab() {
                         {downloadingId === booking.id ? (
                           <CircularProgress size={20} color="inherit" />
                         ) : (
-                          "Download invoice"
+                          t("Download invoice")
                         )}
                       </MKButton>
                     </MKBox>

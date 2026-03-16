@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
 
 import { Skeleton, Grid, Box } from "@mui/material";
@@ -83,7 +84,7 @@ function MediaCard({ toDisplay, containsHeader }) {
       )}`,
       action: {
         type: "internal",
-        route: "/pages/albums/exterior",
+        route: "/albums/exterior",
         color: "brown",
         label: `${t("View more exterior pictures")}`,
       },
@@ -96,7 +97,7 @@ function MediaCard({ toDisplay, containsHeader }) {
       )}`,
       action: {
         type: "internal",
-        route: "/pages/albums/interior",
+        route: "/albums/interior",
         color: "brown",
         label: `${t("View more interior pictures")}`,
       },
@@ -109,7 +110,7 @@ function MediaCard({ toDisplay, containsHeader }) {
       ),
       action: {
         type: "internal",
-        route: "/pages/albums/videos",
+        route: "/albums/videos",
         color: "brown",
         label: t("Watch videos"),
       },
@@ -160,13 +161,18 @@ function MediaCard({ toDisplay, containsHeader }) {
                   sx={{ borderRadius: 2 }}
                 />
               ) : (
-                <CenteredBlogCard
-                  image={mediaData[item]?.image}
-                  title={mediaData[item]?.title}
-                  description={mediaData[item]?.description}
-                  action={mediaData[item]?.action}
-                  style={{ flex: 1, display: "flex", flexDirection: "column" }}
-                />
+                <Link
+                  to={mediaData[item]?.action?.route}
+                  style={{ flex: 1, display: "flex", textDecoration: "none", width: "100%" }}
+                >
+                  <CenteredBlogCard
+                    image={mediaData[item]?.image}
+                    title={mediaData[item]?.title}
+                    description={mediaData[item]?.description}
+                    action={mediaData[item]?.action}
+                    style={{ flex: 1, display: "flex", flexDirection: "column" }}
+                  />
+                </Link>
               )}
             </FadeInBox>
           </Grid>
