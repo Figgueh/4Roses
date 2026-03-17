@@ -4,18 +4,20 @@ import { useStripe, useElements, PaymentElement, AddressElement } from "@stripe/
 import MKBox from "components/MKBox";
 import MKTypography from "components/MKTypography";
 import MKButton from "components/MKButton";
+import { useTranslation } from "react-i18next";
 
 export default function StripeCheckout({ setMessage, setLoading }) {
   const stripe = useStripe();
   const elements = useElements();
   const [submitted, setSubmitted] = useState(false);
   const formRef = useRef(null);
+  const { t } = useTranslation();
 
   const handleStripePay = async (e) => {
     e.preventDefault();
 
     if (!stripe || !elements) {
-      setMessage("Payment system not ready. Refresh the page.");
+      setMessage(t("Payment system not ready. Refresh the page."));
       return;
     }
 
@@ -23,7 +25,6 @@ export default function StripeCheckout({ setMessage, setLoading }) {
     setMessage("");
     setSubmitted(true);
 
-    console.log(`${process.env.REACT_APP_FRONTEND}/booking-success`);
     try {
       // Confirm payment — Stripe will collect billing info from PaymentElement & AddressElement
       const result = await stripe.confirmPayment({
@@ -34,18 +35,17 @@ export default function StripeCheckout({ setMessage, setLoading }) {
       });
 
       if (result.error) {
-        setMessage("Error: Payment error: " + result.error.message);
+        setMessage(t("Payment error") + ": " + result.error.message);
       } else if (result.paymentIntent?.status === "succeeded") {
-        setMessage("Payment successful!");
-        console.log("PaymentIntent ID:", result.paymentIntent.id);
+        setMessage(t("Payment successful!"));
       } else if (result.paymentIntent?.status === "processing") {
-        setMessage("Payment is processing. Please wait...");
+        setMessage(t("Payment is processing. Please wait..."));
       } else {
-        setMessage("Payment status: " + result.paymentIntent?.status);
+        setMessage(t("Payment status") + ": " + result.paymentIntent?.status);
       }
     } catch (err) {
       console.error("Payment failed:", err);
-      setMessage("Error: Payment failed. Try again.");
+      setMessage(t("Payment failed. Try again."));
     } finally {
       setLoading(false);
       setSubmitted(false);
@@ -55,7 +55,7 @@ export default function StripeCheckout({ setMessage, setLoading }) {
   return (
     <MKBox component="form" onSubmit={handleStripePay} ref={formRef}>
       <MKTypography variant="body2" mb={1}>
-        Enter your payment details:
+        {t("Enter your payment details")}:
       </MKTypography>
 
       <MKBox p={2} border="1px solid #ddd" borderRadius="md" mb={2}>
@@ -70,7 +70,7 @@ export default function StripeCheckout({ setMessage, setLoading }) {
       </MKBox>
 
       <MKButton type="submit" fullWidth color="dark" disabled={!stripe || submitted || !elements}>
-        {submitted ? "Processing..." : "Pay Deposit"}
+        {submitted ? t("Processing...") : t("Pay Deposit")}
       </MKButton>
     </MKBox>
   );

@@ -41,7 +41,7 @@ export default function BillingForm() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [bookingId, setBookingId] = useState("");
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const translatedRoutes = routes(t);
   const [loading, setLoading] = useState(false);
 
@@ -342,7 +342,13 @@ export default function BillingForm() {
                   <>
                     {clientSecret && (
                       <Grid item xs={12}>
-                        <Elements stripe={stripePromise} options={{ clientSecret }}>
+                        <Elements
+                          stripe={stripePromise}
+                          options={{
+                            clientSecret,
+                            locale: i18n.language,
+                          }}
+                        >
                           <StripeCheckout setMessage={setMessage} setLoading={setLoading} />
                         </Elements>
                       </Grid>
