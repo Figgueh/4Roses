@@ -172,7 +172,7 @@ export default function BookingsTab() {
                 <TableCell>{booking.guests_under + booking.guests_over}</TableCell>
                 <TableCell>{booking.total_price.toFixed(2)}</TableCell>
                 <TableCell>{booking.amount_paid.toFixed(2)}</TableCell>
-                <TableCell>{booking.status || t("Pending")}</TableCell>
+                <TableCell>{t(booking.status) || t("Pending")}</TableCell>
                 <TableCell align="center">
                   {/* Show Pay button ONLY if balance is due and confirmed that the first payment was made. */}
                   {booking.amount_paid < booking.total_price && booking.status === "confirmed" && (

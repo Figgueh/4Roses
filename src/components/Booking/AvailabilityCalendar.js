@@ -6,6 +6,7 @@ import MKButton from "components/MKButton";
 import MKTypography from "components/MKTypography";
 import { UserAuth } from "connection/auth/authContext";
 import { Alert, AlertTitle } from "@mui/material";
+import { useTranslation } from "react-i18next";
 
 const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -52,6 +53,7 @@ export default function AvailabilityCalendar({
   currentDate: controlledDate,
   onMonthChange,
 }) {
+  const { t, i18n } = useTranslation();
   const [blockedDates, setBlockedDates] = useState(new Set());
   const [internalDate, setInternalDate] = useState(new Date());
   const [isDragging, setIsDragging] = useState(false);
@@ -281,12 +283,12 @@ export default function AvailabilityCalendar({
   return (
     <MKBox maxWidth="xl" mx="auto" p={3}>
       <MKTypography variant="h4" textAlign="center" mb={3}>
-        Availability
+        {t("Availability")}
       </MKTypography>
 
       {error && (
         <Alert sx={{ mt: 2 }} severity="error" onClose={() => setError("")}>
-          <AlertTitle>Date selection error</AlertTitle>
+          <AlertTitle>{t("Date selection error")}</AlertTitle>
           {error}
         </Alert>
       )}
@@ -294,13 +296,13 @@ export default function AvailabilityCalendar({
       {/* Month controls */}
       <MKBox display="flex" justifyContent="space-between" alignItems="center" mb={2}>
         <MKButton variant="contained" onClick={() => setCurrentDate(new Date(year, month - 1, 1))}>
-          ‹ Prev
+          ‹ {t("Previous")}
         </MKButton>
         <MKTypography variant="h6">
-          {currentDate.toLocaleString("default", { month: "long", year: "numeric" })}
+          {currentDate.toLocaleString(i18n.language, { month: "long", year: "numeric" })}
         </MKTypography>
         <MKButton variant="contained" onClick={() => setCurrentDate(new Date(year, month + 1, 1))}>
-          Next ›
+          {t("Next")} ›
         </MKButton>
       </MKBox>
 
@@ -309,7 +311,7 @@ export default function AvailabilityCalendar({
         {daysOfWeek.map((day) => (
           <Grid item xs={1.7} key={day}>
             <MKTypography variant="body2" textAlign="center" fontWeight="medium">
-              {day}
+              {t(day)}
             </MKTypography>
           </Grid>
         ))}

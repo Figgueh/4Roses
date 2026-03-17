@@ -1,8 +1,10 @@
 import PropTypes from "prop-types";
 import { Grid, Card, CardContent, Typography } from "@mui/material";
 import MKInput from "components/MKInput";
+import { useTranslation } from "react-i18next";
 
 export default function BookingOptions({ bookingData, setBookingData }) {
+  const { t } = useTranslation();
   const handleChange = (e) => {
     const { name, value } = e.target;
     setBookingData((prev) => ({
@@ -16,14 +18,14 @@ export default function BookingOptions({ bookingData, setBookingData }) {
       <Card sx={{ borderRadius: 3 }}>
         <CardContent>
           <Typography variant="h6" gutterBottom>
-            Guest Information
+            {t("Guest Information")}
           </Typography>
 
           <Grid container spacing={2} mt={1}>
             <Grid item xs={12} sm={6}>
               <MKInput
                 type="number"
-                label="Guests aged 13 and over"
+                label={t("Guests aged 13 and over")}
                 name="guests_over"
                 value={bookingData.guests_over}
                 onChange={handleChange}
@@ -36,7 +38,7 @@ export default function BookingOptions({ bookingData, setBookingData }) {
             <Grid item xs={12} sm={6}>
               <MKInput
                 type="number"
-                label="Guests under 13 years old"
+                label={t("Guests under 13 years old")}
                 name="guests_under"
                 value={bookingData.guests_under}
                 onChange={handleChange}

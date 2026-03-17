@@ -2,12 +2,11 @@
 import { createClient } from "@supabase/supabase-js";
 import fs from "fs";
 
-// Imports and code to run this script locally.
-// import dotenv from "dotenv";
-// import { resolve } from "path";
-// import { fileURLToPath } from "url";
-// const __dirname = fileURLToPath(new URL(".", import.meta.url));
-// dotenv.config({ path: resolve(__dirname, "../.env.production") });
+import dotenv from "dotenv";
+import { resolve } from "path";
+import { fileURLToPath } from "url";
+const __dirname = fileURLToPath(new URL(".", import.meta.url));
+dotenv.config({ path: resolve(__dirname, "../.env.production") });
 
 const supabase = createClient(
   process.env.REACT_APP_SUPABASE_URL,

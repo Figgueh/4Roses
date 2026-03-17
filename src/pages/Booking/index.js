@@ -17,6 +17,7 @@ import BookingOptions from "../../components/Booking/BookingOptions";
 export default function BookingPage() {
   const { t } = useTranslation();
   const translatedRoutes = routes(t);
+  const translatedFooterRoutes = footerRoutes(t);
   const [bookingData, setBookingData] = useState({ selectedDates: {}, guests_over: 1 });
 
   return (
@@ -108,7 +109,7 @@ export default function BookingPage() {
         )}
       </Card>
       <MKBox pt={6} px={1} mt={6}>
-        <DefaultFooter content={footerRoutes} />
+        <DefaultFooter content={translatedFooterRoutes} />
       </MKBox>
     </>
   );

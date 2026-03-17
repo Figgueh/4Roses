@@ -12,7 +12,6 @@ import {
 } from "@mui/material";
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
-
 import MKBox from "components/MKBox";
 import MKTypography from "components/MKTypography";
 import StripeCheckout from "../../components/Billing/StripeCheckout";
@@ -28,17 +27,6 @@ const ONLINE_PAYMENT_FEE_RATE = 0.036; // 3.6%
 
 export default function BillingForm() {
   const { state } = useLocation();
-  const navigate = useNavigate();
-  const [user, setUser] = useState(null);
-  const [bookingId, setBookingId] = useState("");
-  const { t } = useTranslation();
-  const translatedRoutes = routes(t);
-
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUser(data.user));
-    setBookingId(crypto.randomUUID());
-  }, []);
-
   const {
     dates = {},
     nights = 0,
@@ -50,10 +38,38 @@ export default function BillingForm() {
     guestsOver = 0,
     guestsUnder = 0,
   } = state || {};
+  const navigate = useNavigate();
+  const [user, setUser] = useState(null);
+  const [bookingId, setBookingId] = useState("");
+  const { t } = useTranslation();
+  const translatedRoutes = routes(t);
+  const [loading, setLoading] = useState(false);
+
+  const [clientSecret, setClientSecret] = useState("");
   const guests = guestsOver + guestsUnder;
   const [creditPrice, setCreditPrice] = useState(price);
   const [creditDueToday, setCreditDueToday] = useState(dueToday);
   const fee = price * ONLINE_PAYMENT_FEE_RATE;
+
+  const dateKeys = Object.keys(dates).sort();
+  const checkIn = dateKeys[0];
+  const checkOut = dateKeys[dateKeys.length - 1];
+
+  const [message, setMessage] = useState("");
+  const [messageSeverity, setMessageSeverity] = useState("success");
+  const setError = (msg) => {
+    setMessage(msg);
+    setMessageSeverity("error");
+  };
+  const setSuccess = (msg) => {
+    setMessage(msg);
+    setMessageSeverity("success");
+  };
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setUser(data.user));
+    setBookingId(crypto.randomUUID());
+  }, []);
 
   const [form, setForm] = useState({
     payment_method: "iban",
@@ -78,16 +94,6 @@ export default function BillingForm() {
       setCreditDueToday(dueToday);
     }
   }, [form.payment_method, price, dueToday]);
-
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
-  const [clientSecret, setClientSecret] = useState("");
-
-  const dateKeys = Object.keys(dates).sort();
-  const checkIn = dateKeys[0];
-  const checkOut = dateKeys[dateKeys.length - 1];
-
-  const handleChange = (e) => setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
   useEffect(() => {
     if (form.payment_method !== "credit_card") return;
@@ -126,7 +132,7 @@ export default function BillingForm() {
         setClientSecret(data.clientSecret);
       } catch (err) {
         console.error(err);
-        setMessage("Error: Failed to initialize credit card payment.");
+        setError(t("Failed to initialize credit card payment."));
       } finally {
         setLoading(false);
       }
@@ -154,12 +160,12 @@ export default function BillingForm() {
     e.preventDefault();
 
     if (!user) {
-      setMessage("Error: You must be logged in to make a reservation");
+      setError(t("You must be logged in to make a reservation"));
       return;
     }
 
     if (form.payment_method === "credit_card") {
-      setMessage("Error: Please use the payment form below");
+      setError(t("Please use the payment form below"));
       return;
     }
 
@@ -174,7 +180,7 @@ export default function BillingForm() {
       !form.billing_postal_code
     ) {
       console.log(form);
-      setMessage("Error: Please fill in all billing fields");
+      setError(t("Please fill in all billing fields"));
       return;
     }
 
@@ -200,8 +206,6 @@ export default function BillingForm() {
       billing_postal_code: form.billing_postal_code,
     };
 
-    console.log(payload);
-
     try {
       setLoading(true);
       setMessage("");
@@ -212,7 +216,7 @@ export default function BillingForm() {
       );
 
       if (data.success) {
-        setMessage("Reservation created! Please complete the bank transfer to confirm.");
+        setSuccess(t("Reservation created! Please complete the bank transfer to confirm."));
 
         // Send email
         await axios.post(`${process.env.REACT_APP_BACKEND}/email/initializeBooking`, {
@@ -223,15 +227,17 @@ export default function BillingForm() {
           state: { bookingId: data.reservation.id },
         });
       } else {
-        setMessage("Error: Failed to create reservation");
+        setError(t("Failed to create reservation"));
       }
     } catch (err) {
       console.error(err);
-      setMessage("Error: Error creating reservation");
+      setError(t("Error creating reservation"));
     } finally {
       setLoading(false);
     }
   };
+
+  const handleChange = (e) => setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
   return (
     <>
@@ -249,23 +255,23 @@ export default function BillingForm() {
             {/* LEFT – Booking Summary */}
             <Grid item xs={12} md={6}>
               <MKTypography variant="h4" fontWeight="bold" mb={2}>
-                Booking Summary
+                {t("Booking Summary")}
               </MKTypography>
 
               <MKTypography variant="body1">
-                <strong>Dates:</strong> {checkIn} → {checkOut}
+                <strong>{t("Dates")}:</strong> {checkIn} → {checkOut}
               </MKTypography>
               <MKTypography variant="body1">
-                <strong>Nights:</strong> {nights}
+                <strong>{t("Nights")}:</strong> {nights}
               </MKTypography>
               <MKTypography variant="body1">
-                <strong>Number of guests:</strong> {guests}
+                <strong>{t("Number of guests")}:</strong> {guests}
               </MKTypography>
               <MKTypography variant="body1">
-                <strong>Total:</strong> €{creditPrice.toFixed(2)}
+                <strong>{t("Total")}:</strong> €{creditPrice.toFixed(2)}
               </MKTypography>
               <MKTypography variant="body1" color="success">
-                <strong>Due today (50%):</strong> €{creditDueToday.toFixed(2)}
+                <strong>{t("Due today")} (50%):</strong> €{creditDueToday.toFixed(2)}
               </MKTypography>
               {form.payment_method === "credit_card" && (
                 <MKBox
@@ -277,22 +283,21 @@ export default function BillingForm() {
                   border="1px solid #ffe58f"
                 >
                   <MKTypography variant="body2" color="warning">
-                    Online payment fee:{" "}
+                    {t("Online payment fee")}:{" "}
                     <strong>+{(ONLINE_PAYMENT_FEE_RATE * 100).toFixed(2)}%</strong>
-                    <br />
-                    (Applied automatically to the total)
+                    <br />({t("Applied automatically to the total")})
                   </MKTypography>
                 </MKBox>
               )}
               <MKTypography variant="body2" mt={2} color="secondary">
-                Remaining balance must be paid before check-in.
+                {t("Remaining balance must be paid before check-in")}.
               </MKTypography>
             </Grid>
 
             {/* RIGHT – Payment Form */}
             <Grid item xs={12} md={6}>
               <MKTypography variant="h4" fontWeight="bold" mb={2}>
-                Payment
+                {t("Payment")}
               </MKTypography>
 
               <Divider sx={{ mb: 2 }} />
@@ -307,11 +312,15 @@ export default function BillingForm() {
                       value={form.payment_method}
                       onChange={handleChange}
                     >
-                      <FormControlLabel value="iban" control={<Radio />} label="IBAN transfer" />
+                      <FormControlLabel
+                        value="iban"
+                        control={<Radio />}
+                        label={t("IBAN transfer")}
+                      />
                       <FormControlLabel
                         value="credit_card"
                         control={<Radio />}
-                        label="Online payment options"
+                        label={t("Online payment options")}
                       />
                     </RadioGroup>
                   </FormControl>
@@ -345,11 +354,13 @@ export default function BillingForm() {
                 {message && (
                   <Alert
                     sx={{ mt: 2, mb: 2 }}
-                    severity={!message.includes("Error") ? "success" : "error"}
-                    onClose={() => setMessage(null)}
+                    severity={messageSeverity}
+                    onClose={() => {
+                      setMessage(null);
+                    }}
                   >
                     <AlertTitle>
-                      {!message.includes("Error") ? "Billing message" : "Billing issue"}
+                      {messageSeverity === "error" ? t("Billing issue") : t("Billing message")}
                     </AlertTitle>
                     {message}
                   </Alert>

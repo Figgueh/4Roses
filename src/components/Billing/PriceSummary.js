@@ -6,6 +6,7 @@ import MKButton from "components/MKButton";
 import axios from "axios";
 import { Alert, AlertTitle } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 const SECURITY_DEPOSIT = 500;
 const DISCOUNT_RATE = 0.05;
@@ -23,6 +24,7 @@ function formatLocalISO(d) {
 }
 
 export default function PriceSummary({ bookingData }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [error, setError] = useState("");
 
@@ -115,7 +117,7 @@ export default function PriceSummary({ bookingData }) {
   return (
     <MKBox mt={4} p={3} borderRadius="3px" border="1px solid #e0e0e0" bgcolor="#fafafa">
       <MKTypography variant="h6" mb={3}>
-        Price Summary
+        {t("Price Summary")}
       </MKTypography>
 
       <MKBox display="flex" flexDirection={{ xs: "column", md: "row" }} gap={3}>
@@ -130,7 +132,7 @@ export default function PriceSummary({ bookingData }) {
           flexDirection="column"
         >
           <MKTypography variant="h6" fontWeight="bold" mb={2}>
-            Total
+            {t("Total")}
           </MKTypography>
 
           {ranges.map((r, idx) => {
@@ -143,7 +145,8 @@ export default function PriceSummary({ bookingData }) {
             return (
               <MKBox display="flex" justifyContent="space-between" key={idx} mb={1.5}>
                 <MKTypography variant="body2">
-                  {formatLocalISO(start)} - {formatLocalISO(displayEndDate)} ({nights} nights) @ €
+                  {formatLocalISO(start)} - {formatLocalISO(displayEndDate)} ({nights} {t("nights")}
+                  ) @ €
                   {(Number(r.price) || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </MKTypography>
                 <MKTypography variant="body2" textAlign="right">
@@ -155,7 +158,7 @@ export default function PriceSummary({ bookingData }) {
 
           {/* Discount */}
           <MKBox display="flex" justifyContent="space-between" mb={1.5}>
-            <MKTypography variant="body2">Discount (5%)</MKTypography>
+            <MKTypography variant="body2">{t("Discount")} (5%)</MKTypography>
             <MKTypography variant="body2" color="error" textAlign="right">
               -€{discountAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </MKTypography>
@@ -164,7 +167,7 @@ export default function PriceSummary({ bookingData }) {
           {/* Accommodation subtotal */}
           <MKBox display="flex" justifyContent="space-between" mb={2}>
             <MKTypography variant="body2" fontWeight="medium">
-              Accommodation Subtotal
+              {t("Accommodation Subtotal")}
             </MKTypography>
             <MKTypography variant="body2" textAlign="right">
               €{accommodationSubtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
@@ -179,25 +182,25 @@ export default function PriceSummary({ bookingData }) {
               mb={1}
               sx={{ textTransform: "uppercase", letterSpacing: 1 }}
             >
-              Fees & Taxes
+              {t("Fees & Taxes")}
             </MKTypography>
 
             <MKBox display="flex" justifyContent="space-between" mb={1}>
-              <MKTypography variant="body2">Tourist Tax</MKTypography>
+              <MKTypography variant="body2">{t("Tourist Tax")}</MKTypography>
               <MKTypography variant="body2" textAlign="right">
                 €{Number(touristTax).toLocaleString(undefined, { minimumFractionDigits: 2 })}
               </MKTypography>
             </MKBox>
 
             <MKBox display="flex" justifyContent="space-between" mb={1}>
-              <MKTypography variant="body2">Sales Tax (6%)</MKTypography>
+              <MKTypography variant="body2">{t("Sales Tax")} (6%)</MKTypography>
               <MKTypography variant="body2" textAlign="right">
                 €{salesTax.toLocaleString(undefined, { minimumFractionDigits: 2 })}
               </MKTypography>
             </MKBox>
 
             <MKBox display="flex" justifyContent="space-between">
-              <MKTypography variant="body2">Security Deposit</MKTypography>
+              <MKTypography variant="body2">{t("Security Deposit")}</MKTypography>
               <MKTypography variant="body2" textAlign="right">
                 €{SECURITY_DEPOSIT.toLocaleString(undefined, { minimumFractionDigits: 2 })}
               </MKTypography>
@@ -235,31 +238,31 @@ export default function PriceSummary({ bookingData }) {
         >
           <div>
             <MKTypography variant="subtitle1" fontWeight="bold" mb={2}>
-              Payment Breakdown
+              {t("Payment Breakdown")}
             </MKTypography>
 
             <MKBox display="flex" justifyContent="space-between" mb={1}>
-              <MKTypography variant="body2">50% Due Today</MKTypography>
+              <MKTypography variant="body2">50% {t("Due Today")}</MKTypography>
               <MKTypography variant="body2" fontWeight="bold" textAlign="right">
                 €{dueToday.toLocaleString(undefined, { minimumFractionDigits: 2 })}
               </MKTypography>
             </MKBox>
 
             <MKBox display="flex" justifyContent="space-between" mb={2}>
-              <MKTypography variant="body2">Remaining Balance</MKTypography>
+              <MKTypography variant="body2">{t("Remaining Balance")}</MKTypography>
               <MKTypography variant="body2" textAlign="right">
                 €{remainingBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
               </MKTypography>
             </MKBox>
 
             <MKTypography variant="caption" color="secondary" display="block" mb={2}>
-              Remaining balance must be paid in full before check-in.
+              {t("Remaining balance must be paid in full before check-in.")}
             </MKTypography>
           </div>
 
           {error && (
             <Alert sx={{ mt: 2 }} severity="error" onClose={() => setError(null)}>
-              <AlertTitle>Price summary error</AlertTitle>
+              <AlertTitle>{t("Price summary error")}</AlertTitle>
               {error}
             </Alert>
           )}
@@ -273,7 +276,7 @@ export default function PriceSummary({ bookingData }) {
               const end_date = sortedAll[sortedAll.length - 1];
 
               if (totalNights < 6) {
-                setError("The minimum stay is 6 nights.");
+                setError(t("The minimum stay is 6 nights."));
                 return;
               } else {
                 setError("");
@@ -285,13 +288,15 @@ export default function PriceSummary({ bookingData }) {
 
               if (data.isBooked) {
                 setError(
-                  "Oops! Some of these dates are no longer available. Refresh the page to check the current availability."
+                  t(
+                    "Oops! Some of these dates are no longer available. Refresh the page to check the current availability."
+                  )
                 );
                 return;
               }
 
               if (!guestsOver || guestsOver < 1) {
-                setError("There must be at least 1 guest over 13");
+                setError(t("There must be at least 1 guest over 13"));
                 return;
               } else {
                 setError(""); // clear the error if the rule is satisfied
@@ -312,7 +317,7 @@ export default function PriceSummary({ bookingData }) {
               });
             }}
           >
-            Confirm Booking
+            {t("Confirm Booking")}
           </MKButton>
         </MKBox>
       </MKBox>
