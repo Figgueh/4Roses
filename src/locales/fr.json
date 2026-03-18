@@ -150,7 +150,7 @@
   "Upon request": "Sur demande",
   "Damage & Incidentals: ": "Dommages et incidents : ",
   "You will be responsible for any damage to the rental property caused by you or your party during your stay.": "Vous serez responsable de tout dommage causé à la propriété par vous ou votre groupe durant votre séjour.",
-    "Not permitted": "Non autorisé",
+  "Not permitted": "Non autorisé",
   "Hide info": "Masquer les infos",
   "Show info": "Afficher les infos",
   "Website link:": "Lien du site :",
@@ -287,6 +287,11 @@
   "Payment failed. Try again.": "Paiement échoué. Réessayez.",
   "Enter your payment details": "Saisissez vos coordonnées de paiement",
   "Processing...": "Traitement...",
-  "Pay Deposit": "Payer l'acompte"
+  "Pay Deposit": "Payer l'acompte",
+  "Preferred language": "Langue préférée",
+  "A user with this email address has already been registered": "Un utilisateur avec cette adresse e-mail est déjà enregistré",
+  "Email not confirmed": "E-mail non confirmé",
+  "Enter your email and we'll send you a reset link.": "Entrez votre e-mail et nous vous enverrons un lien de réinitialisation.",
+  "Password reset email sent. Check your inbox.": "E-mail de réinitialisation envoyé. Vérifiez votre boîte de réception.",
+  "New password should be different from the old password.": "Le nouveau mot de passe doit être différent de l'ancien."
 }
-  

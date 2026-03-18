@@ -66,6 +66,7 @@ export const getAllUsersInfo = async (req, res, next) => {
 
 /* 
 // Creates the users account and generates a link that will allow the user to confirm the email.
+//
 // POST {email, password, firstName, lastName, dateOfBirth, lang}:
 // email:       The email the user will need to confirm
 // password:    The password of the user
@@ -74,7 +75,7 @@ export const getAllUsersInfo = async (req, res, next) => {
 // dateOfBirth: The date of birth of the user (must be 21+)
 // lang:        The language that is currently selected at the time the user made the account.
 //
-// /users/createUser
+// POST /users/createUser
 */
 export const createNewUser = async (req, res, next) => {
   const { email, password, firstName, lastName, dateOfBirth, lang } = req.body;

@@ -291,5 +291,8 @@
 
   "Preferred language": "Preferred language",
   "A user with this email address has already been registered": "A user with this email address has already been registered",
-  "Email not confirmed": "Email not confirmed"
+  "Email not confirmed": "Email not confirmed",
+  "Enter your email and we'll send you a reset link.": "Enter your email and we'll send you a reset link.",
+  "Password reset email sent. Check your inbox.": "Password reset email sent. Check your inbox.",
+  "New password should be different from the old password.": "New password should be different from the old password."
 }

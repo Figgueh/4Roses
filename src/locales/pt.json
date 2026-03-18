@@ -287,5 +287,11 @@
   "Payment failed. Try again.": "Pagamento falhado. Tente novamente.",
   "Enter your payment details": "Introduza os seus dados de pagamento",
   "Processing...": "A processar...",
-  "Pay Deposit": "Pagar depósito"
+  "Pay Deposit": "Pagar depósito",
+  "Preferred language": "Idioma preferido",
+  "A user with this email address has already been registered": "Já existe um utilizador registado com este endereço de e-mail",
+  "Email not confirmed": "E-mail não confirmado",
+  "Enter your email and we'll send you a reset link.": "Introduza o seu e-mail e enviaremos um link de redefinição.",
+  "Password reset email sent. Check your inbox.": "E-mail de redefinição enviado. Verifique a sua caixa de entrada.",
+  "New password should be different from the old password.": "A nova palavra-passe deve ser diferente da anterior."
 }

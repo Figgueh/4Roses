@@ -287,5 +287,11 @@
   "Payment failed. Try again.": "Zahlung fehlgeschlagen. Versuchen Sie es erneut.",
   "Enter your payment details": "Geben Sie Ihre Zahlungsdaten ein",
   "Processing...": "Wird verarbeitet...",
-  "Pay Deposit": "Anzahlung leisten"
+  "Pay Deposit": "Anzahlung leisten",
+  "Preferred language": "Bevorzugte Sprache",
+  "A user with this email address has already been registered": "Ein Benutzer mit dieser E-Mail-Adresse ist bereits registriert",
+  "Email not confirmed": "E-Mail nicht bestätigt",
+  "Enter your email and we'll send you a reset link.": "Geben Sie Ihre E-Mail ein und wir senden Ihnen einen Zurücksetzungslink.",
+  "Password reset email sent. Check your inbox.": "E-Mail zum Zurücksetzen gesendet. Überprüfen Sie Ihren Posteingang.",
+  "New password should be different from the old password.": "Das neue Passwort muss sich vom alten unterscheiden."
 }

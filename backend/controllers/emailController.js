@@ -3087,3 +3087,275 @@ export const sendSecurityDepositSettledEmail = async (req, res) => {
     return res.status(500).json({ error: "Failed to send security deposit email" });
   }
 };
+
+/*
+// Sends an email to the customer whenever the secuirty deposit amount has been refunded.
+//
+// POST {reservation_id}:
+// reservation_id: The reservation id which holds all the booking details.
+// 
+// POST email/passwordReset
+*/
+export const sendPasswordReset = async (req, res, next) => {
+  const { email, lang } = req.body;
+
+  try {
+    const { data, error } = await supabase.auth.admin.generateLink({
+      type: "recovery",
+      email,
+      options: {
+        redirectTo: `${process.env.FRONTEND_URL}/reset-password`,
+      },
+    });
+
+    if (error) return res.status(400).json({ error: error.message });
+
+    const resetLink = data.properties.action_link;
+
+    const emailTranslations = {
+      en: {
+        subject: "Reset Your Password – Four Roses",
+        title: "Reset Your Password",
+        subtitle: "Secure account recovery",
+        greeting: "Hello,",
+        message:
+          "We received a request to reset the password for your Four Roses account. Click the button below to choose a new password. If you didn't make this request, you can safely ignore this email — your password will not be changed.",
+        cta: "Reset My Password",
+        expiry:
+          "This link will expire in <strong>1 hour</strong>. After that, you'll need to request a new reset link from the sign-in page.",
+        fallbackTitle:
+          "If the button above doesn't work, copy and paste this link into your browser:",
+        footerNote: `This email was sent to <strong>${email}</strong> because a password reset was requested.<br />If you did not request this, no action is required.`,
+        contact: "Contact Us",
+        rights: "© 2026 Four Roses. All rights reserved.",
+      },
+      fr: {
+        subject: "Réinitialisez votre mot de passe – Four Roses",
+        title: "Réinitialisation du mot de passe",
+        subtitle: "Récupération sécurisée du compte",
+        greeting: "Bonjour,",
+        message:
+          "Nous avons reçu une demande de réinitialisation du mot de passe pour votre compte Four Roses. Cliquez sur le bouton ci-dessous pour choisir un nouveau mot de passe. Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer cet e-mail — votre mot de passe ne sera pas modifié.",
+        cta: "Réinitialiser mon mot de passe",
+        expiry:
+          "Ce lien expirera dans <strong>1 heure</strong>. Après cela, vous devrez demander un nouveau lien depuis la page de connexion.",
+        fallbackTitle:
+          "Si le bouton ne fonctionne pas, copiez et collez ce lien dans votre navigateur :",
+        footerNote: `Cet e-mail a été envoyé à <strong>${email}</strong> suite à une demande de réinitialisation de mot de passe.<br />Si vous n'avez pas fait cette demande, aucune action n'est requise.`,
+        contact: "Nous contacter",
+        rights: "© 2026 Four Roses. Tous droits réservés.",
+      },
+      es: {
+        subject: "Restablezca su contraseña – Four Roses",
+        title: "Restablecer contraseña",
+        subtitle: "Recuperación segura de cuenta",
+        greeting: "Hola,",
+        message:
+          "Hemos recibido una solicitud para restablecer la contraseña de su cuenta Four Roses. Haga clic en el botón a continuación para elegir una nueva contraseña. Si no realizó esta solicitud, puede ignorar este correo — su contraseña no será modificada.",
+        cta: "Restablecer mi contraseña",
+        expiry:
+          "Este enlace expirará en <strong>1 hora</strong>. Después deberá solicitar un nuevo enlace desde la página de inicio de sesión.",
+        fallbackTitle: "Si el botón no funciona, copie y pegue este enlace en su navegador:",
+        footerNote: `Este correo fue enviado a <strong>${email}</strong> porque se solicitó un restablecimiento de contraseña.<br />Si no lo solicitó, no es necesaria ninguna acción.`,
+        contact: "Contáctenos",
+        rights: "© 2026 Four Roses. Todos los derechos reservados.",
+      },
+      de: {
+        subject: "Passwort zurücksetzen – Four Roses",
+        title: "Passwort zurücksetzen",
+        subtitle: "Sichere Kontowiederherstellung",
+        greeting: "Hallo,",
+        message:
+          "Wir haben eine Anfrage erhalten, das Passwort für Ihr Four Roses-Konto zurückzusetzen. Klicken Sie auf den Button unten, um ein neues Passwort zu wählen. Falls Sie diese Anfrage nicht gestellt haben, können Sie diese E-Mail ignorieren — Ihr Passwort wird nicht geändert.",
+        cta: "Passwort zurücksetzen",
+        expiry:
+          "Dieser Link läuft in <strong>1 Stunde</strong> ab. Danach müssen Sie einen neuen Link von der Anmeldeseite anfordern.",
+        fallbackTitle:
+          "Falls der Button nicht funktioniert, kopieren Sie diesen Link in Ihren Browser:",
+        footerNote: `Diese E-Mail wurde an <strong>${email}</strong> gesendet, da eine Passwortzurücksetzung angefordert wurde.<br />Falls Sie dies nicht angefordert haben, ist keine Aktion erforderlich.`,
+        contact: "Kontakt",
+        rights: "© 2026 Four Roses. Alle Rechte vorbehalten.",
+      },
+      pt: {
+        subject: "Redefina a sua palavra-passe – Four Roses",
+        title: "Redefinição de palavra-passe",
+        subtitle: "Recuperação segura de conta",
+        greeting: "Olá,",
+        message:
+          "Recebemos um pedido para redefinir a palavra-passe da sua conta Four Roses. Clique no botão abaixo para escolher uma nova palavra-passe. Se não fez este pedido, pode ignorar este e-mail — a sua palavra-passe não será alterada.",
+        cta: "Redefinir a minha palavra-passe",
+        expiry:
+          "Este link expirará em <strong>1 hora</strong>. Após isso, precisará de solicitar um novo link a partir da página de início de sessão.",
+        fallbackTitle: "Se o botão não funcionar, copie e cole este link no seu navegador:",
+        footerNote: `Este e-mail foi enviado para <strong>${email}</strong> porque foi solicitada uma redefinição de palavra-passe.<br />Se não foi você, nenhuma ação é necessária.`,
+        contact: "Contacte-nos",
+        rights: "© 2026 Four Roses. Todos os direitos reservados.",
+      },
+      nl: {
+        subject: "Wachtwoord opnieuw instellen – Four Roses",
+        title: "Wachtwoord opnieuw instellen",
+        subtitle: "Veilig accountherstel",
+        greeting: "Hallo,",
+        message:
+          "We hebben een verzoek ontvangen om het wachtwoord van uw Four Roses-account opnieuw in te stellen. Klik op de knop hieronder om een nieuw wachtwoord te kiezen. Als u dit verzoek niet heeft gedaan, kunt u deze e-mail veilig negeren — uw wachtwoord wordt niet gewijzigd.",
+        cta: "Wachtwoord opnieuw instellen",
+        expiry:
+          "Deze link verloopt over <strong>1 uur</strong>. Daarna moet u een nieuwe link aanvragen via de inlogpagina.",
+        fallbackTitle: "Als de knop niet werkt, kopieer en plak dan deze link in uw browser:",
+        footerNote: `Deze e-mail is verzonden naar <strong>${email}</strong> omdat een wachtwoordreset werd aangevraagd.<br />Als u dit niet heeft gedaan, is er geen actie vereist.`,
+        contact: "Neem contact op",
+        rights: "© 2026 Four Roses. Alle rechten voorbehouden.",
+      },
+    };
+
+    const tr = emailTranslations[lang] || emailTranslations.en;
+
+    const html = `<!DOCTYPE html>
+<html lang="${lang || "en"}">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>${tr.title} – 4Roses</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background-color: #f5ede4;
+      font-family: Arial, sans-serif;
+      color: #2c2420;
+      -webkit-font-smoothing: antialiased;
+    }
+    .wrapper { max-width: 560px; margin: 48px auto; padding: 0 16px 48px; }
+    .header { text-align: center; padding: 32px 0 24px; }
+    .card {
+      background: #ffffff;
+      border-radius: 16px;
+      border: 1px solid #ede5db;
+      overflow: hidden;
+      box-shadow: 0 4px 24px rgba(139, 69, 19, 0.08);
+    }
+    .card-banner {
+      background: linear-gradient(135deg, #8b4513 0%, #a0522d 100%);
+      padding: 36px 40px 32px;
+      text-align: center;
+    }
+    .card-banner h1 {
+      font-family: Georgia, serif;
+      font-size: 28px;
+      font-weight: 600;
+      color: #ffffff;
+      letter-spacing: 0.02em;
+    }
+    .card-banner p {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.75);
+      margin-top: 6px;
+      letter-spacing: 0.03em;
+    }
+    .card-body { padding: 36px 40px; }
+    .greeting { font-size: 15px; color: #2c2420; line-height: 1.6; margin-bottom: 12px; }
+    .message { font-size: 14px; color: #6b5a52; line-height: 1.7; margin-bottom: 32px; }
+    .btn-wrapper { text-align: center; margin-bottom: 32px; }
+    .btn {
+      display: inline-block;
+      background: linear-gradient(135deg, #8b4513 0%, #a0522d 100%);
+      color: #ffffff !important;
+      text-decoration: none;
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      padding: 14px 36px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(139, 69, 19, 0.3);
+    }
+    .divider { border: none; border-top: 1px solid #ede5db; margin: 28px 0; }
+    .fallback {
+      background: #fdf8f3;
+      border: 1px solid #ede5db;
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-bottom: 28px;
+    }
+    .fallback p { font-size: 12px; color: #9e8a80; line-height: 1.6; margin-bottom: 8px; }
+    .fallback a { font-size: 11px; color: #8b4513; word-break: break-all; text-decoration: none; }
+    .expiry {
+      background: #fffbe6;
+      border: 1px solid #e8d89a;
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-bottom: 28px;
+    }
+    .expiry p { font-size: 12px; color: #7a6a10; line-height: 1.6; }
+    .footer { text-align: center; padding-top: 8px; }
+    .footer p { font-size: 12px; color: #9e8a80; line-height: 1.8; }
+    .footer a { color: #8b4513; text-decoration: none; }
+    .footer .separator { color: #c9b8b0; margin: 0 6px; }
+    .card-footer-strip {
+      background: #fdf8f3;
+      border-top: 1px solid #ede5db;
+      padding: 16px 40px;
+      text-align: center;
+    }
+    .card-footer-strip p { font-size: 11px; color: #b0978a; line-height: 1.7; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="header">
+      <img src="${process.env.FRONTEND_URL}/images/4RosesHeader.png" alt="Four Roses" />
+    </div>
+    <div class="card">
+      <div class="card-banner">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto 16px auto;">
+          <tr>
+            <td style="width: 56px; height: 56px; background: rgba(255,255,255,0.15); border-radius: 28px; text-align: center; vertical-align: middle; font-size: 24px; line-height: 56px;">
+              🔑
+            </td>
+          </tr>
+        </table>
+        <h1>${tr.title}</h1>
+        <p>${tr.subtitle}</p>
+      </div>
+      <div class="card-body">
+        <p class="greeting">${tr.greeting}</p>
+        <p class="message">${tr.message}</p>
+        <div class="btn-wrapper">
+          <a href="${resetLink}" class="btn">${tr.cta}</a>
+        </div>
+        <div class="expiry">
+          <p>⏳ &nbsp;${tr.expiry}</p>
+        </div>
+        <hr class="divider" />
+        <div class="fallback">
+          <p>${tr.fallbackTitle}</p>
+          <a href="${resetLink}">${resetLink}</a>
+        </div>
+      </div>
+      <div class="card-footer-strip">
+        <p>${tr.footerNote}</p>
+      </div>
+    </div>
+    <div class="footer" style="margin-top: 28px;">
+      <p>
+        <a href="${process.env.FRONTEND_URL}">Four Roses</a>
+        <span class="separator">·</span>
+        <a href="${process.env.FRONTEND_URL}/AboutUs/#contactUs">${tr.contact}</a>
+      </p>
+      <p style="margin-top: 8px; color: #b0978a;">${tr.rights}</p>
+    </div>
+  </div>
+</body>
+</html>`;
+
+    await resend.emails.send({
+      from: `Four Roses Recovery <noreply@fourroses.fignet.ca>`,
+      to: email,
+      subject: tr.subject,
+      html,
+    });
+
+    return res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+};

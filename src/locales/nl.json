@@ -287,5 +287,11 @@
   "Payment failed. Try again.": "Betaling mislukt. Probeer opnieuw.",
   "Enter your payment details": "Vul uw betalingsgegevens in",
   "Processing...": "Verwerken...",
-  "Pay Deposit": "Aanbetaling doen"
+  "Pay Deposit": "Aanbetaling doen",
+  "Preferred language": "Voorkeurstaal",
+  "A user with this email address has already been registered": "Er is al een gebruiker geregistreerd met dit e-mailadres",
+  "Email not confirmed": "E-mail niet bevestigd",
+  "Enter your email and we'll send you a reset link.": "Voer uw e-mail in en we sturen u een herstelkoppeling.",
+  "Password reset email sent. Check your inbox.": "Wachtwoord-reset e-mail verzonden. Controleer uw inbox.",
+  "New password should be different from the old password.": "Het nieuwe wachtwoord moet verschillen van het oude."
 }

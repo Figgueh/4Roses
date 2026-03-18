@@ -14,7 +14,8 @@ import { routes } from "routes";
 import bgImage from "assets/images/beach/reservado.jpg";
 import { UserAuth } from "connection/auth/authContext";
 import { useTranslation } from "react-i18next";
-import supabase from "connection/client";
+import axios from "axios";
+import i18n from "i18n";
 
 function SignInBasic() {
   const navigate = useNavigate();
@@ -49,9 +50,14 @@ function SignInBasic() {
     setForgotLoading(true);
     setMessage("");
 
-    const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
-      redirectTo: `${window.location.origin}/reset-password`,
+    const { error } = await axios.post(`${process.env.REACT_APP_BACKEND}/email/passwordReset`, {
+      email: forgotEmail,
+      lang: i18n.language,
     });
+
+    // const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
+    //   redirectTo: `${window.location.origin}/reset-password`,
+    // });
 
     if (error) {
       setMessageColor("error");
