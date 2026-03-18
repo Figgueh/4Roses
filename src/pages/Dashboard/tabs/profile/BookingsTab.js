@@ -27,7 +27,7 @@ export default function BookingsTab() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [downloadingId, setDownloadingId] = useState(null);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -60,9 +60,12 @@ export default function BookingsTab() {
     try {
       setDownloadingId(id);
 
-      const response = await axios.get(`${process.env.REACT_APP_BACKEND}/billings/${id}/invoice`, {
-        responseType: "blob",
-      });
+      const response = await axios.get(
+        `${process.env.REACT_APP_BACKEND}/billings/${id}/invoice?lang=${i18n.language}`,
+        {
+          responseType: "blob",
+        }
+      );
 
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const a = document.createElement("a");
@@ -166,7 +169,7 @@ export default function BookingsTab() {
           <TableBody>
             {bookings.map((booking) => (
               <TableRow key={booking.id}>
-                <TableCell>{booking.id}</TableCell>
+                <TableCell sx={{ maxWidth: 200 }}>{booking.id}</TableCell>
                 <TableCell>{booking.start_date}</TableCell>
                 <TableCell>{booking.end_date}</TableCell>
                 <TableCell>{booking.guests_under + booking.guests_over}</TableCell>

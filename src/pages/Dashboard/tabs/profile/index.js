@@ -20,7 +20,8 @@ function ProfileTab() {
   const [lastName, setLastName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [message, setMessage] = useState("");
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const [preferredLanguage, setPreferredLanguage] = useState(i18n.language);
 
   const { session } = UserAuth();
 
@@ -38,18 +39,17 @@ function ProfileTab() {
         setFirstName(fullName);
       }
       setAvatarUrl(data.avatar_url ?? "");
+      setPreferredLanguage(data.preferred_language ?? "en");
     };
     init();
   }, [session]);
 
-  const handleAccountUpdate = (event) => {
+  const handleAccountUpdate = async (event) => {
     event.preventDefault();
-    var status = false;
-    if (lastName != "") {
-      status = updateAccount(session?.user?.id, firstName + " " + lastName, avatarUrl);
-    } else {
-      status = updateAccount(session?.user?.id, firstName, avatarUrl);
-    }
+
+    const fullName = lastName ? `${firstName} ${lastName}` : firstName;
+
+    const status = await updateAccount(session?.user?.id, fullName, avatarUrl, preferredLanguage);
 
     if (status) {
       setMessage(t("Account was updated successfully"));
@@ -72,7 +72,7 @@ function ProfileTab() {
 
   return (
     <Grid container justifyContent="center" spacing={2} pl={5} pt={3} sx={{ flexGrow: 1 }}>
-      <Grid size={1} pb={3} px={3}>
+      <Grid size={1} pb={3} px={3} pt={4}>
         <ButtonBase
           component="label"
           role={undefined}
@@ -135,7 +135,25 @@ function ProfileTab() {
               onChange={(e) => setLastName(e.target.value)}
             />
           </MKBox>
+          <MKBox pt={2}>
+            <MKInput
+              select
+              label={t("Preferred language")}
+              value={preferredLanguage}
+              onChange={(e) => setPreferredLanguage(e.target.value)}
+              SelectProps={{ native: true }}
+              sx={{ minWidth: 175 }}
+            >
+              <option value="en">English</option>
+              <option value="fr">Français</option>
+              <option value="es">Español</option>
+              <option value="de">Deutsch</option>
+              <option value="pt">Português</option>
+              <option value="nl">Nederlands</option>
+            </MKInput>
+          </MKBox>
         </MKBox>
+
         <Grid display="flex" justifyContent={"end"} mt={2}>
           <MKButton type="submit" variant="outlined" color="info" onClick={handleAccountUpdate}>
             {t("Update account")}

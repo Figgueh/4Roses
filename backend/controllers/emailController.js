@@ -4,6 +4,522 @@ import { Resend } from "resend";
 const resend = new Resend(process.env.RESEND_API_KEY);
 const adminEmail = process.env.ADMIN_EMAIL;
 
+// GET sends the user a verification email.
+// /email/sendEmailVerification
+export const sendVerificationEmail = async (req, res, next) => {
+  const { id, link } = req.body;
+
+  try {
+    // Get account information
+    const { data: userInfo, error: reqError } = await supabase
+      .from("users")
+      .select("*")
+      .eq("id", id)
+      .single();
+    if (reqError) throw reqError;
+
+    // Get the user's email
+    const { data: authUserInfo } = await supabase.auth.admin.getUserById(id);
+    const customerEmail = authUserInfo.user.email;
+
+    const emailTranslations = {
+      en: {
+        subject: "Confirm your email to activate your Four Roses account",
+        eyebrow: "Account Confirmation",
+        title: "One step away from your <em>first booking.</em>",
+        welcome: (email) =>
+          `Welcome ${email}! <br>We're delighted to have you. Please confirm your email address to activate your account and start exploring our available reservations.`,
+        expiry:
+          "This link is valid for <strong>24 hours</strong>. If you didn't create an account with Four Roses, you can safely ignore this email.",
+        cta: "Confirm My Email",
+        account: "Account",
+        linkExpires: "Link Expires",
+        expiresValue: "24 hrs",
+        fallback: "Button not working? Copy and paste this link into your browser:",
+        contact: "Questions? Contact us at",
+        footer: "© 2026 Four Roses. All rights reserved.",
+        terms: "Terms of Service",
+      },
+
+      fr: {
+        subject: "Confirmez votre email pour activer votre compte Four Roses",
+        eyebrow: "Confirmation du compte",
+        title: "Plus qu'une étape avant votre <em>première réservation.</em>",
+        welcome: (email) =>
+          `Bienvenue ${email} ! <br>Nous sommes ravis de vous accueillir. Veuillez confirmer votre adresse e-mail pour activer votre compte et commencer à explorer nos réservations disponibles.`,
+        expiry:
+          "Ce lien est valable pendant <strong>24 heures</strong>. Si vous n'avez pas créé de compte chez Four Roses, vous pouvez ignorer cet e-mail.",
+        cta: "Confirmer mon e-mail",
+        account: "Compte",
+        linkExpires: "Expiration du lien",
+        expiresValue: "24 h",
+        fallback: "Le bouton ne fonctionne pas ? Copiez et collez ce lien dans votre navigateur :",
+        contact: "Des questions ? Contactez-nous à",
+        footer: "© 2026 Four Roses. Tous droits réservés.",
+        terms: "Conditions d'utilisation",
+      },
+
+      es: {
+        subject: "Confirma tu correo electrónico para activar tu cuenta de Four Roses",
+        eyebrow: "Confirmación de cuenta",
+        title: "A un paso de tu <em>primera reserva.</em>",
+        welcome: (email) =>
+          `¡Bienvenido ${email}! <br>Nos alegra tenerte con nosotros. Por favor confirma tu correo electrónico para activar tu cuenta y comenzar a explorar nuestras reservas disponibles.`,
+        expiry:
+          "Este enlace es válido durante <strong>24 horas</strong>. Si no creaste una cuenta en Four Roses, puedes ignorar este correo.",
+        cta: "Confirmar mi correo",
+        account: "Cuenta",
+        linkExpires: "Expira",
+        expiresValue: "24 h",
+        fallback: "¿El botón no funciona? Copia y pega este enlace en tu navegador:",
+        contact: "¿Preguntas? Contáctanos en",
+        footer: "© 2026 Four Roses. Todos los derechos reservados.",
+        terms: "Términos del servicio",
+      },
+
+      de: {
+        subject: "Bestätigen Sie Ihre E-Mail, um Ihr Four Roses-Konto zu aktivieren",
+        eyebrow: "Kontobestätigung",
+        title: "Nur noch ein Schritt zu Ihrer <em>ersten Buchung.</em>",
+        welcome: (email) =>
+          `Willkommen ${email}! <br>Wir freuen uns, Sie bei uns zu haben. Bitte bestätigen Sie Ihre E-Mail-Adresse, um Ihr Konto zu aktivieren und unsere verfügbaren Reservierungen zu entdecken.`,
+        expiry:
+          "Dieser Link ist <strong>24 Stunden</strong> gültig. Falls Sie kein Konto bei Four Roses erstellt haben, können Sie diese E-Mail ignorieren.",
+        cta: "E-Mail bestätigen",
+        account: "Konto",
+        linkExpires: "Link läuft ab",
+        expiresValue: "24 Std.",
+        fallback: "Funktioniert der Button nicht? Kopieren Sie diesen Link in Ihren Browser:",
+        contact: "Fragen? Kontaktieren Sie uns unter",
+        footer: "© 2026 Four Roses. Alle Rechte vorbehalten.",
+        terms: "Nutzungsbedingungen",
+      },
+
+      pt: {
+        subject: "Confirme seu e-mail para ativar sua conta Four Roses",
+        eyebrow: "Confirmação de conta",
+        title: "Falta apenas um passo para a sua <em>primeira reserva.</em>",
+        welcome: (email) =>
+          `Bem-vindo ${email}! <br>Estamos felizes por tê-lo conosco. Confirme o seu e-mail para ativar a sua conta e começar a explorar as nossas reservas disponíveis.`,
+        expiry:
+          "Este link é válido por <strong>24 horas</strong>. Se não criou uma conta na Four Roses, pode ignorar este e-mail.",
+        cta: "Confirmar e-mail",
+        account: "Conta",
+        linkExpires: "Expira em",
+        expiresValue: "24 h",
+        fallback: "O botão não funciona? Copie e cole este link no seu navegador:",
+        contact: "Dúvidas? Contacte-nos em",
+        footer: "© 2026 Four Roses. Todos os direitos reservados.",
+        terms: "Termos de serviço",
+      },
+
+      nl: {
+        subject: "Bevestig uw e-mail om uw Four Roses-account te activeren",
+        eyebrow: "Accountbevestiging",
+        title: "Nog één stap verwijderd van je <em>eerste boeking.</em>",
+        welcome: (email) =>
+          `Welkom ${email}! <br>We zijn blij dat je er bent. Bevestig je e-mailadres om je account te activeren en onze beschikbare reserveringen te bekijken.`,
+        expiry:
+          "Deze link is <strong>24 uur</strong> geldig. Als je geen account hebt aangemaakt bij Four Roses, kun je deze e-mail negeren.",
+        cta: "Bevestig mijn e-mail",
+        account: "Account",
+        linkExpires: "Verloopt",
+        expiresValue: "24 u",
+        fallback: "Werkt de knop niet? Kopieer en plak deze link in je browser:",
+        contact: "Vragen? Neem contact op via",
+        footer: "© 2026 Four Roses. Alle rechten voorbehouden.",
+        terms: "Servicevoorwaarden",
+      },
+    };
+
+    const tr = emailTranslations[userInfo.preferred_language] || emailTranslations.en;
+
+    try {
+      const response = await resend.emails.send({
+        from: `Four Roses Registration <Registration@fourroses.fignet.ca>`,
+        to: customerEmail,
+        subject: tr.subject,
+        reply_to: adminEmail,
+        html: `<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Confirm Your Signup — Four Roses</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #f5f0eb;
+      font-family: 'Jost', sans-serif;
+      color: #2c2420;
+      padding: 48px 16px;
+    }
+
+    .wrapper {
+      max-width: 580px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: 0 4px 32px rgba(100, 60, 40, 0.10), 0 1px 4px rgba(100, 60, 40, 0.07);
+    }
+
+    /* Header */
+    .header {
+      background: #fff;
+      padding: 36px 52px 28px;
+      border-bottom: 1px solid #ede5db;
+      text-align: center;
+      position: relative;
+    }
+
+    .header::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 52px;
+      right: 52px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #c9a96e 30%, #e8c98a 50%, #c9a96e 70%, transparent);
+    }
+
+    .logo-img {
+      height: 52px;
+      width: auto;
+      display: block;
+      margin: 0 auto;
+    }
+
+    .rose-row {
+      text-align: center;
+      padding: 20px 0 0;
+      letter-spacing: 0.3em;
+      font-size: 15px;
+      color: #c9846e;
+    }
+
+    /* Body */
+    .body {
+      padding: 44px 52px 40px;
+    }
+
+    .eyebrow {
+      font-size: 9px;
+      font-weight: 500;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: #c9a96e;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 40px;
+      font-weight: 600;
+      line-height: 1.12;
+      color: #1e1612;
+      margin-bottom: 22px;
+    }
+
+    h1 em {
+      font-style: italic;
+      font-weight: 400;
+      color: #8b4513;
+    }
+
+    p {
+      font-size: 14.5px;
+      line-height: 1.75;
+      color: #6b5a52;
+      margin-bottom: 16px;
+      font-weight: 300;
+    }
+
+    strong {
+      font-weight: 500;
+      color: #2c2420;
+    }
+
+    /* CTA Button — all states locked to terracotta */
+    .cta-wrap {
+      margin: 36px 0 32px;
+      text-align: center;
+    }
+
+    .cta,
+    .cta:link,
+    .cta:visited,
+    .cta:hover,
+    .cta:active {
+      display: inline-block;
+      background: #8b4513;
+      color: #fff !important;
+      text-decoration: none;
+      font-family: 'Jost', sans-serif;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      padding: 17px 48px;
+      border-radius: 2px;
+    }
+
+    .cta:hover {
+      background: #a0521a;
+    }
+
+    /* Info strip */
+    .info-strip {
+      display: flex;
+      border: 1px solid #ede5db;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 28px;
+      background: #fdf8f3;
+    }
+
+    /* Default styling for all items */
+    .info-item {
+      padding: 18px 16px;
+      text-align: center;
+      border-right: 1px solid #ede5db;
+    }
+
+    /* Remove border for last item */
+    .info-item:last-child {
+      border-right: none;
+    }
+
+    /* Make email take more space */
+    .email-item {
+      flex: 3;
+      /* email gets 3 parts */
+      text-align: left;
+      /* optional, aligns text nicely */
+      word-break: break-word;
+      /* avoid overflow */
+    }
+
+    /* Smaller flex for the "Link Expires" */
+    .expires-item {
+      flex: 1;
+      /* link expires takes 1 part */
+    }
+
+    /* Label and value styling */
+    .info-item .label {
+      font-size: 8.5px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #b0978a;
+      margin-bottom: 6px;
+    }
+
+    .info-item .value {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 17px;
+      color: #2c2420;
+      word-break: break-word;
+    }
+
+    /* Fallback link */
+    .fallback {
+      background: #fdf8f3;
+      border: 1px solid #ede5db;
+      border-radius: 4px;
+      padding: 16px 20px;
+      margin-bottom: 28px;
+    }
+
+    .fallback p {
+      font-size: 11.5px;
+      margin-bottom: 7px;
+      color: #9e8a80;
+    }
+
+    .fallback code {
+      font-family: 'Courier New', monospace;
+      font-size: 10.5px;
+      color: #8b4513;
+      word-break: break-all;
+    }
+
+    /* Divider */
+    .divider {
+      border: none;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #ede5db 20%, #ede5db 80%, transparent);
+      margin: 28px 0;
+    }
+
+    /* Contact note — all link states */
+    .contact-note {
+      font-size: 12.5px;
+      color: #9e8a80;
+    }
+
+    .contact-note a:link,
+    .contact-note a:visited,
+    .contact-note a:hover,
+    .contact-note a:active {
+      color: #8b4513;
+      text-decoration: none;
+      border-bottom: 1px solid #c9846e;
+      padding-bottom: 1px;
+    }
+
+    .contact-note a:hover {
+      color: #a0521a;
+      border-bottom-color: #8b4513;
+    }
+
+    /* Footer */
+    .footer {
+      background: #fdf8f3;
+      border-top: 1px solid #ede5db;
+      padding: 24px 52px;
+      text-align: center;
+    }
+
+    .footer p {
+      font-size: 10.5px;
+      color: #b8a89e;
+      margin-bottom: 5px;
+      line-height: 1.6;
+    }
+
+    .footer a:link,
+    .footer a:visited,
+    .footer a:hover,
+    .footer a:active {
+      color: #a07060;
+      text-decoration: none;
+      border-bottom: 1px solid #d4b8aa;
+      padding-bottom: 1px;
+    }
+
+    .footer a:hover {
+      color: #8b4513;
+      border-bottom-color: #8b4513;
+    }
+
+    @media (max-width: 480px) {
+
+      .header,
+      .body,
+      .footer {
+        padding-left: 28px;
+        padding-right: 28px;
+      }
+
+      h1 {
+        font-size: 32px;
+      }
+
+      .info-strip {
+        flex-direction: column;
+      }
+
+      .info-item {
+        border-right: none;
+        border-bottom: 1px solid #ede5db;
+      }
+
+      .info-item:last-child {
+        border-bottom: none;
+      }
+
+      .logo-img {
+        height: 40px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrapper">
+
+    <!-- Header -->
+    <div class="header">
+      <img src="${
+        process.env.FRONTEND_URL
+      }/images/4RosesHeader.png" alt="Four Roses" class="logo-img" />
+      <div class="rose-row">✦ ✦ ✦ ✦</div>
+    </div>
+
+    <!-- Body -->
+    <div class="body">
+      <p class="eyebrow">${tr.eyebrow}</p>
+      <h1>${tr.title}</h1>
+
+      <p>
+        ${tr.welcome(userInfo.full_name)}
+      </p>
+      <p>
+        ${tr.expiry}
+      </p>
+
+      <!-- CTA -->
+      <div class="cta-wrap">
+        <a href="${link}" class="cta">${tr.cta}</a>
+      </div>
+
+      <!-- Info strip -->
+      <div class="info-strip">
+        <div class="info-item email-item">
+          <div class="label">${tr.account}</div>
+          <div class="value">${customerEmail}</div>
+        </div>
+        <div class="info-item expires-item">
+          <div class="label">${tr.linkExpires}</div>
+          <div class="value">${tr.expiresValue}</div>
+        </div>
+      </div>
+
+      <!-- Fallback link -->
+      <div class="fallback">
+        <p>${tr.fallback}</p>
+        <code>${link}</code>
+      </div>
+
+      <hr class="divider" />
+
+      <p class="contact-note">
+        ${tr.contact}
+        <a href="mailto:contact@fourroses.fignet.ca">contact@fourroses.fignet.ca</a>
+      </p>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <p>${tr.footer}</p>
+      <p><a href="${process.env.FRONTEND_URL}/terms-and-conditions">${tr.terms}</a></p>
+    </div>
+
+  </div>
+</body>
+
+</html>`,
+      });
+
+      res.status(200).json({ success: true, response });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Failed to send email" });
+    }
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const sendContactEmail = async (req, res) => {
   const { name, email, subject, message } = req.body;
 

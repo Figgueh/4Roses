@@ -69,7 +69,301 @@ export const updateMonthlyPrice = async (req, res, next) => {
 // -----------------------------------------
 export const generatePDF = async (req, res) => {
   const { id } = req.params;
+  const lang = req.query.lang || "en";
   let browser;
+
+  const translations = {
+    en: {
+      invoice: "Invoice",
+      customerDetails: "Customer Details",
+      name: "Name",
+      email: "Email",
+      phone: "Phone",
+      billingAddress: "Billing Address",
+      reservationInfo: "Reservation Information",
+      reservationId: "Reservation ID",
+      paymentMethod: "Payment Method",
+      checkIn: "Check-in",
+      checkOut: "Check-out",
+      guests: "Guests",
+      adults: "adults",
+      children: "children",
+      status: "Status",
+      chargesSummary: "Charges Summary",
+      description: "Description",
+      amount: "Amount (€)",
+      accommodationSubtotal: "Accommodation Subtotal",
+      salesTax: "Sales Tax",
+      touristTax: "Tourist Tax",
+      creditFees: "Credit Card Fees",
+      securityDeposit: "Security Deposit Charge",
+      subtotal: "Subtotal",
+      securityDepositRefunded: "Security Deposit Refunded",
+      grandTotal: "Grand Total",
+      footer: "Thank you for choosing Four Roses.",
+      questions: "Questions?",
+      contactUs: "Contact us",
+      statusText: (status) => {
+        const map = {
+          confirmed: "Confirmed",
+          paid: "Paid",
+          completed: "Completed",
+          cancelled: "Cancelled",
+          pending: "Pending",
+        };
+        return map[status] || status;
+      },
+      paymentText: (type) => {
+        const map = {
+          "credit card": "Credit Card",
+          iban: "IBAN",
+        };
+        return map[type?.toLowerCase()] || type;
+      },
+    },
+    fr: {
+      invoice: "Facture",
+      customerDetails: "Détails du client",
+      name: "Nom",
+      email: "Email",
+      phone: "Téléphone",
+      billingAddress: "Adresse de facturation",
+      reservationInfo: "Informations sur la réservation",
+      reservationId: "ID de réservation",
+      paymentMethod: "Méthode de paiement",
+      checkIn: "Arrivée",
+      checkOut: "Départ",
+      guests: "Voyageurs",
+      adults: "adultes",
+      children: "enfants",
+      status: "Statut",
+      chargesSummary: "Récapitulatif des charges",
+      description: "Description",
+      amount: "Montant (€)",
+      accommodationSubtotal: "Sous-total hébergement",
+      salesTax: "TVA",
+      touristTax: "Taxe de séjour",
+      creditFees: "Frais de carte bancaire",
+      securityDeposit: "Dépôt de garantie",
+      subtotal: "Sous-total",
+      securityDepositRefunded: "Dépôt de garantie remboursé",
+      grandTotal: "Total général",
+      footer: "Merci d'avoir choisi Four Roses.",
+      questions: "Questions ?",
+      contactUs: "Contactez-nous",
+      statusText: (status) => {
+        const map = {
+          confirmed: "Confirmé",
+          paid: "Payé",
+          completed: "Terminé",
+          cancelled: "Annulé",
+          pending: "En attente",
+        };
+        return map[status] || status;
+      },
+      paymentText: (type) => {
+        const map = {
+          "credit card": "Carte de crédit",
+          iban: "IBAN",
+        };
+        return map[type?.toLowerCase()] || type;
+      },
+    },
+    es: {
+      invoice: "Factura",
+      customerDetails: "Datos del cliente",
+      name: "Nombre",
+      email: "Email",
+      phone: "Teléfono",
+      billingAddress: "Dirección de facturación",
+      reservationInfo: "Información de la reserva",
+      reservationId: "ID de reserva",
+      paymentMethod: "Método de pago",
+      checkIn: "Entrada",
+      checkOut: "Salida",
+      guests: "Huéspedes",
+      adults: "adultos",
+      children: "niños",
+      status: "Estado",
+      chargesSummary: "Resumen de cargos",
+      description: "Descripción",
+      amount: "Importe (€)",
+      accommodationSubtotal: "Subtotal alojamiento",
+      salesTax: "IVA",
+      touristTax: "Tasa turística",
+      creditFees: "Comisiones tarjeta",
+      securityDeposit: "Cargo depósito de seguridad",
+      subtotal: "Subtotal",
+      securityDepositRefunded: "Depósito de seguridad reembolsado",
+      grandTotal: "Total general",
+      footer: "Gracias por elegir Four Roses.",
+      questions: "¿Preguntas?",
+      contactUs: "Contáctenos",
+      statusText: (status) => {
+        const map = {
+          confirmed: "Confirmado",
+          paid: "Pagado",
+          completed: "Completado",
+          cancelled: "Cancelado",
+          pending: "Pendiente",
+        };
+        return map[status] || status;
+      },
+      paymentText: (type) => {
+        const map = {
+          "credit card": "Tarjeta de crédito",
+          iban: "IBAN",
+        };
+        return map[type?.toLowerCase()] || type;
+      },
+    },
+    de: {
+      invoice: "Rechnung",
+      customerDetails: "Kundendaten",
+      name: "Name",
+      email: "E-Mail",
+      phone: "Telefon",
+      billingAddress: "Rechnungsadresse",
+      reservationInfo: "Reservierungsinformationen",
+      reservationId: "Reservierungs-ID",
+      paymentMethod: "Zahlungsmethode",
+      checkIn: "Anreise",
+      checkOut: "Abreise",
+      guests: "Gäste",
+      adults: "Erwachsene",
+      children: "Kinder",
+      status: "Status",
+      chargesSummary: "Kostenübersicht",
+      description: "Beschreibung",
+      amount: "Betrag (€)",
+      accommodationSubtotal: "Unterkunft Zwischensumme",
+      salesTax: "Mehrwertsteuer",
+      touristTax: "Kurtaxe",
+      creditFees: "Kreditkartengebühren",
+      securityDeposit: "Sicherheitsleistung",
+      subtotal: "Zwischensumme",
+      securityDepositRefunded: "Sicherheitsleistung erstattet",
+      grandTotal: "Gesamtbetrag",
+      footer: "Vielen Dank, dass Sie Four Roses gewählt haben.",
+      questions: "Fragen?",
+      contactUs: "Kontaktieren Sie uns",
+      statusText: (status) => {
+        const map = {
+          confirmed: "Bestätigt",
+          paid: "Bezahlt",
+          completed: "Abgeschlossen",
+          cancelled: "Storniert",
+          pending: "Ausstehend",
+        };
+        return map[status] || status;
+      },
+      paymentText: (type) => {
+        const map = {
+          "credit card": "Kreditkarte",
+          iban: "IBAN",
+        };
+        return map[type?.toLowerCase()] || type;
+      },
+    },
+    pt: {
+      invoice: "Fatura",
+      customerDetails: "Dados do cliente",
+      name: "Nome",
+      email: "Email",
+      phone: "Telefone",
+      billingAddress: "Morada de faturação",
+      reservationInfo: "Informações da reserva",
+      reservationId: "ID da reserva",
+      paymentMethod: "Método de pagamento",
+      checkIn: "Entrada",
+      checkOut: "Saída",
+      guests: "Hóspedes",
+      adults: "adultos",
+      children: "crianças",
+      status: "Estado",
+      chargesSummary: "Resumo de encargos",
+      description: "Descrição",
+      amount: "Valor (€)",
+      accommodationSubtotal: "Subtotal alojamento",
+      salesTax: "IVA",
+      touristTax: "Taxa turística",
+      creditFees: "Taxas de cartão de crédito",
+      securityDeposit: "Depósito de segurança",
+      subtotal: "Subtotal",
+      securityDepositRefunded: "Depósito de segurança reembolsado",
+      grandTotal: "Total geral",
+      footer: "Obrigado por escolher Four Roses.",
+      questions: "Questões?",
+      contactUs: "Contacte-nos",
+      statusText: (status) => {
+        const map = {
+          confirmed: "Confirmado",
+          paid: "Pago",
+          completed: "Concluído",
+          cancelled: "Cancelado",
+          pending: "Pendente",
+        };
+        return map[status] || status;
+      },
+      paymentText: (type) => {
+        const map = {
+          "credit card": "Cartão de crédito",
+          iban: "IBAN",
+        };
+        return map[type?.toLowerCase()] || type;
+      },
+    },
+    nl: {
+      invoice: "Factuur",
+      customerDetails: "Klantgegevens",
+      name: "Naam",
+      email: "E-mail",
+      phone: "Telefoon",
+      billingAddress: "Factuuradres",
+      reservationInfo: "Reserveringsinformatie",
+      reservationId: "Reserverings-ID",
+      paymentMethod: "Betaalmethode",
+      checkIn: "Inchecken",
+      checkOut: "Uitchecken",
+      guests: "Gasten",
+      adults: "volwassenen",
+      children: "kinderen",
+      status: "Status",
+      chargesSummary: "Kostenopzicht",
+      description: "Omschrijving",
+      amount: "Bedrag (€)",
+      accommodationSubtotal: "Subtotaal accommodatie",
+      salesTax: "BTW",
+      touristTax: "Toeristenbelasting",
+      creditFees: "Creditcardkosten",
+      securityDeposit: "Borg",
+      subtotal: "Subtotaal",
+      securityDepositRefunded: "Borg terugbetaald",
+      grandTotal: "Totaalbedrag",
+      footer: "Bedankt voor het kiezen van Four Roses.",
+      questions: "Vragen?",
+      contactUs: "Neem contact op",
+      statusText: (status) => {
+        const map = {
+          confirmed: "Bevestigd",
+          paid: "Betaald",
+          completed: "Voltooid",
+          cancelled: "Geannuleerd",
+          pending: "In behandeling",
+        };
+        return map[status] || status;
+      },
+      paymentText: (type) => {
+        const map = {
+          "credit card": "Creditcard",
+          iban: "IBAN",
+        };
+        return map[type?.toLowerCase()] || type;
+      },
+    },
+  };
+
+  const tr = translations[lang] || translations.en;
 
   // Load logo as Base64 for PDF usage
   const logoPath = path.resolve("assets/logo/4RosesHeader.png");
@@ -358,9 +652,11 @@ export const generatePDF = async (req, res) => {
     <div class="header">
       <img class="logo" src="data:image/png;base64,${logoBase64}" alt="Logo" />
       <div class="invoice-meta">
-        <div class="invoice-label">Invoice</div>
+        <div class="invoice-label">${tr.invoice}</div>
         <div class="invoice-number">#${invoiceData.invoice_number}</div>
-        <div style="font-size: 12px; color: #9e8a80; margin-top: 4px;">${invoiceData.date_issued}</div>
+        <div style="font-size: 12px; color: #9e8a80; margin-top: 4px;">${
+          invoiceData.date_issued
+        }</div>
       </div>
     </div>
 
@@ -368,14 +664,14 @@ export const generatePDF = async (req, res) => {
     <div class="two-column">
 
       <div class="col-box">
-        <div class="section-title">Customer Details</div>
-        <p><strong>Name</strong>${invoiceData.customer_name}</p>
-        <p><strong>Email</strong>${invoiceData.customer_email}</p>
-        <p><strong>Phone</strong>${invoiceData.phone}</p>
+        <div class="section-title">${tr.customerDetails}</div>
+        <p><strong>${tr.name}</strong>${invoiceData.customer_name}</p>
+        <p><strong>${tr.email}</strong>${invoiceData.customer_email}</p>
+        <p><strong>${tr.phone}</strong>${invoiceData.phone}</p>
       </div>
 
       <div class="col-box">
-        <div class="section-title">Billing Address</div>
+        <div class="section-title">${tr.billingAddress}</div>
         <p>${invoiceData.billing.name}</p>
         <p>${invoiceData.billing.address}</p>
         <p>${invoiceData.billing.city}, ${invoiceData.billing.state}</p>
@@ -387,42 +683,56 @@ export const generatePDF = async (req, res) => {
 
     <!-- RESERVATION INFO -->
     <div class="reservation-box">
-      <div class="section-title">Reservation Information</div>
-      <p><strong>Reservation ID</strong>${invoiceData.reservation_id}</p>
-      <p><strong>Payment Method</strong>${invoiceData.payment_method}</p>
-      <p><strong>Check-in</strong>${invoiceData.check_in}</p>
-      <p><strong>Check-out</strong>${invoiceData.check_out}</p>
-      <p><strong>Guests</strong>${invoiceData.guests_over} adults, ${invoiceData.guests_under} children</p>
-      <p><strong>Status</strong><span class="status-badge">${invoiceData.status}</span></p>
+      <div class="section-title">${tr.reservationInfo}</div>
+      <p><strong>${tr.reservationId}</strong>${invoiceData.reservation_id}</p>
+      <p><strong>${tr.paymentMethod}</strong>${tr.paymentText(invoiceData.payment_method)}</p>
+      <p><strong>${tr.checkIn}</strong>${invoiceData.check_in}</p>
+      <p><strong>${tr.checkOut}</strong>${invoiceData.check_out}</p>
+      <p><strong>${tr.guests}</strong>${invoiceData.guests_over} ${tr.adults}, ${
+      invoiceData.guests_under
+    } ${tr.children}</p>
+      <p><strong>${tr.status}</strong><span class="status-badge">${tr.statusText(
+      invoiceData.status
+    )}</span></p>
     </div>
 
     <!-- CHARGES SUMMARY -->
     <div class="charges-box">
-      <div class="section-title">Charges Summary</div>
+      <div class="section-title">${tr.chargesSummary}</div>
 
       <table>
         <thead>
           <tr>
-            <th>Description</th>
-            <th class="amount">Amount (€)</th>
+            <th>${tr.description}</th>
+            <th class="amount">${tr.amount}</th>
           </tr>
         </thead>
         <tbody>
-          <tr><td>Accommodation Subtotal</td><td class="amount">${invoiceData.accommodation_subtotal}</td></tr>
-          <tr><td>Sales Tax</td><td class="amount">${invoiceData.sales_tax}</td></tr>
-          <tr><td>Tourist Tax</td><td class="amount">${invoiceData.tourist_tax}</td></tr>
-          <tr><td>Credit Card Fees</td><td class="amount">${invoiceData.credit_fees}</td></tr>
-          <tr><td>Security Deposit Charge</td><td class="amount">${invoiceData.security_deposit_charge}</td></tr>
-          <tr class="subtotal-row"><td>Subtotal</td><td class="amount">${invoiceData.subtotal}</td></tr>
-          <tr><td>Security Deposit Refunded</td><td class="amount">− ${invoiceData.security_deposit_refunded_amount}</td></tr>
-          <tr class="total-row"><td>Grand Total</td><td class="amount">${invoiceData.total}</td></tr>
+          <tr><td>${tr.accommodationSubtotal}</td><td class="amount">${
+      invoiceData.accommodation_subtotal
+    }</td></tr>
+          <tr><td>${tr.salesTax}</td><td class="amount">${invoiceData.sales_tax}</td></tr>
+          <tr><td>${tr.touristTax}</td><td class="amount">${invoiceData.tourist_tax}</td></tr>
+          <tr><td>${tr.creditFees}</td><td class="amount">${invoiceData.credit_fees}</td></tr>
+          <tr><td>${tr.securityDeposit}</td><td class="amount">${
+      invoiceData.security_deposit_charge
+    }</td></tr>
+          <tr class="subtotal-row"><td>${tr.subtotal}</td><td class="amount">${
+      invoiceData.subtotal
+    }</td></tr>
+          <tr><td>${tr.securityDepositRefunded}</td><td class="amount">− ${
+      invoiceData.security_deposit_refunded_amount
+    }</td></tr>
+          <tr class="total-row"><td>${tr.grandTotal}</td><td class="amount">${
+      invoiceData.total
+    }</td></tr>
         </tbody>
       </table>
     </div>
 
     <div class="footer-note">
-      Thank you for choosing Four Roses. &nbsp;·&nbsp;
-      Questions? <a href="mailto:support@4roses.ca">Contact us</a>
+      ${tr.footer} &nbsp;·&nbsp; ${tr.questions}
+      <a href="mailto:support@4roses.ca">${tr.contactUs}</a>
     </div>
 
   </div>

@@ -5,10 +5,12 @@ import {
   sendBookingPaidEmail,
   sendContactEmail,
   sendSecurityDepositSettledEmail,
+  sendVerificationEmail,
 } from "../controllers/emailController.js";
 
 const router = express.Router();
 
+router.post("/sendEmailVerification", sendVerificationEmail);
 router.post("/initializeBooking", sendBookingInitializedEmail);
 router.post("/confirmedBooking", sendBookingConfirmEmail);
 router.post("/paidBooking", sendBookingPaidEmail);

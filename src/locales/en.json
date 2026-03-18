@@ -287,5 +287,9 @@
   "Payment failed. Try again.": "Payment failed. Try again.",
   "Enter your payment details": "Enter your payment details",
   "Processing...": "Processing...",
-  "Pay Deposit": "Pay Deposit"
+  "Pay Deposit": "Pay Deposit",
+
+  "Preferred language": "Preferred language",
+  "A user with this email address has already been registered": "A user with this email address has already been registered",
+  "Email not confirmed": "Email not confirmed"
 }

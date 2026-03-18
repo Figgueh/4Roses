@@ -36,7 +36,7 @@ function Register() {
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [message, setMessage] = useState("");
   const { session, authLoading, signUpUser } = UserAuth();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const translatedRoutes = routes(t);
 
   const handleSignUpUser = async (event) => {
@@ -68,7 +68,14 @@ function Register() {
       return;
     }
 
-    const result = await signUpUser(email, firstName, lastName, password, dateOfBirth);
+    const result = await signUpUser(
+      email,
+      firstName,
+      lastName,
+      password,
+      dateOfBirth,
+      i18n.language
+    );
 
     if (result.success) {
       setMessage(t("User account created!"));
@@ -76,7 +83,7 @@ function Register() {
     }
     if (!result.success) {
       console.log(result);
-      setMessage(result.error.message || t("An unexpected error occurred."));
+      setMessage(t(result.error) || t("An unexpected error occurred."));
     }
   };
 
