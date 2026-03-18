@@ -4,6 +4,7 @@ import { Grid } from "@mui/material";
 import MKBox from "components/MKBox";
 import MKTypography from "components/MKTypography";
 import MKButton from "components/MKButton";
+import { useTranslation } from "react-i18next";
 import axios from "axios";
 
 export default function BookingSuccess() {
@@ -19,10 +20,11 @@ export default function BookingSuccess() {
   const params = new URLSearchParams(location.search);
 
   const urlPaymentIntent = params.get("payment_intent");
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (!bookingId && !urlPaymentIntent) {
-      setError("No booking ID or payment intent found.");
+      setError(t("No booking ID or payment intent found."));
       setLoading(false);
       return;
     }
@@ -37,7 +39,7 @@ export default function BookingSuccess() {
         setBooking(data.booking);
       } catch (err) {
         console.error(err);
-        setError("Failed to load booking information.");
+        setError(t("Failed to load booking information."));
       } finally {
         setLoading(false);
       }
@@ -51,7 +53,7 @@ export default function BookingSuccess() {
   if (loading) {
     return (
       <MKBox minHeight="100vh" display="flex" justifyContent="center" alignItems="center">
-        <MKTypography>Loading booking details...</MKTypography>
+        <MKTypography>{t("Loading booking details")}...</MKTypography>
       </MKBox>
     );
   }
@@ -61,7 +63,7 @@ export default function BookingSuccess() {
       <MKBox minHeight="100vh" display="flex" justifyContent="center" alignItems="center">
         <MKTypography color="error">{error}</MKTypography>
         <MKButton onClick={handleBackToHome} sx={{ mt: 2 }}>
-          Back to Home
+          {t("Back to Home")}
         </MKButton>
       </MKBox>
     );
@@ -95,29 +97,30 @@ export default function BookingSuccess() {
       <MKBox width="100%" maxWidth="600px" p={4} borderRadius="2xl" bgColor="white" shadow="lg">
         <MKTypography variant="h3" fontWeight="bold" mb={3} textAlign="center">
           {status == "pending"
-            ? "Your booking is in the process of being confirmed."
-            : "Booking Confirmed!"}
+            ? t("Your booking is in the process of being confirmed.")
+            : t("Booking Confirmed!")}
         </MKTypography>
 
         {status === "pending" ? (
           <MKTypography variant="body2">
-            We`ve notified the owner to confirm your deposit. Once it`s verified, you`ll receive a
-            confirmation email at:{" "}
+            {t(
+              "We`ve notified the owner to confirm your deposit. Once it`s verified, you`ll receive a confirmation email at:"
+            )}{" "}
             <MKTypography component="span" fontWeight="bold">
               {email}
             </MKTypography>
-            . Thank you for your patience!
+            . {t("Thank you for your patience!")}
           </MKTypography>
         ) : (
           <MKTypography variant="body2">
-            Your booking is confirmed. We look forward to hosting you!
+            {t("Your booking is confirmed. We look forward to hosting you!")}
           </MKTypography>
         )}
 
         <Grid container spacing={1} mb={2} mt={1}>
           <Grid item xs={6}>
             <MKTypography variant="body2" fontWeight="bold">
-              Check-in:
+              {t("Check-in")}:
             </MKTypography>
           </Grid>
           <Grid item xs={6}>
@@ -126,7 +129,7 @@ export default function BookingSuccess() {
 
           <Grid item xs={6}>
             <MKTypography variant="body2" fontWeight="bold">
-              Check-out:
+              {t("Check-out")}:
             </MKTypography>
           </Grid>
           <Grid item xs={6}>
@@ -135,7 +138,7 @@ export default function BookingSuccess() {
 
           <Grid item xs={6}>
             <MKTypography variant="body2" fontWeight="bold">
-              Total Price:
+              {t("Total Price")}:
             </MKTypography>
           </Grid>
           <Grid item xs={6}>
@@ -144,7 +147,7 @@ export default function BookingSuccess() {
 
           <Grid item xs={6}>
             <MKTypography variant="body2" fontWeight="bold">
-              Amount Paid:
+              {t("Amount Paid")}:
             </MKTypography>
           </Grid>
           <Grid item xs={6}>
@@ -153,7 +156,7 @@ export default function BookingSuccess() {
 
           <Grid item xs={6}>
             <MKTypography variant="body2" fontWeight="bold">
-              Payment Method:
+              {t("Payment Method")}:
             </MKTypography>
           </Grid>
           <Grid item xs={6}>
@@ -164,7 +167,7 @@ export default function BookingSuccess() {
         {billing_address && (
           <MKBox mt={2} p={2} bgcolor="#f1f1f1" borderRadius="md">
             <MKTypography variant="body2" fontWeight="bold" mb={1}>
-              Billing Address
+              {t("Billing Address")}
             </MKTypography>
             <MKTypography variant="body2">{billing_name}</MKTypography>
             <MKTypography variant="body2">{billing_address}</MKTypography>
@@ -178,14 +181,15 @@ export default function BookingSuccess() {
         {status === "pending" && (
           <MKBox mt={3} p={3} bgcolor="#fff3cd" borderRadius="md" border="1px solid #ffeeba">
             <MKTypography variant="body2" mb={2}>
-              Your booking is currently pending. You can view it anytime in your dashboard, where
-              you can cancel it or monitor its status.
+              {t(
+                "Your booking is currently pending. You can view it anytime in your dashboard, where you can cancel it or monitor its status."
+              )}
             </MKTypography>
           </MKBox>
         )}
 
         <MKButton fullWidth color="dark" sx={{ mt: 3 }} onClick={handleBackToHome}>
-          Back to Home
+          {t("Back to Home")}
         </MKButton>
       </MKBox>
     </MKBox>

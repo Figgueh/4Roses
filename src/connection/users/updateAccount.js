@@ -1,50 +1,30 @@
 import supabase from "connection/client";
 
-export const updateAccount = async (id, fullName, avatarUrl) => {
-  if (id == null || "") console.error("Id can't be null");
-
-  // If all information is provided
-  if (fullName != null || "") {
-    if (avatarUrl != null || "") {
-      const { error: fullError } = await supabase
-        .from("users")
-        .update({ full_name: fullName, avatar_url: avatarUrl })
-        .eq("id", id);
-
-      if (fullError) {
-        console.error("Error trying to insert full account info: ", fullError);
-        return false;
-      }
-
-      return true;
-    }
-    // If there isn't an avatar to update
-    else {
-      const { error: nameError } = await supabase
-        .from("users")
-        .update({ full_name: fullName })
-        .eq("id", id);
-
-      if (nameError) {
-        console.error("Error trying to insert full name: ", nameError);
-        return false;
-      }
-
-      return true;
-    }
+export const updateAccount = async (id, fullName, avatarUrl, preferredLanguage) => {
+  if (!id) {
+    console.error("Id can't be null or empty");
+    return false;
   }
-  //If there isn't a name to update
-  else {
-    const { error: avatarError } = await supabase
-      .from("users")
-      .update({ avatar_url: avatarUrl })
-      .eq("id", id);
 
-    if (avatarError) {
-      console.error("Error trying to insert avatar: ", avatarError);
-      return false;
-    }
+  // Build update object dynamically
+  const updateData = {};
 
-    return true;
+  if (fullName) updateData.full_name = fullName;
+  if (avatarUrl) updateData.avatar_url = avatarUrl;
+  if (preferredLanguage) updateData.preferred_language = preferredLanguage;
+
+  // Nothing to update
+  if (Object.keys(updateData).length === 0) {
+    console.warn("No fields provided to update");
+    return false;
   }
+
+  const { error } = await supabase.from("users").update(updateData).eq("id", id);
+
+  if (error) {
+    console.error("Error updating account:", error);
+    return false;
+  }
+
+  return true;
 };

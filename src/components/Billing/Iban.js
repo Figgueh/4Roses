@@ -7,9 +7,11 @@ import MKTypography from "components/MKTypography";
 import MKButton from "components/MKButton";
 import AddressForm from "./AddressForm";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 export default function Iban({ form, handleChange, booking, loading, handleSubmit }) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   return (
     <>
@@ -18,7 +20,7 @@ export default function Iban({ form, handleChange, booking, loading, handleSubmi
       <Grid item xs={12}>
         <MKBox p={2} bgcolor="#f1f1f1" borderRadius="md">
           <MKTypography variant="body2">
-            Transfer the deposit in <strong>euros (€)</strong> to:
+            {t("Transfer the deposit in")} <strong>{t("euros")} (€)</strong> {t("to")}:
           </MKTypography>
 
           <MKTypography fontWeight="bold" mt={1}>
@@ -26,15 +28,17 @@ export default function Iban({ form, handleChange, booking, loading, handleSubmi
           </MKTypography>
 
           <MKTypography variant="body2" mt={2}>
-            <strong>Recipient details:</strong>
+            <strong>{t("Recipient details")}:</strong>
           </MKTypography>
 
-          <MKTypography>Name: Joaquim Belo Figueiras</MKTypography>
-          <MKTypography>Email: {process.env.REACT_APP_ADMIN_EMAIL}</MKTypography>
-          <MKTypography>Phone: +351 969 755 150</MKTypography>
+          <MKTypography>{t("Name")}: Joaquim Belo Figueiras</MKTypography>
+          <MKTypography>
+            {t("Email")}: {process.env.REACT_APP_ADMIN_EMAIL}
+          </MKTypography>
+          <MKTypography>{t("Phone")}: +351 969 755 150</MKTypography>
 
           <MKTypography variant="body2" mt={2}>
-            <strong>Address:</strong>
+            <strong>{t("Address")}:</strong>
           </MKTypography>
           <MKTypography>Portugal</MKTypography>
           <MKTypography>R. Julio Amaro 33</MKTypography>
@@ -42,24 +46,24 @@ export default function Iban({ form, handleChange, booking, loading, handleSubmi
           <MKTypography>8500-084</MKTypography>
 
           <MKTypography variant="body2" mt={2}>
-            <strong>Reason:</strong> {booking}
+            <strong>{t("Reason")}:</strong> {booking}
           </MKTypography>
 
           <MKTypography variant="body2" color="secondary" mt={2}>
-            You will receive a confirmation email once payment is received.
+            {t("You will receive a confirmation email once payment is received")}.
           </MKTypography>
           <MKTypography variant="body2" color="secondary">
-            Please allow up to 24 hours for confirmation.
+            {t("Please allow up to 24 hours for confirmation")}.
           </MKTypography>
         </MKBox>
 
         {handleSubmit ? (
           <MKButton onClick={handleSubmit} fullWidth color="dark" disabled={loading}>
-            {loading ? "Processing..." : "Create reservation"}
+            {loading ? t("Processing...") : t("Create reservation")}
           </MKButton>
         ) : (
           <MKButton onClick={() => navigate("/dashboard")} fullWidth color="dark">
-            back to Dashboard
+            {t("back to Dashboard")}
           </MKButton>
         )}
       </Grid>

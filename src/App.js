@@ -38,7 +38,6 @@ import BillingForm from "pages/Booking/BillingForm";
 import ContinuePayment from "pages/Booking/ContinuePayment";
 import ConfirmEmail from "pages/Register/confirm";
 import PrivateRoute from "connection/users/PrivateRoute";
-import AuthCallback from "connection/auth/authCallback";
 import ResetPassword from "pages/SignIn/ResetPassword";
 
 export default function App() {
@@ -77,7 +76,6 @@ export default function App() {
         {/* Account creation */}
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/confirm-email" element={<ConfirmEmail />} />
-        <Route path="/auth/callback" element={<AuthCallback />} />
 
         <Route path="activities/:section/:slug" element={<ActivityBuilder />} />
         <Route path="activities/:section" element={<ActivityBuilder />} />

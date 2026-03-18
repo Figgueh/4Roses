@@ -8,6 +8,7 @@ import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import StripeCheckout from "../../components/Billing/StripeCheckout";
 import Iban from "components/Billing/Iban";
+import { useTranslation } from "react-i18next";
 
 const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY);
 
@@ -18,6 +19,7 @@ export default function ContinuePayment() {
   const [booking, setBooking] = useState(null);
   const [clientSecret, setClientSecret] = useState("");
   const [error, setError] = useState("");
+  const { t } = useTranslation();
 
   useEffect(() => {
     const loadBooking = async () => {
@@ -28,7 +30,7 @@ export default function ContinuePayment() {
         console.log(data.booking);
         const remaining = data.total_price - data.amount_paid;
         if (remaining <= 0) {
-          setError("This booking is already fully paid.");
+          setError(t("This booking is already fully paid."));
           return;
         }
 
@@ -41,7 +43,7 @@ export default function ContinuePayment() {
         }
       } catch (err) {
         console.error(err);
-        setError("Failed to load booking or create payment intent.");
+        setError(t("Failed to load booking or create payment intent."));
       }
     };
 
@@ -70,15 +72,15 @@ export default function ContinuePayment() {
     <MKBox display="flex" justifyContent="center" alignItems="center" minHeight="80vh" p={2}>
       <Card sx={{ p: 4, maxWidth: 500, width: "100%", boxShadow: 6 }}>
         <MKTypography variant="h4" textAlign="center" fontWeight="bold" mb={2}>
-          Pay Remaining Balance
+          {t("Pay Remaining Balance")}
         </MKTypography>
 
         <MKTypography textAlign="center" mb={1}>
-          Booking ID: {booking.id}
+          {t("Booking ID:")} {booking.id}
         </MKTypography>
 
         <MKTypography textAlign="center" mb={3}>
-          Remaining Amount: €{(booking.total_price - booking.amount_paid).toFixed(2)}
+          {t("Remaining Amount")}: €{(booking.total_price - booking.amount_paid).toFixed(2)}
         </MKTypography>
 
         {/* CREDIT CARD PAYMENT */}

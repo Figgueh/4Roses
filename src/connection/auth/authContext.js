@@ -1,5 +1,6 @@
 import { createContext, useEffect, useState, useContext } from "react";
 import PropTypes from "prop-types";
+import axios from "axios";
 
 import supabase from "connection/client";
 
@@ -9,34 +10,36 @@ export const AuthContextProvider = ({ children }) => {
   const [session, setSession] = useState(undefined);
   const [authLoading, setAuthLoading] = useState(true);
 
-  const signUpUser = async (email, firstName, lastName, password, dateOfBirth) => {
+  const signUpUser = async (email, firstName, lastName, password, dateOfBirth, lang) => {
     if (!email || !firstName || !lastName || !password || !dateOfBirth) {
       const duplicateError = new Error("All fields require a value.");
       return { success: false, error: duplicateError };
     }
 
-    let { data, error } = await supabase.auth.signUp({
-      email: email,
-      password: password,
-      options: {
-        data: {
-          full_name: `${firstName} ${lastName}`.trim(),
-          date_of_birth: dateOfBirth || null,
-        },
-      },
+    // Send data to the backend
+    const { data: response } = await axios.post(
+      `${process.env.REACT_APP_BACKEND}/users/createUser`,
+      {
+        email,
+        password,
+        firstName,
+        lastName,
+        dateOfBirth,
+        lang,
+      }
+    );
+
+    if (response.success === false) {
+      return { success: false, error: response.error };
+    }
+
+    // Send confirmation email
+    await axios.post(`${process.env.REACT_APP_BACKEND}/email/sendEmailVerification`, {
+      id: response.data.user.id,
+      link: response.data.properties.action_link,
     });
 
-    if (error) {
-      return { success: false, error };
-    }
-
-    // Email already taken
-    if (data?.user && data.user.identities && data.user.identities.length === 0) {
-      const duplicateError = new Error("An account with this email already exists.");
-      return { success: false, error: duplicateError };
-    }
-
-    return { success: true, account: data };
+    return { success: true, account: response.data };
   };
 
   const signInUser = async (email, password, rememberMe = false) => {
