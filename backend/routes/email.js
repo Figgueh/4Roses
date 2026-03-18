@@ -1,21 +1,20 @@
 import express from "express";
 import {
-  sendBookingConfirmEmail,
+  sendVerificationEmail,
+  sendContactEmail,
   sendBookingInitializedEmail,
   sendBookingPaidEmail,
-  sendContactEmail,
+  sendBookingConfirmEmail,
   sendSecurityDepositSettledEmail,
-  sendVerificationEmail,
 } from "../controllers/emailController.js";
 
 const router = express.Router();
 
 router.post("/sendEmailVerification", sendVerificationEmail);
-router.post("/initializeBooking", sendBookingInitializedEmail);
-router.post("/confirmedBooking", sendBookingConfirmEmail);
-router.post("/paidBooking", sendBookingPaidEmail);
-router.post("/securityDepositSettled", sendSecurityDepositSettledEmail);
-
 router.post("/contact", sendContactEmail);
+router.post("/initializeBooking", sendBookingInitializedEmail);
+router.post("/paidBooking", sendBookingPaidEmail);
+router.post("/confirmedBooking", sendBookingConfirmEmail);
+router.post("/securityDepositSettled", sendSecurityDepositSettledEmail);
 
 export default router;

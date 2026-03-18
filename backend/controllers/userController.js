@@ -64,8 +64,18 @@ export const getAllUsersInfo = async (req, res, next) => {
   }
 };
 
-// POST checks and inserts the users information into the database.
+/* 
+// Creates the users account and generates a link that will allow the user to confirm the email.
+// POST {email, password, firstName, lastName, dateOfBirth, lang}:
+// email:       The email the user will need to confirm
+// password:    The password of the user
+// firstName:   The first name of the user
+// lastName:    The last name of the user
+// dateOfBirth: The date of birth of the user (must be 21+)
+// lang:        The language that is currently selected at the time the user made the account.
+//
 // /users/createUser
+*/
 export const createNewUser = async (req, res, next) => {
   const { email, password, firstName, lastName, dateOfBirth, lang } = req.body;
 

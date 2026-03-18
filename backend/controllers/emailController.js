@@ -3,9 +3,17 @@ import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 const adminEmail = process.env.ADMIN_EMAIL;
+const currentYear = new Date().getFullYear();
 
-// GET sends the user a verification email.
-// /email/sendEmailVerification
+/* 
+// Sends the user a verification email. The user must click on the link provided to be allowed to login to their account.
+//
+// POST {id, link}:
+// id:   The Id number of the user.
+// link: The link the user will have to click to verify that hes the user
+//
+// POST email/sendEmailVerification
+*/
 export const sendVerificationEmail = async (req, res, next) => {
   const { id, link } = req.body;
 
@@ -34,7 +42,7 @@ export const sendVerificationEmail = async (req, res, next) => {
         cta: "Confirm My Email",
         account: "Account",
         linkExpires: "Link Expires",
-        expiresValue: "24 hrs",
+        expiresValue: "1 hr",
         fallback: "Button not working? Copy and paste this link into your browser:",
         contact: "Questions? Contact us at",
         footer: "© 2026 Four Roses. All rights reserved.",
@@ -46,13 +54,13 @@ export const sendVerificationEmail = async (req, res, next) => {
         eyebrow: "Confirmation du compte",
         title: "Plus qu'une étape avant votre <em>première réservation.</em>",
         welcome: (email) =>
-          `Bienvenue ${email} ! <br>Nous sommes ravis de vous accueillir. Veuillez confirmer votre adresse e-mail pour activer votre compte et commencer à explorer nos réservations disponibles.`,
+          `Bienvenue ${email}! <br>Nous sommes ravis de vous accueillir. Veuillez confirmer votre adresse e-mail pour activer votre compte et commencer à explorer nos réservations disponibles.`,
         expiry:
           "Ce lien est valable pendant <strong>24 heures</strong>. Si vous n'avez pas créé de compte chez Four Roses, vous pouvez ignorer cet e-mail.",
         cta: "Confirmer mon e-mail",
         account: "Compte",
         linkExpires: "Expiration du lien",
-        expiresValue: "24 h",
+        expiresValue: "1 h",
         fallback: "Le bouton ne fonctionne pas ? Copiez et collez ce lien dans votre navigateur :",
         contact: "Des questions ? Contactez-nous à",
         footer: "© 2026 Four Roses. Tous droits réservés.",
@@ -70,7 +78,7 @@ export const sendVerificationEmail = async (req, res, next) => {
         cta: "Confirmar mi correo",
         account: "Cuenta",
         linkExpires: "Expira",
-        expiresValue: "24 h",
+        expiresValue: "1 h",
         fallback: "¿El botón no funciona? Copia y pega este enlace en tu navegador:",
         contact: "¿Preguntas? Contáctanos en",
         footer: "© 2026 Four Roses. Todos los derechos reservados.",
@@ -106,7 +114,7 @@ export const sendVerificationEmail = async (req, res, next) => {
         cta: "Confirmar e-mail",
         account: "Conta",
         linkExpires: "Expira em",
-        expiresValue: "24 h",
+        expiresValue: "1 h",
         fallback: "O botão não funciona? Copie e cole este link no seu navegador:",
         contact: "Dúvidas? Contacte-nos em",
         footer: "© 2026 Four Roses. Todos os direitos reservados.",
@@ -124,7 +132,7 @@ export const sendVerificationEmail = async (req, res, next) => {
         cta: "Bevestig mijn e-mail",
         account: "Account",
         linkExpires: "Verloopt",
-        expiresValue: "24 u",
+        expiresValue: "1 u",
         fallback: "Werkt de knop niet? Kopieer en plak deze link in je browser:",
         contact: "Vragen? Neem contact op via",
         footer: "© 2026 Four Roses. Alle rechten voorbehouden.",
@@ -520,6 +528,18 @@ export const sendVerificationEmail = async (req, res, next) => {
   }
 };
 
+/*
+// Sends an email to the admin/site owner written by a user with a request for contact.
+//
+// POST {name, email, subject, message}:
+// name:    The name of the person sending the email. 
+// email:   The email address that the reciver will reply to.
+// subject: The subject of the email, specified by the user.
+// message: The reason for contact by the user.
+//
+// translation isnt required here.
+// POST email/contact
+*/
 export const sendContactEmail = async (req, res) => {
   const { name, email, subject, message } = req.body;
 
@@ -735,7 +755,7 @@ export const sendContactEmail = async (req, res) => {
     <!-- Footer -->
     <div class="footer">
       <p><strong>Four Roses</strong> · Contact Form Notification</p>
-      <p style="margin-top:6px;">© 2026 Four Roses · All rights reserved</p>
+      <p style="margin-top:6px;">© ${currentYear} Four Roses · All rights reserved</p>
     </div>
 
   </div>
@@ -751,6 +771,18 @@ export const sendContactEmail = async (req, res) => {
   }
 };
 
+/*
+// Sends an email to the admin/site owner whenever a new booking has been made.
+// Fetches the booking infromation with the reservation id and sends a summary of the booking.
+// When the payment_method is IBAN it servers as a reminder for the owner to check their bank statements to reserve the booking.
+// When the payment_method is credit_card it shows the owner that a reservation has already been booked and reserved.
+// 
+// POST {reservation_id}:
+// reservation_id: The reservation id which holds all the booking details.
+// 
+// translation isnt required here.
+// POST email/initializeBooking
+*/
 export const sendBookingInitializedEmail = async (req, res) => {
   const { reservation_id } = req.body;
 
@@ -1258,7 +1290,7 @@ export const sendBookingInitializedEmail = async (req, res) => {
               <p class="footer-text">
                 <span class="footer-brand">Four Roses</span> · Internal Notification
               </p>
-              <p class="footer-text">© 2026 Four Roses · All rights reserved</p>
+              <p class="footer-text">© ${currentYear} Four Roses · All rights reserved</p>
             </td>
           </tr>
 
@@ -1288,6 +1320,18 @@ export const sendBookingInitializedEmail = async (req, res) => {
   }
 };
 
+/*
+// Sends an email to the admin/site owner whenever a booking has has their balance paid.
+// Fetches the booking infromation with the reservation id and sends a summary of the booking.
+// When the payment_method is IBAN it servers as a reminder for the owner to check their bank statements.
+// When the payment_method is credit_card it shows the owner that a reservation has been fully paid for.
+// 
+// POST {reservation_id}:
+// reservation_id: The reservation id which holds all the booking details.
+// 
+// translation isnt required here.
+// POST email/paidBooking
+*/
 export const sendBookingPaidEmail = async (req, res) => {
   const { reservation_id } = req.body;
 
@@ -1783,7 +1827,7 @@ export const sendBookingPaidEmail = async (req, res) => {
           <tr>
             <td class="footer">
               <p class="footer-text"><span class="footer-brand">Four Roses</span> · Internal Notification</p>
-              <p class="footer-text">© 2026 Four Roses · All rights reserved</p>
+              <p class="footer-text">© ${currentYear} Four Roses · All rights reserved</p>
             </td>
           </tr>
 
@@ -1813,6 +1857,17 @@ export const sendBookingPaidEmail = async (req, res) => {
   }
 };
 
+/*
+// Sends an email to the customer whenever a payment has been processed. This means:
+// Once stripe has verified that the order has been paid for.
+// Once the owner confirms that the money has been deposited in their account.
+// This email is homogeneous in the sense where it will handle when the deposit is paid AND when the full amount has been paid.
+//
+// POST {reservation_id}:
+// reservation_id: The reservation id which holds all the booking details.
+// 
+// POST email/confirmedBooking
+*/
 export const sendBookingConfirmEmail = async (req, res) => {
   const { reservation_id } = req.body;
 
@@ -1833,9 +1888,225 @@ export const sendBookingConfirmEmail = async (req, res) => {
       return res.status(404).json({ error: "Reservation not found" });
     }
 
+    // Get account information
+    const { data: userInfo, error: reqError } = await supabase
+      .from("users")
+      .select("*")
+      .eq("id", reservation.user_id)
+      .single();
+    if (reqError) throw reqError;
+
     // Get the users email
-    const { data: userInfo } = await supabase.auth.admin.getUserById(reservation.user_id);
-    const customerEmail = userInfo.user.email;
+    const { data: userAuthInfo } = await supabase.auth.admin.getUserById(reservation.user_id);
+    const customerEmail = userAuthInfo.user.email;
+
+    const emailTranslations = {
+      en: {
+        subject: `Your Payment Has Been Confirmed - Reservation ${reservation.id}`,
+        Payment_received: "Payment received",
+        title: "Your Stay is",
+        Confirmed: "Confirmed",
+        Reserved: "Reserved",
+        title_sub: "We can't wait to welcome you",
+        Hello: "Hello",
+        Your: "Your",
+        iban: "IBAN bank transfer",
+        credit: "credit card payment",
+        fully:
+          "has been validated and your payment has been fully processed. <br/>Everything is in order. Your booking is now complete",
+        deposit:
+          "has been validated and your deposit has been processed. <br />The remaining balance is due prior to your reservation date. Please ensure the outstanding amount is settled <b>before</b> arrival",
+        reservation: "Reservation Details",
+        res_id: "Reservation ID",
+        checkin: "Check-in",
+        chechout: "Check-out",
+        remaining: "Remaining balance",
+        payConfirm: "Payment Confirmation",
+        total: "Total Paid",
+        fullyPaid: "Fully Paid",
+        depositPaid: "Deposit Paid",
+        infoBox:
+          "Prior to check-in, you'll receive arrival instructions and all the property details you need for a smooth, comfortable stay",
+        footNote1:
+          "If you have any questions in the meantime, simply reply to this email! We're happy to help",
+        footNote2: "Thank you for choosing to stay with us. We look forward to welcoming you soon",
+        help: "Need help",
+        reply: "Reply to this email and we'll get back to you promptly",
+        rights: "All rights reserved",
+      },
+
+      fr: {
+        subject: `Votre paiement a été confirmé - Réservation ${reservation.id}`,
+        Payment_received: "Paiement reçu",
+        title: "Votre séjour est",
+        Confirmed: "Confirmé",
+        Reserved: "Réservé",
+        title_sub: "Nous avons hâte de vous accueillir",
+        Hello: "Bonjour",
+        Your: "Votre",
+        iban: "virement bancaire IBAN",
+        credit: "paiement par carte bancaire",
+        fully:
+          "a été validé et votre paiement a été entièrement traité. <br/>Tout est en ordre. Votre réservation est maintenant complète",
+        deposit:
+          "a été validé et votre acompte a été traité. <br />Le solde restant est dû avant la date de votre réservation. Veuillez vous assurer que le montant est réglé <b>avant</b> l'arrivée",
+        reservation: "Détails de la réservation",
+        res_id: "ID de réservation",
+        checkin: "Arrivée",
+        chechout: "Départ",
+        remaining: "Solde restant",
+        payConfirm: "Confirmation de paiement",
+        total: "Total payé",
+        fullyPaid: "Entièrement payé",
+        depositPaid: "Acompte payé",
+        infoBox:
+          "Avant l'arrivée, vous recevrez les instructions d'accès et tous les détails nécessaires pour un séjour agréable",
+        footNote1:
+          "Si vous avez des questions, répondez simplement à cet e-mail ! Nous serons heureux de vous aider",
+        footNote2:
+          "Merci d'avoir choisi de séjourner chez nous. Nous avons hâte de vous accueillir bientôt",
+        help: "Besoin d'aide",
+        reply: "Répondez à cet e-mail et nous vous répondrons rapidement",
+        rights: "Tous droits réservés",
+      },
+
+      es: {
+        subject: `Su pago ha sido confirmado - Reserva ${reservation.id}`,
+        Payment_received: "Pago recibido",
+        title: "Su estancia está",
+        Confirmed: "Confirmada",
+        Reserved: "Reservada",
+        title_sub: "Estamos deseando darle la bienvenida",
+        Hello: "Hola",
+        Your: "Su",
+        iban: "transferencia bancaria IBAN",
+        credit: "pago con tarjeta de crédito",
+        fully:
+          "ha sido validado y su pago ha sido procesado completamente. <br/>Todo está en orden. Su reserva está ahora completa",
+        deposit:
+          "ha sido validado y su depósito ha sido procesado. <br />El saldo restante debe pagarse antes de la fecha de su reserva. Por favor, asegúrese de liquidar el importe pendiente <b>antes</b> de la llegada",
+        reservation: "Detalles de la reserva",
+        res_id: "ID de reserva",
+        checkin: "Entrada",
+        chechout: "Salida",
+        remaining: "Saldo restante",
+        payConfirm: "Confirmación de pago",
+        total: "Total pagado",
+        fullyPaid: "Pagado completamente",
+        depositPaid: "Depósito pagado",
+        infoBox:
+          "Antes del check-in, recibirá instrucciones de llegada y todos los detalles de la propiedad para una estancia cómoda",
+        footNote1:
+          "Si tiene alguna pregunta, ¡simplemente responda a este correo! Estaremos encantados de ayudarle",
+        footNote2: "Gracias por elegirnos. Esperamos darle la bienvenida pronto",
+        help: "¿Necesita ayuda?",
+        reply: "Responda a este correo y le contestaremos a la brevedad",
+        rights: "Todos los derechos reservados",
+      },
+
+      de: {
+        subject: `Ihre Zahlung wurde bestätigt - Reservierung ${reservation.id}`,
+        Payment_received: "Zahlung eingegangen",
+        title: "Ihr Aufenthalt ist",
+        Confirmed: "Bestätigt",
+        Reserved: "Reserviert",
+        title_sub: "Wir freuen uns darauf, Sie zu empfangen",
+        Hello: "Hallo",
+        Your: "Ihre",
+        iban: "IBAN-Banküberweisung",
+        credit: "Kreditkartenzahlung",
+        fully:
+          "wurde validiert und Ihre Zahlung wurde vollständig verarbeitet. <br/>Alles ist in Ordnung. Ihre Buchung ist jetzt abgeschlossen",
+        deposit:
+          "wurde validiert und Ihre Anzahlung wurde verarbeitet. <br />Der verbleibende Betrag ist vor Ihrem Reservierungsdatum fällig. Bitte stellen Sie sicher, dass der ausstehende Betrag <b>vor</b> der Anreise beglichen wird",
+        reservation: "Reservierungsdetails",
+        res_id: "Reservierungs-ID",
+        checkin: "Anreise",
+        chechout: "Abreise",
+        remaining: "Restbetrag",
+        payConfirm: "Zahlungsbestätigung",
+        total: "Gesamt bezahlt",
+        fullyPaid: "Vollständig bezahlt",
+        depositPaid: "Anzahlung bezahlt",
+        infoBox:
+          "Vor dem Check-in erhalten Sie Anreiseanweisungen und alle Informationen zur Unterkunft für einen angenehmen Aufenthalt",
+        footNote1: "Bei Fragen antworten Sie einfach auf diese E-Mail! Wir helfen Ihnen gerne",
+        footNote2:
+          "Vielen Dank, dass Sie sich für uns entschieden haben. Wir freuen uns darauf, Sie bald willkommen zu heißen",
+        help: "Hilfe benötigt",
+        reply: "Antworten Sie auf diese E-Mail und wir melden uns umgehend",
+        rights: "Alle Rechte vorbehalten",
+      },
+
+      pt: {
+        subject: `O seu pagamento foi confirmado - Reserva ${reservation.id}`,
+        Payment_received: "Pagamento recebido",
+        title: "A sua estadia está",
+        Confirmed: "Confirmada",
+        Reserved: "Reservada",
+        title_sub: "Mal podemos esperar para recebê-lo",
+        Hello: "Olá",
+        Your: "O seu",
+        iban: "transferência bancária IBAN",
+        credit: "pagamento com cartão de crédito",
+        fully:
+          "foi validado e o seu pagamento foi totalmente processado. <br/>Tudo está em ordem. A sua reserva está agora completa",
+        deposit:
+          "foi validado e o seu depósito foi processado. <br />O saldo restante deve ser pago antes da data da sua reserva. Por favor, certifique-se de que o valor pendente é liquidado <b>antes</b> da chegada",
+        reservation: "Detalhes da Reserva",
+        res_id: "ID da reserva",
+        checkin: "Check-in",
+        chechout: "Check-out",
+        remaining: "Saldo restante",
+        payConfirm: "Confirmação de Pagamento",
+        total: "Total pago",
+        fullyPaid: "Totalmente pago",
+        depositPaid: "Depósito pago",
+        infoBox:
+          "Antes do check-in, receberá instruções de chegada e todos os detalhes da propriedade para uma estadia confortável",
+        footNote1:
+          "Se tiver alguma dúvida, basta responder a este e-mail! Teremos todo o gosto em ajudar",
+        footNote2: "Obrigado por nos escolher. Esperamos recebê-lo em breve",
+        help: "Precisa de ajuda?",
+        reply: "Responda a este e-mail e entraremos em contacto rapidamente",
+        rights: "Todos os direitos reservados",
+      },
+
+      nl: {
+        subject: `Uw betaling is bevestigd - Reservering ${reservation.id}`,
+        Payment_received: "Betaling ontvangen",
+        title: "Uw verblijf is",
+        Confirmed: "Bevestigd",
+        Reserved: "Gereserveerd",
+        title_sub: "We kijken ernaar uit u te verwelkomen",
+        Hello: "Hallo",
+        Your: "Uw",
+        iban: "IBAN-bankoverschrijving",
+        credit: "creditcardbetaling",
+        fully:
+          "is gevalideerd en uw betaling is volledig verwerkt. <br/>Alles is in orde. Uw boeking is nu voltooid",
+        deposit:
+          "is gevalideerd en uw aanbetaling is verwerkt. <br />Het resterende saldo dient vóór uw reserveringsdatum te worden betaald. Zorg ervoor dat het openstaande bedrag <b>voor</b> aankomst is voldaan",
+        reservation: "Reserveringsgegevens",
+        res_id: "Reserverings-ID",
+        checkin: "Inchecken",
+        chechout: "Uitchecken",
+        remaining: "Resterend saldo",
+        payConfirm: "Betalingsbevestiging",
+        total: "Totaal betaald",
+        fullyPaid: "Volledig betaald",
+        depositPaid: "Aanbetaling gedaan",
+        infoBox:
+          "Voor het inchecken ontvangt u aankomstinstructies en alle informatie over de accommodatie voor een prettig verblijf",
+        footNote1: "Heeft u vragen, beantwoord dan gewoon deze e-mail! We helpen u graag",
+        footNote2: "Bedankt voor uw keuze. We kijken ernaar uit u binnenkort te verwelkomen",
+        help: "Hulp nodig?",
+        reply: "Beantwoord deze e-mail en we reageren zo snel mogelijk",
+        rights: "Alle rechten voorbehouden",
+      },
+    };
+
+    const tr = emailTranslations[userInfo.preferred_language] || emailTranslations.en;
 
     const html = `
 <!DOCTYPE html>
@@ -2105,13 +2376,13 @@ export const sendBookingConfirmEmail = async (req, res) => {
           <!-- ─── HEADER ─── -->
           <tr>
             <td class="header">
-              <div class="header-badge">✓ Payment received</div>
-              <div class="header-title">Your Stay is ${
-                parseFloat(reservation.amount_paid) >= parseFloat(reservation.total_price)
-                  ? "Confirmed"
-                  : "Reserved"
-              }</div>
-              <div class="header-sub">We can't wait to welcome you.</div>
+              <div class="header-badge">✓ ${tr.Payment_received}</div>
+              <div class="header-title">${tr.title} ${
+      parseFloat(reservation.amount_paid) >= parseFloat(reservation.total_price)
+        ? `${tr.Confirmed}`
+        : `${tr.Reserved}`
+    }</div>
+              <div class="header-sub">${tr.title_sub}.</div>
             </td>
           </tr>
 
@@ -2120,46 +2391,40 @@ export const sendBookingConfirmEmail = async (req, res) => {
             <td class="body">
 
               <!-- Greeting -->
-              <p class="greeting">Hello <strong>${reservation.billing_name}</strong>,</p>
+              <p class="greeting">${tr.Hello} <strong>${reservation.billing_name}</strong>,</p>
               <p class="intro">
               ${
                 parseFloat(reservation.amount_paid) >= parseFloat(reservation.total_price)
-                  ? `Your ${
-                      reservation.payment_method == "iban"
-                        ? `IBAN bank transfer`
-                        : `credit card payment`
+                  ? `${tr.Your} ${
+                      reservation.payment_method == "iban" ? `${tr.iban}` : `${tr.credit}`
                     } 
-                  has been validated and your payment has been fully processed.
-                Everything is in order — your booking is now complete.`
-                  : `Your ${
-                      reservation.payment_method == "iban"
-                        ? `IBAN bank transfer`
-                        : `credit card payment`
-                    }  has been validated and your deposit has been processed.
-               The remaining balance is due prior to your reservation date. Please ensure the outstanding amount is settled <b>before</b> arrival.`
+                  ${tr.fully}.`
+                  : `${tr.Your} ${
+                      reservation.payment_method == "iban" ? `${tr.iban}` : `${tr.credit}`
+                    }  ${tr.deposit}.`
               }
               </p>
 
               <!-- Reservation Details -->
-              <span class="section-label">Reservation Details</span>
+              <span class="section-label">${tr.reservation}</span>
 
               <table class="detail-table" cellpadding="0" cellspacing="0" border="0">
                 <tr>
-                  <td class="td-label">Reservation ID</td>
+                  <td class="td-label">${tr.res_id}</td>
                   <td class="td-value">${reservation.id}</td>
                 </tr>
                 <tr>
-                  <td class="td-label">Check-in</td>
+                  <td class="td-label">${tr.checkin}</td>
                   <td class="td-value">${reservation.start_date}</td>
                 </tr>
                 <tr>
-                  <td class="td-label">Check-out</td>
+                  <td class="td-label">${tr.chechout}</td>
                   <td class="td-value">${reservation.end_date}</td>
                 </tr>
                 ${
                   parseFloat(reservation.amount_paid) < parseFloat(reservation.total_price)
                     ? `<tr>
-                  <td class="td-label">Remaining balance</td>
+                  <td class="td-label">${tr.remaining}</td>
                   <td class="td-value">€ ${(
                     parseFloat(reservation.total_price) - parseFloat(reservation.amount_paid)
                   ).toFixed(2)}</td>
@@ -2169,12 +2434,12 @@ export const sendBookingConfirmEmail = async (req, res) => {
               </table>
 
               <!-- Payment Confirmation -->
-              <span class="section-label">Payment Confirmation</span>
+              <span class="section-label">${tr.payConfirm}</span>
 
               <table class="payment-hero" cellpadding="0" cellspacing="0" border="0">
                 <tr>
                   <td>
-                    <div class="payment-label">Total Paid</div>
+                    <div class="payment-label">${tr.total}</div>
                     <div class="payment-amount">€ ${reservation.amount_paid}</div>
                   </td>
                   <td align="right" valign="middle">
@@ -2182,8 +2447,8 @@ export const sendBookingConfirmEmail = async (req, res) => {
                       <span class="status-dot"></span>
                       <span class="status-text">${
                         parseFloat(reservation.amount_paid) >= parseFloat(reservation.total_price)
-                          ? "Fully Paid"
-                          : "Deposit Paid"
+                          ? `${tr.fullyPaid}`
+                          : `${tr.depositPaid}`
                       } </span>
                     </div>
                   </td>
@@ -2192,7 +2457,7 @@ export const sendBookingConfirmEmail = async (req, res) => {
 
               <!-- Info Box -->
               <div class="info-box">
-                Prior to check-in, you'll receive arrival instructions and all the property details you need for a smooth, comfortable stay.
+                ${tr.infoBox}.
               </div>
 
               <!-- Divider -->
@@ -2200,10 +2465,10 @@ export const sendBookingConfirmEmail = async (req, res) => {
 
               <!-- Footer Notes -->
               <p class="footer-note">
-                If you have any questions in the meantime, simply reply to this email — we're happy to help.
+                ${tr.footNote1}.
               </p>
               <p class="footer-note">
-                Thank you for choosing to stay with us. We look forward to welcoming you soon.
+                ${tr.footNote2}.
               </p>
 
             </td>
@@ -2212,8 +2477,8 @@ export const sendBookingConfirmEmail = async (req, res) => {
           <!-- ─── FOOTER ─── -->
           <tr>
             <td class="footer">
-              <p class="footer-text"><span class="footer-brand">Need help?</span> Reply to this email and we'll get back to you promptly.</p>
-              <p class="footer-text">© 2026 · All rights reserved</p>
+              <p class="footer-text"><span class="footer-brand">${tr.help}?</span> ${tr.reply}.</p>
+              <p class="footer-text">© ${currentYear} · ${tr.rights}</p>
             </td>
           </tr>
 
@@ -2232,7 +2497,7 @@ export const sendBookingConfirmEmail = async (req, res) => {
       from: `Four Roses Bookings <Booking@fourroses.fignet.ca>`,
       to: `${customerEmail}`,
       reply_to: "booking@fourroses.fignet.ca",
-      subject: `Your Payment Has Been Confirmed - Reservation ${reservation.id}`,
+      subject: `${tr.subject}`,
       html,
     });
 
@@ -2243,6 +2508,14 @@ export const sendBookingConfirmEmail = async (req, res) => {
   }
 };
 
+/*
+// Sends an email to the customer whenever the secuirty deposit amount has been refunded.
+//
+// POST {reservation_id}:
+// reservation_id: The reservation id which holds all the booking details.
+// 
+// POST email/securityDepositSettled
+*/
 export const sendSecurityDepositSettledEmail = async (req, res) => {
   const { reservation_id } = req.body;
 
@@ -2263,9 +2536,171 @@ export const sendSecurityDepositSettledEmail = async (req, res) => {
       return res.status(404).json({ error: "Reservation not found" });
     }
 
+    // Get account information
+    const { data: userInfo, error: reqError } = await supabase
+      .from("users")
+      .select("*")
+      .eq("id", reservation.user_id)
+      .single();
+    if (reqError) throw reqError;
+
     // Get the user's email
-    const { data: userInfo } = await supabase.auth.admin.getUserById(reservation.user_id);
-    const customerEmail = userInfo.user.email;
+    const { data: userAuthInfo } = await supabase.auth.admin.getUserById(reservation.user_id);
+    const customerEmail = userAuthInfo.user.email;
+
+    const emailTranslations = {
+      en: {
+        subject: `Your Security Deposit Has Been Settled - Reservation ${reservation.id}`,
+        deposit: "Deposit Settled",
+        returned: "Your Deposit Has Been Returned",
+        wrapped: "Everything is wrapped up! thank you for your stay",
+        hello: "Hello",
+        processed:
+          "Your security deposit has been successfully processed and the transaction is now complete. <br />We hope you had a wonderful stay and that everything met your expectations",
+        details: "Reservation Details",
+        id: "Reservation ID",
+        checkin: "Check-in",
+        chechout: "Check-out",
+        depositInfo: "Deposit Information",
+        refund: "Amount Refunded",
+        refunded: "Refunded",
+        infoBox:
+          'You can download a PDF copy of your invoice anytime from your account dashboard under the <strong>"Booking"</strong> section',
+        footNote:
+          "If you have any questions or need assistance, simply reply to this email! we're always happy to help",
+        signOff: `"Thank you for staying at Four Roses. We hope to have the pleasure of welcoming you back in the future."`,
+        help: "Need help",
+        reply: "Reply to this email and we'll get back to you promptly",
+        rights: "All rights reserved",
+      },
+
+      fr: {
+        subject: `Votre dépôt de garantie a été réglé - Réservation ${reservation.id}`,
+        deposit: "Dépôt réglé",
+        returned: "Votre dépôt a été remboursé",
+        wrapped: "Tout est bouclé ! Merci pour votre séjour",
+        hello: "Bonjour",
+        processed:
+          "Votre dépôt de garantie a été traité avec succès et la transaction est maintenant terminée. <br />Nous espérons que vous avez passé un merveilleux séjour et que tout a répondu à vos attentes",
+        details: "Détails de la réservation",
+        id: "ID de réservation",
+        checkin: "Arrivée",
+        chechout: "Départ",
+        depositInfo: "Informations sur le dépôt",
+        refund: "Montant remboursé",
+        refunded: "Remboursé",
+        infoBox:
+          "Vous pouvez télécharger une copie PDF de votre facture à tout moment depuis votre tableau de bord sous la section <strong>« Réservation »</strong>",
+        footNote:
+          "Si vous avez des questions ou besoin d'aide, répondez simplement à cet e-mail ! Nous sommes toujours heureux de vous aider",
+        signOff: `"Merci d'avoir séjourné chez Four Roses. Nous espérons avoir le plaisir de vous accueillir à nouveau à l'avenir."`,
+        help: "Besoin d'aide",
+        reply: "Répondez à cet e-mail et nous vous répondrons rapidement",
+        rights: "Tous droits réservés",
+      },
+
+      es: {
+        subject: `Su depósito de seguridad ha sido liquidado - Reserva ${reservation.id}`,
+        deposit: "Depósito liquidado",
+        returned: "Su depósito ha sido devuelto",
+        wrapped: "¡Todo está resuelto! Gracias por su estancia",
+        hello: "Hola",
+        processed:
+          "Su depósito de seguridad ha sido procesado con éxito y la transacción está ahora completa. <br />Esperamos que haya disfrutado de una estancia maravillosa y que todo haya cumplido sus expectativas",
+        details: "Detalles de la reserva",
+        id: "ID de reserva",
+        checkin: "Entrada",
+        chechout: "Salida",
+        depositInfo: "Información del depósito",
+        refund: "Importe reembolsado",
+        refunded: "Reembolsado",
+        infoBox:
+          "Puede descargar una copia en PDF de su factura en cualquier momento desde su panel de cuenta, en la sección <strong>«Reserva»</strong>",
+        footNote:
+          "Si tiene alguna pregunta o necesita ayuda, ¡simplemente responda a este correo! siempre estamos encantados de ayudar",
+        signOff: `"Gracias por alojarse en Four Roses. Esperamos tener el placer de recibirle de nuevo en el futuro."`,
+        help: "¿Necesita ayuda?",
+        reply: "Responda a este correo y le contestaremos a la brevedad",
+        rights: "Todos los derechos reservados",
+      },
+
+      de: {
+        subject: `Ihre Sicherheitsleistung wurde abgerechnet - Reservierung ${reservation.id}`,
+        deposit: "Kaution abgerechnet",
+        returned: "Ihre Kaution wurde zurückerstattet",
+        wrapped: "Alles ist erledigt! Vielen Dank für Ihren Aufenthalt",
+        hello: "Hallo",
+        processed:
+          "Ihre Sicherheitsleistung wurde erfolgreich verarbeitet und die Transaktion ist nun abgeschlossen. <br />Wir hoffen, dass Sie einen wunderschönen Aufenthalt hatten und alles Ihren Erwartungen entsprochen hat",
+        details: "Reservierungsdetails",
+        id: "Reservierungs-ID",
+        checkin: "Anreise",
+        chechout: "Abreise",
+        depositInfo: "Kautionsinformationen",
+        refund: "Erstatteter Betrag",
+        refunded: "Erstattet",
+        infoBox:
+          'Sie können jederzeit eine PDF-Kopie Ihrer Rechnung aus Ihrem Konto-Dashboard im Bereich <strong>„Buchung"</strong> herunterladen',
+        footNote:
+          "Bei Fragen oder wenn Sie Hilfe benötigen, antworten Sie einfach auf diese E-Mail! Wir helfen Ihnen immer gerne",
+        signOff: `"Vielen Dank für Ihren Aufenthalt bei Four Roses. Wir hoffen, Sie in Zukunft wieder begrüßen zu dürfen."`,
+        help: "Hilfe benötigt",
+        reply: "Antworten Sie auf diese E-Mail und wir melden uns umgehend",
+        rights: "Alle Rechte vorbehalten",
+      },
+
+      pt: {
+        subject: `O seu depósito de segurança foi liquidado - Reserva ${reservation.id}`,
+        deposit: "Depósito liquidado",
+        returned: "O seu depósito foi devolvido",
+        wrapped: "Está tudo resolvido! Obrigado pela sua estadia",
+        hello: "Olá",
+        processed:
+          "O seu depósito de segurança foi processado com sucesso e a transação está agora completa. <br />Esperamos que tenha tido uma estadia maravilhosa e que tudo tenha correspondido às suas expectativas",
+        details: "Detalhes da Reserva",
+        id: "ID da reserva",
+        checkin: "Check-in",
+        chechout: "Check-out",
+        depositInfo: "Informações sobre o depósito",
+        refund: "Valor reembolsado",
+        refunded: "Reembolsado",
+        infoBox:
+          "Pode descarregar uma cópia em PDF da sua fatura a qualquer momento no seu painel de conta, na secção <strong>«Reserva»</strong>",
+        footNote:
+          "Se tiver alguma dúvida ou precisar de ajuda, basta responder a este e-mail! Estamos sempre disponíveis para ajudar",
+        signOff: `"Obrigado por ficar na Four Roses. Esperamos ter o prazer de o receber novamente no futuro."`,
+        help: "Precisa de ajuda?",
+        reply: "Responda a este e-mail e entraremos em contacto rapidamente",
+        rights: "Todos os direitos reservados",
+      },
+
+      nl: {
+        subject: `Uw borg is verrekend - Reservering ${reservation.id}`,
+        deposit: "Borg verrekend",
+        returned: "Uw borg is terugbetaald",
+        wrapped: "Alles is afgerond! Bedankt voor uw verblijf",
+        hello: "Hallo",
+        processed:
+          "Uw borg is succesvol verwerkt en de transactie is nu voltooid. <br />We hopen dat u een geweldig verblijf heeft gehad en dat alles aan uw verwachtingen heeft voldaan",
+        details: "Reserveringsgegevens",
+        id: "Reserverings-ID",
+        checkin: "Inchecken",
+        chechout: "Uitchecken",
+        depositInfo: "Borginformatie",
+        refund: "Terugbetaald bedrag",
+        refunded: "Terugbetaald",
+        infoBox:
+          "U kunt altijd een PDF-kopie van uw factuur downloaden vanuit uw accountdashboard onder het gedeelte <strong>«Boeking»</strong>",
+        footNote:
+          "Als u vragen heeft of hulp nodig heeft, beantwoord dan gewoon deze e-mail! we helpen altijd graag",
+        signOff: `"Bedankt voor uw verblijf bij Four Roses. We hopen u in de toekomst weer te mogen verwelkomen."`,
+        help: "Hulp nodig?",
+        reply: "Beantwoord deze e-mail en we reageren zo snel mogelijk",
+        rights: "Alle rechten voorbehouden",
+      },
+    };
+
+    const tr = emailTranslations[userInfo.preferred_language] || emailTranslations.en;
 
     // Build HTML email
     const html = `
@@ -2549,9 +2984,9 @@ export const sendSecurityDepositSettledEmail = async (req, res) => {
           <!-- ─── HEADER ─── -->
           <tr>
             <td class="header">
-              <div class="header-badge">🔒 Deposit Settled</div>
-              <div class="header-title">Your Deposit Has Been Returned</div>
-              <div class="header-sub">Everything is wrapped up — thank you for your stay.</div>
+              <div class="header-badge">🔒 ${tr.deposit}</div>
+              <div class="header-title">${tr.returned}</div>
+              <div class="header-sub">${tr.wrapped}.</div>
             </td>
           </tr>
 
@@ -2560,43 +2995,42 @@ export const sendSecurityDepositSettledEmail = async (req, res) => {
             <td class="body">
 
               <!-- Greeting -->
-              <p class="greeting">Hello <strong>${reservation.billing_name}</strong>,</p>
+              <p class="greeting">${tr.hello} <strong>${reservation.billing_name}</strong>,</p>
               <p class="intro">
-                Your security deposit has been successfully processed and the transaction is now complete.
-                We hope you had a wonderful stay and that everything met your expectations.
+                ${tr.processed}.
               </p>
 
               <!-- Reservation Details -->
-              <span class="section-label">Reservation Details</span>
+              <span class="section-label">${tr.details}</span>
 
               <table class="detail-table" cellpadding="0" cellspacing="0" border="0">
                 <tr>
-                  <td class="td-label">Reservation ID</td>
+                  <td class="td-label">${tr.id}</td>
                   <td class="td-value">${reservation.id}</td>
                 </tr>
                 <tr>
-                  <td class="td-label">Check-in</td>
+                  <td class="td-label">${tr.checkin}</td>
                   <td class="td-value">${reservation.start_date}</td>
                 </tr>
                 <tr>
-                  <td class="td-label">Check-out</td>
+                  <td class="td-label">${tr.chechout}</td>
                   <td class="td-value">${reservation.end_date}</td>
                 </tr>
               </table>
 
               <!-- Deposit Information -->
-              <span class="section-label">Deposit Information</span>
+              <span class="section-label">${tr.depositInfo}</span>
 
               <table class="deposit-hero" cellpadding="0" cellspacing="0" border="0">
                 <tr>
                   <td>
-                    <div class="deposit-label">Amount Refunded</div>
+                    <div class="deposit-label">${tr.refund}</div>
                     <div class="deposit-amount">€ ${reservation.security_deposit_refunded_amount}</div>
                   </td>
                   <td align="right" valign="middle">
                     <div class="deposit-status">
                       <span class="status-dot"></span>
-                      <span class="status-text">Refunded</span>
+                      <span class="status-text">${tr.refunded}</span>
                     </div>
                   </td>
                 </tr>
@@ -2604,17 +3038,17 @@ export const sendSecurityDepositSettledEmail = async (req, res) => {
 
               <!-- Info Box -->
               <div class="info-box">
-                You can download a PDF copy of your invoice anytime from your account dashboard under the <strong>"Booking"</strong> section.
+                ${tr.infoBox}.
               </div>
 
               <!-- Footer Note -->
               <p class="footer-note">
-                If you have any questions or need assistance, simply reply to this email — we're always happy to help.
+                ${tr.footNote}.
               </p>
 
               <!-- Sign-off -->
               <div class="signoff">
-                "Thank you for staying at Four Roses. We hope to have the pleasure of welcoming you back in the future."
+                ${tr.signOff}
               </div>
 
             </td>
@@ -2623,8 +3057,8 @@ export const sendSecurityDepositSettledEmail = async (req, res) => {
           <!-- ─── FOOTER ─── -->
           <tr>
             <td class="footer">
-              <p class="footer-text"><span class="footer-brand">Need help?</span> Reply to this email and we'll get back to you promptly.</p>
-              <p class="footer-text">© 2026 Four Roses · All rights reserved</p>
+              <p class="footer-text"><span class="footer-brand">${tr.help}?</span> ${tr.reply}.</p>
+              <p class="footer-text">© ${currentYear} Four Roses · ${tr.rights}</p>
             </td>
           </tr>
 
@@ -2643,7 +3077,7 @@ export const sendSecurityDepositSettledEmail = async (req, res) => {
       from: `Four Roses Bookings <Booking@fourroses.fignet.ca>`,
       reply_to: "booking@fourroses.fignet.ca",
       to: `${customerEmail}`,
-      subject: `Your Security Deposit Has Been Settled - Reservation ${reservation.id}`,
+      subject: tr.subject,
       html,
     });
 
