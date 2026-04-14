@@ -553,10 +553,10 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
       <MKBox
         opacity={0.7}
         py={1}
-        px={{ xs: 4, sm: transparent ? 2 : 3, lg: transparent ? 0 : 2 }}
         my={relative ? 0 : 0}
-        mx={relative ? 0 : 3}
-        width={relative ? "100%" : "calc(100% - 48px)"}
+        px={{ xs: 1.5, sm: transparent ? 2 : 3, lg: transparent ? 0 : 2 }}
+        mx={{ xs: 1, sm: relative ? 0 : 3 }}
+        width={{ xs: "calc(100% - 16px)", sm: relative ? "100%" : "calc(100% - 48px)" }}
         borderRadius="xl"
         shadow={transparent ? "none" : "md"}
         color={light ? "white" : "dark"}
@@ -576,12 +576,36 @@ function DefaultNavbar({ brand, routes, transparent, light, action, sticky, rela
             py={transparent ? 1.5 : 0.75}
             pl={relative || transparent ? 0 : { xs: 0, lg: 1 }}
           >
-            <Grid container justify="center" alignItems="center">
-              <MKBox component="img" src={MainLogo} maxWidth="250px" ml={2} />
-              <MKTypography variant="button" fontWeight="bold" color={light ? "white" : "dark"}>
-                {brand}
-              </MKTypography>
-            </Grid>
+            <MKBox
+              display="flex"
+              alignItems="center"
+              sx={{
+                minWidth: 0,
+              }}
+            >
+              <MKBox
+                component="img"
+                src={MainLogo}
+                alt={brand || "Logo"}
+                sx={{
+                  width: { xs: "150px", sm: "190px", md: "220px" },
+                  maxWidth: "100%",
+                  ml: { xs: 0, sm: 1 },
+                  display: "block",
+                  objectFit: "contain",
+                }}
+              />
+              {!!brand && (
+                <MKTypography
+                  variant="button"
+                  fontWeight="bold"
+                  color={light ? "white" : "dark"}
+                  sx={{ ml: 1, display: { xs: "none", sm: "inline-block" } }}
+                >
+                  {brand}
+                </MKTypography>
+              )}
+            </MKBox>
           </MKBox>
           <MKBox
             color="inherit"
