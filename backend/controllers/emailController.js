@@ -3089,7 +3089,7 @@ export const sendSecurityDepositSettledEmail = async (req, res) => {
 };
 
 /*
-// Sends an email to the customer whenever the secuirty deposit amount has been refunded.
+// Sends an email to the customer Email adrress with a password recorvery link
 //
 // POST {reservation_id}:
 // reservation_id: The reservation id which holds all the booking details.

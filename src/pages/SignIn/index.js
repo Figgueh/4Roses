@@ -55,10 +55,6 @@ function SignInBasic() {
       lang: i18n.language,
     });
 
-    // const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
-    //   redirectTo: `${window.location.origin}/reset-password`,
-    // });
-
     if (error) {
       setMessageColor("error");
       setMessage(error.message);

@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 361 531" width="361" height="531">
+  <rect x="2" y="2" width="357" height="527" fill="#ffffff" stroke="#000" stroke-width="3"/>
+
+  <!-- Main mapped rooms -->
+  <rect id="f2k" x="2" y="2" width="202" height="148" fill="#d9d9d9" stroke="#000" stroke-width="3"/>
+  <rect id="f2l" x="204" y="2" width="155" height="148" fill="#d9d9d9" stroke="#000" stroke-width="3"/>
+  <path id="f2h" d="M102 150 H359 V234 H201 V529 H155 V234 H102 Z" fill="#d9d9d9" stroke="#000" stroke-width="3"/>
+
+  <rect id="f2s" x="2" y="329" width="153" height="91" fill="#d9d9d9" stroke="#000" stroke-width="3"/>
+  <rect id="f2b1" x="201" y="334" width="158" height="99" fill="#d9d9d9" stroke="#000" stroke-width="3"/>
+  <rect id="f2b2" x="2" y="420" width="153" height="109" fill="#d9d9d9" stroke="#000" stroke-width="3"/>
+  <rect id="f2b3" x="2" y="234" width="153" height="95" fill="#d9d9d9" stroke="#000" stroke-width="3"/>
+  
+  <rect id="f2w1" x="296" y="433" width="63" height="96" fill="#d9d9d9" stroke="#000" stroke-width="3"/>
+  <rect id="f2w2" x="201" y="433" width="95" height="96" fill="#d9d9d9" stroke="#000" stroke-width="3"/>
+  <rect id="f2w3" x="2" y="190" width="100" height="44" fill="#d9d9d9" stroke="#000" stroke-width="3"/>
+  <rect id="f2w4" x="299" y="234" width="60" height="55" fill="#d9d9d9" stroke="#000" stroke-width="3"/>
+
+  <!-- Additional visible areas from the traced image -->
+  <rect id="f2aux1" x="2" y="150" width="73" height="40" fill="#eeeeee" stroke="#000" stroke-width="3"/>
+  <!-- Stairs -->
+  <path id="f2s" d="M201 234 H299 V289 H359 V334 H201 Z" fill="#eeeeee" stroke="#000" stroke-width="3"/>
+  <!-- Pantry -->
+  <rect id="f2p" x="75" y="150" width="27" height="40" fill="#eeeeee" stroke="#000" stroke-width="3"/>
+
+  <!-- Labels -->
+  <text class="label" x="70" y="76">Kitchen</text>
+  <text class="label" x="230" y="76">Living Room</text>
+  <text class="label small" x="40" y="215">W3</text>
+  <text class="label" x="200" y="195">Hall</text>
+  <text class="label" x="30" y="285">Bedroom 4</text>
+  <text class="label" x="30" y="375">Storage</text>
+  <text class="label" x="30" y="475">Bedroom 2</text>
+  <text class="label" x="240" y="384">Bedroom 1</text>
+  <text class="label small" x="320" y="270" transform="rotate(-90 329 262)">W4</text>
+  <text class="label" x="315" y="485">W 1</text>
+  <text class="label" x="235" y="485">W 2</text>
+</svg>

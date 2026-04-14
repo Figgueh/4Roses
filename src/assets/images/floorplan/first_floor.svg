@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="384" height="569" viewBox="0 0 384 569">
+  <rect width="384" height="569" fill="#ffffff"/>
+
+  <!-- Outer walls -->
+  <rect x="2" y="2" width="380" height="565" fill="none" stroke="#000" stroke-width="3"/>
+
+  <!-- Main rooms / areas -->
+  <rect id="f1b4" x="2" y="2" width="198" height="164" fill="#d9d9d9" stroke="#000" stroke-width="3"/>
+  <path id="f1b5" d="M2 275 H118 V255 H200 V372 H2 Z" fill="#d9d9d9" stroke="#000" stroke-width="3"/>
+
+  <rect id="f1k" x="200" y="2" width="180" height="99" fill="#d9d9d9" stroke="#000" stroke-width="3"/>
+  <path id="f1l" d="M200 101 H380 V255 H246 V372 H200 V255 H118 V166 H200 Z" fill="#d9d9d9" stroke="#000" stroke-width="3"/>
+  <rect id="pumproom" x="2" y="120" width="116" height="45" fill="#d9d9d9" stroke="#000" stroke-width="3"/>
+  <rect id="f1w" x="2" y="165" width="116" height="110" fill="#d9d9d9" stroke="#000" stroke-width="3"/>
+
+  <rect id="f1c" x="244" y="255" width="62" height="117" fill="#d9d9d9" stroke="#000" stroke-width="3"/>
+  <rect id="f1s" x="306" y="255" width="74" height="117" fill="#d9d9d9" stroke="#000" stroke-width="3"/>
+
+  <!-- Bottom area merged visually with the skin-colored area by using the same fill -->
+  <rect id="g" x="2" y="372" width="378" height="195" fill="#d9d9d9" stroke="#000" stroke-width="3"/>
+
+  <!-- Text -->
+   <text class="label" x="101" y="84" text-anchor="middle" dominant-baseline="middle" fill="#000">Bedroom 4</text>
+   <text class="label" x="101" y="314" text-anchor="middle" dominant-baseline="middle" fill="#000">Bedroom 5</text>
+   <text class="label" x="290" y="51.5" text-anchor="middle" dominant-baseline="middle" fill="#000">Kitchen</text>
+   <text class="label" x="275" y="180" text-anchor="middle" dominant-baseline="middle" fill="#000">Living room</text>
+   <text class="label" x="60" y="220" text-anchor="middle" dominant-baseline="middle" fill="#000">Washroom</text>
+   <text class="label" x="223" y="313.5" text-anchor="middle" dominant-baseline="middle" fill="#000" transform="rotate(-90 223 313.5)">Hallway</text>
+   <text class="label" x="275" y="313.5" text-anchor="middle" dominant-baseline="middle" fill="#000" transform="rotate(-90 275 313.5)">Storage</text>
+   <text class="label" x="343" y="313.5" text-anchor="middle" dominant-baseline="middle" fill="#000" transform="rotate(-90 340 313.5)">Staircase</text>
+
+<text x="191" y="469.5" text-anchor="middle" dominant-baseline="middle" fill="#000">Garage</text>
+</svg>
