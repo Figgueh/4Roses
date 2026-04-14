@@ -69,7 +69,7 @@ const FloorPlanSlide = ({ slide, offset, rect, showFloorPlan, setShowFloorPlan }
     <div
       style={{
         display: "flex",
-        flexDirection: isMobile ? "column" : "row",
+        flexDirection: "row",
         width: "100%",
         height: "100%",
         alignItems: "center",
@@ -82,62 +82,63 @@ const FloorPlanSlide = ({ slide, offset, rect, showFloorPlan, setShowFloorPlan }
       {slide.roomId && (
         <div
           style={{
-            width: showFloorPlan
-              ? isMobile
-                ? "min(140px, 38vw)"
-                : "clamp(95px, 28vw, 220px)"
-              : "0",
+            width: showFloorPlan ? (isMobile ? "84px" : "clamp(95px, 28vw, 220px)") : "0",
             flexShrink: 0,
             overflow: "hidden",
             transition: "width 0.2s ease",
-            borderRight: showFloorPlan && !isMobile ? "1px solid rgba(255,255,255,0.1)" : "none",
-            borderBottom: showFloorPlan && isMobile ? "1px solid rgba(255,255,255,0.1)" : "none",
+            borderRight: showFloorPlan ? "1px solid rgba(255,255,255,0.1)" : "none",
+            borderBottom: "none",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            gap: isMobile ? 6 : "clamp(6px, 1.5vw, 12px)",
-            alignSelf: isMobile ? "flex-start" : "center",
+            gap: isMobile ? 4 : "clamp(6px, 1.5vw, 12px)",
+            alignSelf: "center",
             padding: showFloorPlan
               ? isMobile
-                ? "8px 8px 4px 8px"
+                ? "4px"
                 : "clamp(8px, 2vw, 16px) clamp(6px, 1.5vw, 12px)"
               : "0",
           }}
         >
           {showFloorPlan && (
             <>
-              <div
-                style={{
-                  color: "rgba(255,255,255,0.5)",
-                  fontSize: isMobile ? 9 : "clamp(9px, 2vw, 11px)",
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                  textAlign: "center",
-                }}
-              >
-                Photo location
-              </div>
+              {!isMobile && (
+                <div
+                  style={{
+                    color: "rgba(255,255,255,0.5)",
+                    fontSize: 9,
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase",
+                    textAlign: "center",
+                  }}
+                >
+                  Photo location
+                </div>
+              )}
+
               <div
                 style={{
                   color: "white",
-                  fontSize: isMobile ? 12 : 13,
+                  fontSize: 13,
                   fontWeight: 600,
                   textAlign: "center",
                 }}
               >
                 {floorLabel}
               </div>
+
               <div
                 style={{
                   color: "white",
-                  fontSize: isMobile ? 12 : 13,
+                  fontSize: isMobile ? 10 : 13,
                   fontWeight: 600,
                   textAlign: "center",
                 }}
               >
                 {roomLabel}
               </div>
+
               <FloorPlanMap activeRoomId={slide.roomId} />
             </>
           )}
