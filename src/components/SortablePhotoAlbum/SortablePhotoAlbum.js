@@ -46,10 +46,12 @@ import Overlay from "./dnd/Overlay";
 import classes from "./dnd/SortableGallery.module.css";
 import SortablePhoto from "./dnd/SortablePhoto";
 import axios from "axios";
+import FloorPlanSlide from "./floorplan/floorplan";
 
-const SortablePhotoAlbum = ({ photos, setPhotos }) => {
+const SortablePhotoAlbum = ({ photos, setPhotos, album }) => {
   const [index, setIndex] = useState(-1);
   const [albumRender, setAlbumRender] = useState({});
+  const [showFloorPlan, setShowFloorPlan] = useState(true);
   const { session } = UserAuth();
   const { openModal } = useModal();
 
@@ -128,8 +130,14 @@ const SortablePhotoAlbum = ({ photos, setPhotos }) => {
                 selected={photo.selected}
                 isDisplay={displayPhotos.data.some((img) => img.id === photo.id)}
                 onClickEdit={(event) => {
-                  console.log(photo);
-                  openModal(photo.id);
+                  openModal({
+                    imageId: photo.id,
+                    updatePhoto: (updates) => {
+                      setPhotos((prev) =>
+                        prev.map((p) => (p.id === photo.id ? { ...p, ...updates } : p))
+                      );
+                    },
+                  });
 
                   event.preventDefault();
                   event.stopPropagation();
@@ -160,6 +168,7 @@ const SortablePhotoAlbum = ({ photos, setPhotos }) => {
     };
 
     userCheck();
+    console.log(album);
   }, [session]);
 
   return (
@@ -186,8 +195,18 @@ const SortablePhotoAlbum = ({ photos, setPhotos }) => {
           open={index >= 0}
           index={index}
           close={() => setIndex(-1)}
-          // enable optional lightbox plugins
           plugins={[Fullscreen, Slideshow, Thumbnails, Zoom, Captions]}
+          render={{
+            slide: ({ slide, offset, rect }) => (
+              <FloorPlanSlide
+                slide={slide}
+                showFloorPlan={showFloorPlan}
+                setShowFloorPlan={setShowFloorPlan}
+                offset={offset}
+                rect={rect}
+              />
+            ),
+          }}
         />
       </SortableContext>
 
@@ -202,6 +221,7 @@ const SortablePhotoAlbum = ({ photos, setPhotos }) => {
 SortablePhotoAlbum.propTypes = {
   photos: PropTypes.array.isRequired,
   setPhotos: PropTypes.func.isRequired,
+  album: PropTypes.string.isRequired,
   children: PropTypes.node,
 };
 

@@ -56,6 +56,7 @@ function PhotoViewer({ album, refreshFlag }) {
       const parsedPhotos = photoData.combinedData
         .map((file) => {
           if (!file || !file.name) return null;
+
           const matcher = file.name.match("^(.*)_(\\d+)x(\\d+)\\.(.+)$");
 
           if (!matcher) {
@@ -85,6 +86,7 @@ function PhotoViewer({ album, refreshFlag }) {
             }),
             selected: false,
             display_order: file.display_order,
+            roomId: file.roomId,
           };
         })
         .filter(Boolean);
@@ -277,7 +279,7 @@ function PhotoViewer({ album, refreshFlag }) {
           </MKBox>
         ) : album != "video" ? (
           <ModalProvider>
-            <SortablePhotoAlbum photos={photos} setPhotos={setPhotos} />
+            <SortablePhotoAlbum photos={photos} setPhotos={setPhotos} album={album} />
             <EditView />
           </ModalProvider>
         ) : (

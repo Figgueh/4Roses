@@ -60,7 +60,7 @@ export const getImageDataForAlbum = async (req, res, next) => {
 
     const { data: imageData, error: imageDataError } = await supabase
       .from("image_data")
-      .select("image_path,display_order")
+      .select("image_path,display_order,title,alt,room")
       .like("image_path", `${album}/%`)
       .order("display_order", { ascending: true });
     if (imageDataError) {
@@ -91,7 +91,10 @@ export const getOrderedImages = async (req, res, next) => {
 
     // Create a map to link metadata to files
     const imageMeta = Object.fromEntries(
-      imageData.map(({ image_path, id, display_order }) => [image_path, { id, display_order }])
+      imageData.map(({ image_path, id, display_order, room }) => [
+        image_path,
+        { id, display_order, room },
+      ])
     );
     const combinedData = images
       .map((file) => {
@@ -100,6 +103,7 @@ export const getOrderedImages = async (req, res, next) => {
           database_id: meta.id,
           ...file,
           display_order: meta.display_order ?? null,
+          roomId: meta.room ?? null,
         };
       })
       .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
@@ -119,7 +123,7 @@ const fetchFilesFromAlbum = async (album) => {
 const fetchImageDataForAlbum = async (album) => {
   const { data: imageData, error } = await supabase
     .from("image_data")
-    .select("id, image_path, display_order, is_display")
+    .select("id, image_path, display_order, is_display, room")
     .like("image_path", `${album}/%`)
     .order("display_order", { ascending: true });
   if (error) throw new Error(error.message);
@@ -276,11 +280,11 @@ export const reorderImages = async (req, res, next) => {
 export const updateImageData = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { title, alt } = req.body;
+    const { title, alt, roomId } = req.body;
 
     const { data, error } = await supabase
       .from("image_data")
-      .update({ title, alt })
+      .update({ title, alt, room: roomId })
       .eq("id", id)
       .select("*");
 
@@ -385,7 +389,7 @@ export const deleteImagesByIds = async (req, res, next) => {
 // Body: filepath, image file
 export const uploadImage = async (req, res, next) => {
   try {
-    const { filePath, title, alt, displayOrder } = req.body;
+    const { filePath, title, alt, displayOrder, roomId } = req.body;
     const image = req.file;
 
     const { data: publicUrlData, error: imageDataError } = await supabase.storage
@@ -399,6 +403,7 @@ export const uploadImage = async (req, res, next) => {
       title: title,
       alt: alt,
       display_order: displayOrder,
+      room: roomId || null,
     });
 
     if (metaError) {

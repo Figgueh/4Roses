@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-// import supabase from "connection/client";
 import PhotoViewer from "pages/Albums/PhotoViewer";
 
 import EditView from "components/SortablePhotoAlbum/admin/EditView";
@@ -9,7 +8,11 @@ import { TailSpin } from "react-loader-spinner";
 
 // @mui material components
 import Grid from "@mui/material/Grid";
-import { Paper } from "@mui/material";
+import { Divider, Paper } from "@mui/material";
+import FormControl from "@mui/material/FormControl";
+import InputLabel from "@mui/material/InputLabel";
+import Select from "@mui/material/Select";
+import MenuItem from "@mui/material/MenuItem";
 
 // Material Kit 2 React components
 import MKBox from "components/MKBox";
@@ -21,17 +24,20 @@ import MKProgress from "components/MKProgress";
 import axios from "axios";
 import { slugify } from "utils";
 
+import { ROOM_OPTIONS } from "utils.js";
+
 function PhotoUploader({ album }) {
   const [images, setImages] = useState([]);
   const [refreshFlag, setRefreshFlag] = useState(false);
   const [spinner, setSpinner] = useState(false);
+
+  const showFloorSelector = album !== "exterior";
 
   const triggerRefresh = () => {
     setRefreshFlag((prev) => !prev);
   };
 
   const handleFilesChange = async (e) => {
-    // Get the biggest display_order number
     const latestDisplayOrder = await axios.get(
       `${process.env.REACT_APP_BACKEND}/images/largestDisplayOrder/${album}`
     );
@@ -44,12 +50,37 @@ function PhotoUploader({ album }) {
       title: "",
       alt: `A picture of ${file.name.split(".").slice(0, -1).join("")}`,
       displayOrder: latestDisplayOrder.data + index + 1,
+      floor: "",
+      roomId: "",
     }));
+
     setImages((prev) => [...prev, ...newImages]);
   };
 
   const handleInputChange = (index, field, value) => {
-    setImages((prev) => prev.map((img, i) => (i === index ? { ...img, [field]: value } : img)));
+    setImages((prev) =>
+      prev.map((img, i) => {
+        if (i !== index) return img;
+
+        if (field === "name") {
+          return {
+            ...img,
+            name: value,
+            alt: img.altManuallyEdited ? img.alt : `A picture of ${value}`,
+          };
+        }
+
+        if (field === "alt") {
+          return { ...img, alt: value, altManuallyEdited: true };
+        }
+
+        if (field === "floor") {
+          return { ...img, floor: value, roomId: "" };
+        }
+
+        return { ...img, [field]: value };
+      })
+    );
   };
 
   const getImageDimensions = (url) => {
@@ -64,13 +95,13 @@ function PhotoUploader({ album }) {
 
   const handleUploadAll = async () => {
     setSpinner(true);
+
     for (let i = 0; i < images.length; i++) {
       const img = images[i];
       if (!img.file) continue;
 
-      // Mark image for upload
       setImages((prev) =>
-        prev.map((img, index) => (index === i ? { ...img, status: "uploading" } : img))
+        prev.map((image, index) => (index === i ? { ...image, status: "uploading" } : image))
       );
 
       const dimensions = await getImageDimensions(img.preview);
@@ -81,7 +112,6 @@ function PhotoUploader({ album }) {
       }.${fileExt}`;
       const filePath = `${album}/${newFileName}`;
 
-      // Upload file
       const formData = new FormData();
       formData.append("image", img.file);
       formData.append("filePath", filePath);
@@ -89,22 +119,25 @@ function PhotoUploader({ album }) {
       formData.append("title", img.title);
       formData.append("alt", img.alt);
       formData.append("displayOrder", img.displayOrder);
+
+      if (showFloorSelector) {
+        formData.append("roomId", img.roomId || "");
+      }
+
       const uploadFileRequest = await axios.post(
         `${process.env.REACT_APP_BACKEND}/images`,
         formData
       );
 
-      if (uploadFileRequest.status != 201) {
+      if (uploadFileRequest.status !== 201) {
         console.error("Unable to upload image");
       }
 
-      // Mark as done
       setImages((prev) =>
-        prev.map((img, index) => (index === i ? { ...img, status: "done" } : img))
+        prev.map((image, index) => (index === i ? { ...image, status: "done" } : image))
       );
     }
 
-    // Reset
     setSpinner(false);
     setImages([]);
     triggerRefresh();
@@ -128,107 +161,162 @@ function PhotoUploader({ album }) {
             />
           </Grid>
 
-          {images.map((img, index) => (
-            <Grid item xs={12} key={index}>
-              <Grid container spacing={2} alignItems="center">
-                {/* Image Preview */}
-                <Grid item xs={12} sm={3} md={2}>
-                  <img
-                    src={img.preview}
-                    alt="preview"
-                    style={{
-                      maxWidth: "100%",
-                      height: "auto",
-                      borderRadius: 8,
-                      border: "1px solid #ddd",
-                    }}
-                  />
-                </Grid>
+          {images.map((img, index) => {
+            const availableRooms = img.floor ? ROOM_OPTIONS[img.floor] || [] : [];
 
-                {/* Form Fields */}
-                <Grid item xs={12} sm={9} md={10}>
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} sm={6} md={5}>
-                      <MKInput
-                        label="Display Name"
-                        value={img.name}
-                        onChange={(e) => handleInputChange(index, "name", e.target.value)}
-                        fullWidth
+            return (
+              <Grid item xs={12} key={index}>
+                {/* Divider between images */}
+                {index > 0 && <Divider sx={{ mb: 3 }} />}
+
+                <Paper
+                  variant="outlined"
+                  sx={{ p: 3, borderRadius: 2, backgroundColor: "grey.50" }}
+                >
+                  <Grid container spacing={3} alignItems="flex-start">
+                    {/* Preview */}
+                    <Grid item xs={12} sm={3} md={2}>
+                      <img
+                        src={img.preview}
+                        alt="preview"
+                        style={{
+                          width: "100%",
+                          height: "auto",
+                          borderRadius: 8,
+                          border: "1px solid #ddd",
+                          display: "block",
+                        }}
                       />
+                      {img.status === "uploading" && (
+                        <MKBox display="flex" justifyContent="center" mt={1}>
+                          <TailSpin
+                            height={32}
+                            width={32}
+                            color="#6c63ff"
+                            ariaLabel="uploading-spinner"
+                          />
+                        </MKBox>
+                      )}
+                      {img.status === "done" && (
+                        <MKBox display="flex" justifyContent="center" mt={1}>
+                          <Check color="success" />
+                        </MKBox>
+                      )}
                     </Grid>
-                    <Grid item xs={12} sm={6} md={5}>
-                      <MKInput
-                        label="Title"
-                        value={img.title}
-                        onChange={(e) => handleInputChange(index, "title", e.target.value)}
-                        fullWidth
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6} md={5}>
-                      <MKInput
-                        label="Alt Text"
-                        value={img.alt}
-                        onChange={(e) => handleInputChange(index, "alt", e.target.value)}
-                        fullWidth
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6} md={3}>
-                      <MKInput
-                        label="Display Order"
-                        type="number"
-                        value={img.displayOrder}
-                        onChange={(e) => handleInputChange(index, "displayOrder", e.target.value)}
-                        fullWidth
-                      />
-                    </Grid>
-                    {img.status == "uploading" && (
-                      <Grid
-                        item
-                        xs={12}
-                        display="flex"
-                        justifyContent="center"
-                        alignItems="center"
-                        py={2}
-                      >
-                        <TailSpin
-                          height={40}
-                          width={40}
-                          color="#6c63ff"
-                          ariaLabel="uploading-spinner"
-                        />
+
+                    {/* Fields */}
+                    <Grid item xs={12} sm={9} md={10}>
+                      <Grid container spacing={2}>
+                        <Grid item xs={12} sm={6} md={5}>
+                          <MKInput
+                            label="Display Name"
+                            value={img.name}
+                            onChange={(e) => handleInputChange(index, "name", e.target.value)}
+                            fullWidth
+                          />
+                        </Grid>
+
+                        <Grid item xs={12} sm={6} md={5}>
+                          <MKInput
+                            label="Title"
+                            value={img.title}
+                            onChange={(e) => handleInputChange(index, "title", e.target.value)}
+                            fullWidth
+                          />
+                        </Grid>
+
+                        <Grid item xs={12} sm={6} md={5}>
+                          <MKInput
+                            label="Alt Text"
+                            value={img.alt}
+                            onChange={(e) => handleInputChange(index, "alt", e.target.value)}
+                            fullWidth
+                          />
+                        </Grid>
+
+                        <Grid item xs={12} sm={6} md={3}>
+                          <MKInput
+                            label="Display Order"
+                            type="number"
+                            value={img.displayOrder}
+                            onChange={(e) =>
+                              handleInputChange(index, "displayOrder", e.target.value)
+                            }
+                            fullWidth
+                          />
+                        </Grid>
+
+                        {showFloorSelector && (
+                          <>
+                            <Grid item xs={12} sm={6} md={5}>
+                              <FormControl fullWidth>
+                                <InputLabel id={`floor-label-${index}`}>Floor</InputLabel>
+                                <Select
+                                  labelId={`floor-label-${index}`}
+                                  value={img.floor}
+                                  label="Floor"
+                                  onChange={(e) =>
+                                    handleInputChange(index, "floor", e.target.value)
+                                  }
+                                  sx={{ minHeight: 40 }}
+                                >
+                                  <MenuItem value="">
+                                    <em>None</em>
+                                  </MenuItem>
+                                  <MenuItem value="first">First floor</MenuItem>
+                                  <MenuItem value="second">Second floor</MenuItem>
+                                </Select>
+                              </FormControl>
+                            </Grid>
+
+                            <Grid item xs={12} sm={6} md={4}>
+                              <FormControl fullWidth disabled={!img.floor}>
+                                <InputLabel id={`room-label-${index}`}>Room</InputLabel>
+                                <Select
+                                  labelId={`room-label-${index}`}
+                                  value={img.roomId}
+                                  label="Room"
+                                  onChange={(e) =>
+                                    handleInputChange(index, "roomId", e.target.value)
+                                  }
+                                  sx={{ minHeight: 40 }}
+                                >
+                                  <MenuItem value="">
+                                    <em>None</em>
+                                  </MenuItem>
+                                  {availableRooms.map((room) => (
+                                    <MenuItem key={room.value} value={room.value}>
+                                      {room.label}
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                              </FormControl>
+                            </Grid>
+                          </>
+                        )}
                       </Grid>
-                    )}
-                    {img.status == "done" && (
-                      <Grid
-                        item
-                        xs={12}
-                        display="flex"
-                        justifyContent="center"
-                        alignItems="center"
-                        py={2}
-                      >
-                        <Check />
-                      </Grid>
-                    )}
+                    </Grid>
                   </Grid>
-                </Grid>
+                </Paper>
               </Grid>
-            </Grid>
-          ))}
+            );
+          })}
 
           {images.length > 0 && (
-            <Grid item xs={12}>
+            <Grid item xs={12} mt={1}>
               <MKButton variant="contained" color="secondary" onClick={handleUploadAll} fullWidth>
                 Upload All Images
               </MKButton>
             </Grid>
           )}
+
           {spinner && (
-            <MKProgress
-              sx={{ mt: 2 }}
-              color="info"
-              value={(images.filter((img) => img.status === "done").length / images.length) * 100}
-            />
+            <Grid item xs={12}>
+              <MKProgress
+                color="info"
+                value={(images.filter((img) => img.status === "done").length / images.length) * 100}
+              />
+            </Grid>
           )}
         </Grid>
       </Paper>
