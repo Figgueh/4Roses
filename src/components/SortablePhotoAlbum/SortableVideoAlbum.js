@@ -49,8 +49,6 @@ const SortableVideoAlbum = ({ videos, setVideos }) => {
   const { session } = UserAuth();
   const [albumRender, setAlbumRender] = useState({});
 
-  console.log(videos);
-
   // Drag and drop functions
   const ref = useRef(null);
   const [activeVideo, setActiveVideo] = useState();
@@ -116,7 +114,6 @@ const SortableVideoAlbum = ({ videos, setVideos }) => {
 
         if (isAdmin) {
           const displayVideo = await axios.get(`${process.env.REACT_APP_BACKEND}/videos/display`);
-          console.log(displayVideo);
           setAlbumRender({
             // Adds the edit Icon and the select circle.
             extras: (_, { photo, index }) => (
@@ -124,8 +121,6 @@ const SortableVideoAlbum = ({ videos, setVideos }) => {
                 selected={photo.selected}
                 isDisplay={displayVideo.data.id === photo.id}
                 onClickEdit={(event) => {
-                  console.log(photo);
-
                   event.preventDefault();
                   event.stopPropagation();
                 }}
@@ -138,8 +133,6 @@ const SortableVideoAlbum = ({ videos, setVideos }) => {
                     };
                     return newPhotos;
                   });
-
-                  console.log(videos);
 
                   event.preventDefault();
                   event.stopPropagation();

@@ -117,7 +117,6 @@ export default function About() {
           axios.get(`${process.env.REACT_APP_BACKEND}/about/aboutImage`),
         ]);
         setSections(sectionsRes.data);
-        console.log(imageRes);
         if (imageRes.data?.url) setAboutImage(imageRes.data.url);
       } catch {
         // silently fall back to defaults

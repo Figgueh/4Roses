@@ -1,10 +1,12 @@
 // React imports
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import PropTypes from "prop-types";
 
 // Sections components
 import MKBox from "components/MKBox";
 import MKButton from "components/MKButton";
+import MediaCard from "components/Cards/BlogCards/CenteredBlogCard/MediaCard";
+import { Skeleton } from "@mui/material";
 
 // Icons
 import { Delete, Favorite } from "@mui/icons-material";
@@ -12,14 +14,14 @@ import { Delete, Favorite } from "@mui/icons-material";
 // Components imports
 import SortablePhotoAlbum from "components/SortablePhotoAlbum/SortablePhotoAlbum";
 import SortableVideoAlbum from "components/SortablePhotoAlbum/SortableVideoAlbum";
+
 // Modal imports
 import { ModalProvider } from "components/SortablePhotoAlbum/admin/ModalProvider";
 import EditView from "components/SortablePhotoAlbum/admin/EditView";
 
-// import { trimImagePath } from "utils";
 import axios from "axios";
-import { Skeleton } from "@mui/material";
-import MediaCard from "components/Cards/BlogCards/CenteredBlogCard/MediaCard";
+import SEO from "components/SEO";
+import { useTranslation } from "react-i18next";
 
 const breakpoints = [480, 768, 1024, 1280, 1600, 1920, 2560];
 
@@ -32,6 +34,9 @@ function PhotoViewer({ album, refreshFlag }) {
   const [photos, setPhotos] = useState([]);
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { t } = useTranslation();
+  const [displayImages, setDisplayImages] = useState(null);
+  const [thumbnail, setThumbnail] = useState(null);
 
   useEffect(() => {
     async function fetchImages() {
@@ -98,8 +103,10 @@ function PhotoViewer({ album, refreshFlag }) {
     async function fetchVideos() {
       try {
         const res = await axios.get(`${process.env.REACT_APP_BACKEND}/videos`);
+        const thumbnailRes = await axios.get(`${process.env.REACT_APP_BACKEND}/videos/display`);
         const parsed = res.data;
         setVideos(parsed);
+        setThumbnail(thumbnailRes.data.thumbnail);
       } catch (err) {
         console.error("Error fetching videos:", err);
       } finally {
@@ -111,6 +118,108 @@ function PhotoViewer({ album, refreshFlag }) {
 
     if (album == "video") fetchVideos();
   }, [album, refreshFlag]);
+
+  //Get the display images for SEO
+  useEffect(() => {
+    async function fetchDisplayImages() {
+      try {
+        const [interiorRes, exteriorRes] = await Promise.all([
+          axios.get(`${process.env.REACT_APP_BACKEND}/images/display/interior`),
+          axios.get(`${process.env.REACT_APP_BACKEND}/images/display/exterior`),
+        ]);
+
+        setDisplayImages({
+          interior: interiorRes.data,
+          exterior: exteriorRes.data,
+        });
+      } catch (err) {
+        console.error("Error fetching display images:", err);
+      }
+    }
+
+    fetchDisplayImages();
+  }, []);
+
+  const seoData = useMemo(() => {
+    let seoImage;
+    if (displayImages) {
+      if (displayImages.interior && album === "interior") {
+        seoImage = displayImages.interior.image_path;
+      } else if (displayImages.exterior && album === "exterior") {
+        seoImage = displayImages.exterior.image_path;
+      }
+    }
+    //Fall back is the first image
+    if (!seoImage || seoImage.includes("placehold")) {
+      seoImage = photos[0]?.src + "?w=480&h=360";
+    }
+
+    if (album === "interior") {
+      return {
+        title: t("Villa Interior Photos in Alvor, Portugal | Four Roses"),
+        description: t(
+          "Explore the interior of our villa rental in Alvor, Portugal. View spacious rooms, elegant design, and fully equipped living spaces at Four Roses."
+        ),
+        image: seoImage,
+        structuredData: {
+          "@type": "CollectionPage",
+          name: t("Villa Interior Photos in Alvor, Portugal | Four Roses"),
+          description: t(
+            "Explore the interior of our villa rental in Alvor, Portugal. View spacious rooms, elegant design, and fully equipped living spaces at Four Roses."
+          ),
+        },
+      };
+    }
+
+    if (album === "exterior") {
+      return {
+        title: t("Villa Exterior Photos in Alvor, Portugal | Four Roses"),
+        description: t(
+          "View the exterior of our villa rental in Alvor, Portugal. Discover outdoor spaces, the property surroundings, and the beautiful setting of Four Roses."
+        ),
+        image: seoImage,
+        structuredData: {
+          "@type": "CollectionPage",
+          name: t("Villa Exterior Photos in Alvor, Portugal | Four Roses"),
+          description: t(
+            "View the exterior of our villa rental in Alvor, Portugal. Discover outdoor spaces, the property surroundings, and the beautiful setting of Four Roses."
+          ),
+        },
+      };
+    }
+
+    if (album === "video") {
+      return {
+        title: t("Villa Videos in Alvor, Portugal | Four Roses"),
+        description: t(
+          "Watch videos of our villa rental in Alvor, Portugal and explore the property, amenities, and surroundings at Four Roses."
+        ),
+        image: thumbnail,
+        structuredData: {
+          "@type": "CollectionPage",
+          name: t("Villa Videos in Alvor, Portugal | Four Roses"),
+          description: t(
+            "Watch videos of our villa rental in Alvor, Portugal and explore the property, amenities, and surroundings at Four Roses."
+          ),
+        },
+      };
+    }
+
+    return {
+      title: t("Villa Gallery in Alvor, Portugal | Four Roses"),
+      description: t(
+        "Browse photos and media of our villa rental in Alvor, Portugal at Four Roses."
+      ),
+      image: seoImage,
+      structuredData: {
+        "@type": "CollectionPage",
+        name: t("Villa Gallery in Alvor, Portugal | Four Roses"),
+        description: t(
+          "Browse photos and media of our villa rental in Alvor, Portugal at Four Roses."
+        ),
+      },
+    };
+  }, [album, photos, t]);
 
   const handleDeletePhotos = async () => {
     const selectedPhotos = photos.filter((photo) => photo.selected);
@@ -194,6 +303,14 @@ function PhotoViewer({ album, refreshFlag }) {
 
   return (
     <MKBox sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
+      <SEO
+        title={seoData.title}
+        description={seoData.description}
+        image={seoData.image}
+        type="website"
+        structuredData={seoData.structuredData}
+      />
+
       {/* If one or more photo/video is selected */}
       {(photos.filter((photo) => photo.selected).length > 0 ||
         videos.filter((video) => video.selected).length > 0) && (
