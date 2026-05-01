@@ -156,14 +156,14 @@ function PhotoViewer({ album, refreshFlag }) {
 
     if (album === "interior") {
       return {
-        title: t("Villa Interior Photos in Alvor, Portugal | Four Roses"),
+        title: t("Interior Photos of Four Roses Villa in Alvor, Portugal"),
         description: t(
           "Explore the interior of our villa rental in Alvor, Portugal. View spacious rooms, elegant design, and fully equipped living spaces at Four Roses."
         ),
         image: seoImage,
         structuredData: {
           "@type": "CollectionPage",
-          name: t("Villa Interior Photos in Alvor, Portugal | Four Roses"),
+          name: t("Interior photos of Four Roses in Alvor, Portugal"),
           description: t(
             "Explore the interior of our villa rental in Alvor, Portugal. View spacious rooms, elegant design, and fully equipped living spaces at Four Roses."
           ),
@@ -173,14 +173,14 @@ function PhotoViewer({ album, refreshFlag }) {
 
     if (album === "exterior") {
       return {
-        title: t("Villa Exterior Photos in Alvor, Portugal | Four Roses"),
+        title: t("Exterior Photos of Four Roses Villa in Alvor, Portugal"),
         description: t(
           "View the exterior of our villa rental in Alvor, Portugal. Discover outdoor spaces, the property surroundings, and the beautiful setting of Four Roses."
         ),
         image: seoImage,
         structuredData: {
           "@type": "CollectionPage",
-          name: t("Villa Exterior Photos in Alvor, Portugal | Four Roses"),
+          name: t("Exterior Photos of Four Roses Villa in Alvor, Portugal"),
           description: t(
             "View the exterior of our villa rental in Alvor, Portugal. Discover outdoor spaces, the property surroundings, and the beautiful setting of Four Roses."
           ),
@@ -190,14 +190,14 @@ function PhotoViewer({ album, refreshFlag }) {
 
     if (album === "video") {
       return {
-        title: t("Villa Videos in Alvor, Portugal | Four Roses"),
+        title: t("Videos of Four Roses Villa in Alvor, Portugal"),
         description: t(
           "Watch videos of our villa rental in Alvor, Portugal and explore the property, amenities, and surroundings at Four Roses."
         ),
         image: thumbnail,
         structuredData: {
           "@type": "CollectionPage",
-          name: t("Villa Videos in Alvor, Portugal | Four Roses"),
+          name: t("Videos of Four Roses Villa in Alvor, Portugal"),
           description: t(
             "Watch videos of our villa rental in Alvor, Portugal and explore the property, amenities, and surroundings at Four Roses."
           ),

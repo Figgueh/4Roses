@@ -48,9 +48,9 @@ function Home() {
   const translatedRoutes = routes(t);
   const translatedFooterRoutes = footerRoutes(t);
 
-  const pageTitle = t("Villa Rental in Alvor, Portugal | Four Roses Luxury Villa");
+  const pageTitle = t("Four Roses Villa rental in Alvor, Portugal");
   const pageDescription = t(
-    "Luxury villa rental in Alvor, Portugal. Spacious, fully equipped holiday home near the beach with stunning views. Perfect for families and groups — book your stay today."
+    "Four Roses Villa rental in Alvor, Portugal. Spacious, fully equipped holiday home near the beach with stunning views. Perfect for families and groups — book your stay today."
   );
   const [seoImage, setSeoImage] = useState(null);
 

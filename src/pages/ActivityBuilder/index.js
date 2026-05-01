@@ -91,7 +91,7 @@ function ActivityBuilder() {
       type: "website",
       structuredData: {
         "@type": "CollectionPage",
-        name: `${activityName} activities in Alvor, Portugal | Four Roses`,
+        name: `${activityName} ${t("activities in Alvor, Portugal | Four Roses")}`,
         description: t(
           t(
             "Discover the best things to do in Alvor, Portugal. Explore top activities, local recommendations, hidden gems, and must visit spots for an unforgettable stay."
