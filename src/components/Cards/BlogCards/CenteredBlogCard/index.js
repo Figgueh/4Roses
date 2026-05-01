@@ -1,37 +1,37 @@
-/**
-=========================================================
-* Material Kit 2 React - v2.1.0
-=========================================================
-
-* Product Page: https://www.creative-tim.com/product/material-kit-react
-* Copyright 2023 Creative Tim (https://www.creative-tim.com)
-
-Coded by www.creative-tim.com
-
- =========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-*/
-
-// react-router components
 import { Link } from "react-router-dom";
-
-// prop-types is a library for typechecking of props
 import PropTypes from "prop-types";
-
-// @mui material components
 import Card from "@mui/material/Card";
 import MuiLink from "@mui/material/Link";
 
-// Material Kit 2 React components
 import MKBox from "components/MKBox";
 import MKTypography from "components/MKTypography";
 import MKButton from "components/MKButton";
 
 function CenteredBlogCard({ image, title, description, action }) {
+  const imageProps =
+    action.type === "external"
+      ? {
+          component: MuiLink,
+          href: action.route,
+          target: "_blank",
+          rel: "noreferrer",
+        }
+      : {
+          component: Link,
+          to: action.route,
+        };
+
   return (
-    <Card>
-      <MKBox position="relative" borderRadius="lg" mx={2} mt={-3}>
+    <Card sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
+      <MKBox
+        {...imageProps}
+        position="relative"
+        borderRadius="lg"
+        mx={2}
+        mt={-3}
+        display="block"
+        sx={{ textDecoration: "none" }}
+      >
         <MKBox
           component="img"
           src={image}
@@ -57,6 +57,7 @@ function CenteredBlogCard({ image, title, description, action }) {
           }}
         />
       </MKBox>
+
       <MKBox
         p={3}
         mt={-1}
@@ -64,53 +65,39 @@ function CenteredBlogCard({ image, title, description, action }) {
         sx={{
           display: "flex",
           flexDirection: "column",
-          flex: 1, // takes all available space
+          flex: 1,
         }}
       >
         <MKTypography display="inline" variant="h5" textTransform="capitalize" fontWeight="regular">
           {title}
         </MKTypography>
+
         <MKBox mt={1} mb={3}>
           <MKTypography variant="body2" component="p" color="text">
             {description}
           </MKTypography>
         </MKBox>
-        {action.type === "external" ? (
+
+        <MKBox mt="auto" display="flex" justifyContent="center">
           <MKButton
-            component={MuiLink}
-            href={action.route}
-            target="_blank"
-            rel="noreferrer"
+            component={action.type === "external" ? MuiLink : Link}
+            to={action.type === "internal" ? action.route : undefined}
+            href={action.type === "external" ? action.route : undefined}
+            target={action.type === "external" ? "_blank" : undefined}
+            rel={action.type === "external" ? "noreferrer" : undefined}
             variant="gradient"
             size="small"
-            color={action.color ? action.color : "dark"}
-            sx={{ mt: "auto" }}
+            color={action.color || "dark"}
+            sx={{ maxWidth: 250, width: "100%" }}
           >
             {action.label}
           </MKButton>
-        ) : (
-          <MKBox mt="auto" display="flex" justifyContent="center">
-            <MKButton
-              component={action.type === "external" ? MuiLink : Link}
-              to={action.type === "internal" ? action.route : undefined}
-              href={action.type === "external" ? action.route : undefined}
-              target={action.type === "external" ? "_blank" : undefined}
-              rel={action.type === "external" ? "noreferrer" : undefined}
-              variant="gradient"
-              size="small"
-              color={action.color || "dark"}
-              sx={{ maxWidth: 250, width: "100%" }}
-            >
-              {action.label}
-            </MKButton>
-          </MKBox>
-        )}
+        </MKBox>
       </MKBox>
     </Card>
   );
 }
 
-// Typechecking props for the CenteredBlogCard
 CenteredBlogCard.propTypes = {
   image: PropTypes.string.isRequired,
   title: PropTypes.string.isRequired,

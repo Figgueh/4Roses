@@ -31,18 +31,40 @@ import CenteredFooter from "components/Footers/CenteredFooter";
 import { routes } from "routes";
 import { useTranslation } from "react-i18next";
 
+//SEO
+import SEO from "components/SEO";
+
 // Images
 import bgImage from "assets/images/beach/beach1.jpg";
+import profilePicture from "assets/images/profile/owners.c1.avif";
+
 function AboutUs() {
   const { t } = useTranslation();
   const translatedRoutes = routes(t);
+  const imageUrl = window.location.origin + profilePicture;
   return (
     <>
+      <SEO
+        title={t("About Us") + " | Four Roses"}
+        description={t(
+          "Learn more about Four Roses, our rental property, amenities, and how to contact us."
+        )}
+        image={imageUrl}
+        type="website"
+        structuredData={{
+          "@type": "WebPage",
+          name: t("About Us") + " | Four Roses",
+          description: t(
+            "Learn more about Four Roses, our rental property, amenities, and how to contact us."
+          ),
+        }}
+      />
+
       <DefaultNavbar
         routes={translatedRoutes}
         action={{
-          type: "external",
-          route: "https://www.vrbo.com/en-ca/cottage-rental/p2905236vb",
+          type: "internal",
+          route: "/book",
           label: t("book"),
           color: "info",
         }}

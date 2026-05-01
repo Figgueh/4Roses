@@ -11,6 +11,7 @@ import bgImage from "assets/images/view/monchique.jpg";
 import { routes } from "routes";
 import footerRoutes from "footer.routes";
 
+import SEO from "components/SEO";
 import { useTranslation } from "react-i18next";
 
 const serif = "'Cormorant Garamond', serif";
@@ -64,6 +65,20 @@ function TermsConditions() {
 
   return (
     <>
+      <SEO
+        title={t("Terms & Conditions | Four Roses Alvor Villa")}
+        description={t(
+          "Read the terms and conditions for booking and staying at Four Roses villa in Alvor, Portugal, including reservations, deposits, cancellations, and guest responsibilities."
+        )}
+        type="website"
+        structuredData={{
+          "@type": "WebPage",
+          name: t("Terms & Conditions | Four Roses Alvor Villa"),
+          description: t(
+            "Read the terms and conditions for booking and staying at Four Roses villa in Alvor, Portugal."
+          ),
+        }}
+      />
       <DefaultNavbar routes={translatedRoutes} sticky />
 
       {/* ── Hero ── */}

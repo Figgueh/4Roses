@@ -1,18 +1,29 @@
 import { useState } from "react";
-import AvailabilityCalendar from "../../components/Booking/AvailabilityCalendar";
-import PriceSummary from "../../components/Billing/PriceSummary";
-import DefaultNavbar from "components/DefaultNavbar";
-import { useTranslation } from "react-i18next";
-import { routes } from "routes";
-import MKBox from "components/MKBox";
-import DefaultFooter from "components/Footers/DefaultFooter";
-import footerRoutes from "footer.routes";
-import bgImage from "assets/images/property/beach/WidePhotoBeachNoRocks.jpg";
-import Container from "@mui/material/Container";
-import MKTypography from "components/MKTypography";
+
+//Mui components
 import Grid from "@mui/material/Grid";
 import { Card } from "@mui/material";
+import MKBox from "components/MKBox";
+import MKTypography from "components/MKTypography";
+import Container from "@mui/material/Container";
+
+//Components
+import DefaultNavbar from "components/DefaultNavbar";
+import AvailabilityCalendar from "../../components/Booking/AvailabilityCalendar";
+import PriceSummary from "../../components/Billing/PriceSummary";
 import BookingOptions from "../../components/Booking/BookingOptions";
+import SEO from "components/SEO";
+
+//Routes
+import { routes } from "routes";
+import DefaultFooter from "components/Footers/DefaultFooter";
+import footerRoutes from "footer.routes";
+
+//Translations
+import { useTranslation } from "react-i18next";
+
+//Images
+import bgImage from "assets/images/property/beach/WidePhotoBeachNoRocks.jpg";
 
 export default function BookingPage() {
   const { t } = useTranslation();
@@ -22,6 +33,25 @@ export default function BookingPage() {
 
   return (
     <>
+      <SEO
+        title={t("Book Your Villa in Alvor, Portugal | Four Roses")}
+        description={t(
+          t(
+            "Reserve your villa rental in Alvor, Portugal directly with Four Roses. Check availability, view pricing, and enjoy exclusive discounts when booking direct."
+          )
+        )}
+        type="website"
+        structuredData={{
+          "@type": "WebPage",
+          name: t("Book Your Villa in Alvor, Portugal | Four Roses"),
+          description: t(
+            t(
+              "Reserve your villa rental in Alvor, Portugal directly with Four Roses. Check availability, view pricing, and enjoy exclusive discounts when booking direct."
+            )
+          ),
+        }}
+      />
+
       <DefaultNavbar routes={translatedRoutes} />
 
       <MKBox

@@ -1,5 +1,4 @@
 import { useEffect, useState, useRef } from "react";
-import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
 
 import { Skeleton, Grid, Box } from "@mui/material";
@@ -161,18 +160,13 @@ function MediaCard({ toDisplay, containsHeader }) {
                   sx={{ borderRadius: 2 }}
                 />
               ) : (
-                <Link
-                  to={mediaData[item]?.action?.route}
-                  style={{ flex: 1, display: "flex", textDecoration: "none", width: "100%" }}
-                >
-                  <CenteredBlogCard
-                    image={mediaData[item]?.image}
-                    title={mediaData[item]?.title}
-                    description={mediaData[item]?.description}
-                    action={mediaData[item]?.action}
-                    style={{ flex: 1, display: "flex", flexDirection: "column" }}
-                  />
-                </Link>
+                <CenteredBlogCard
+                  image={mediaData[item]?.image}
+                  title={mediaData[item]?.title}
+                  description={mediaData[item]?.description}
+                  action={mediaData[item]?.action}
+                  style={{ flex: 1, display: "flex", flexDirection: "column" }}
+                />
               )}
             </FadeInBox>
           </Grid>

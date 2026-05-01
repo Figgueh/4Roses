@@ -13,6 +13,7 @@ Coded by www.creative-tim.com
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 */
 // @mui material components
+import { useEffect, useState } from "react";
 import Container from "@mui/material/Container";
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
@@ -36,17 +37,56 @@ import bgImage from "assets/images/property/exterior/frontGroundFloor.JPG";
 import MainFeatures from "pages/Home/sections/MainFeatures";
 import Amenities from "pages/Home/sections/Amenities";
 import MediaCard from "components/Cards/BlogCards/CenteredBlogCard/MediaCard";
+import About from "./sections/About";
 
 import { useTranslation } from "react-i18next";
-import About from "./sections/About";
+import axios from "axios";
+import SEO from "components/SEO";
 
 function Home() {
   const { t } = useTranslation();
   const translatedRoutes = routes(t);
   const translatedFooterRoutes = footerRoutes(t);
 
+  const pageTitle = t("Four Roses Villa rental in Alvor, Portugal");
+  const pageDescription = t(
+    "Four Roses Villa rental in Alvor, Portugal. Spacious, fully equipped holiday home near the beach with stunning views. Perfect for families and groups — book your stay today."
+  );
+  const [seoImage, setSeoImage] = useState(null);
+
+  // Get the image in the about property section
+  useEffect(() => {
+    axios
+      .get(`${process.env.REACT_APP_BACKEND}/about/aboutImage`)
+      .then((res) => {
+        setSeoImage(res.data.url);
+      })
+      .catch((err) => {
+        console.error("Failed to load SEO image", err);
+      });
+  }, []);
+  const pageImage =
+    seoImage && seoImage.startsWith("http")
+      ? seoImage
+      : seoImage
+      ? process.env.REACT_APP_BACKEND + seoImage
+      : window.location.origin + bgImage; //Fall back being the banner image
+
   return (
     <>
+      <SEO
+        title={pageTitle}
+        description={pageDescription}
+        image={pageImage}
+        type="website"
+        structuredData={{
+          "@type": "LodgingBusiness",
+          name: "Four Roses",
+          description: pageDescription,
+          image: pageImage,
+        }}
+      />
+
       <DefaultNavbar
         routes={translatedRoutes}
         action={{

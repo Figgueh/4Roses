@@ -43,7 +43,7 @@ function DefaultFooter({ content }) {
             textAlign: { xs: "center", md: "left" },
           }}
         >
-          <Grid item xs={12} md={3} sx={{ ml: "auto", mb: 3 }}>
+          <Grid item xs={12} md={3} sx={{ ml: { xl: "auto", md: -10 }, mb: 3 }}>
             <MKBox>
               <Link to={brand.route}>
                 <MKBox
@@ -91,7 +91,18 @@ function DefaultFooter({ content }) {
             </MKBox>
           </Grid>
           {menus.map(({ name: title, items }) => (
-            <Grid key={title} item xs={6} md={2} sx={{ mb: 3 }}>
+            <Grid
+              key={title}
+              item
+              xs={6}
+              md={2}
+              sx={{
+                ml: { xs: 0, md: "auto" },
+                mb: 3,
+                textAlign: { xs: "center", md: "left" },
+                justifyContent: { md: "flex-start" },
+              }}
+            >
               <MKTypography
                 display="block"
                 variant="button"
@@ -106,7 +117,7 @@ function DefaultFooter({ content }) {
                   const isHash = typeof href === "string" && href.includes("#");
 
                   return (
-                    <MKBox key={name} component="li" p={0} m={0} lineHeight={1.25}>
+                    <MKBox key={name} component="li" p={0} m={0} mb={1} lineHeight={1.25}>
                       {href ? (
                         isHash ? (
                           <MKTypography
