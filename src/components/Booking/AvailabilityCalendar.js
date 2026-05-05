@@ -61,12 +61,16 @@ export default function AvailabilityCalendar({
   const [monthlyPrices, setMonthlyPrices] = useState({});
   const [error, setError] = useState("");
   const cancelRef = useRef(false);
+  const gridRef = useRef(null);
 
+  // Touch refs
   const touchStartX = useRef(null);
   const touchStartY = useRef(null);
   const touchOriginTarget = useRef(null);
+  const dragStartDateRef = useRef(null);
+  const dragEndDateRef = useRef(null);
+  const dragModeRef = useRef(null);
   const SWIPE_THRESHOLD = 50;
-  const DRAG_MOVE_THRESHOLD = 8;
 
   const { session } = UserAuth();
   const accountId = session?.user?.id ?? null;
@@ -144,6 +148,26 @@ export default function AvailabilityCalendar({
   const isBlocked = (date) => blockedSources.has(date.toISOString().split("T")[0]);
   const getSourceForDate = (date) => blockedSources.get(date.toISOString().split("T")[0]) || null;
 
+  // Attach grid touch listeners as non-passive so preventDefault works on iOS
+  useEffect(() => {
+    const el = gridRef.current;
+    if (!el || !isMobile) return;
+
+    const onTouchStart = (e) => handleGridTouchStart(e);
+    const onTouchMove = (e) => handleGridTouchMove(e);
+    const onTouchEnd = (e) => handleGridTouchEnd(e);
+
+    el.addEventListener("touchstart", onTouchStart, { passive: false });
+    el.addEventListener("touchmove", onTouchMove, { passive: false });
+    el.addEventListener("touchend", onTouchEnd, { passive: false });
+
+    return () => {
+      el.removeEventListener("touchstart", onTouchStart);
+      el.removeEventListener("touchmove", onTouchMove);
+      el.removeEventListener("touchend", onTouchEnd);
+    };
+  }, [isMobile, blockedSources]);
+
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
   const firstDay = new Date(year, month, 1).getDay();
@@ -209,6 +233,9 @@ export default function AvailabilityCalendar({
     setDragStartDate(null);
     setDragEndDate(null);
     setDragMode(null);
+    dragStartDateRef.current = null;
+    dragEndDateRef.current = null;
+    dragModeRef.current = null;
   };
 
   // ── Mouse handlers (desktop — unchanged) ────────────────────────
@@ -236,7 +263,7 @@ export default function AvailabilityCalendar({
     resetDrag();
   };
 
-  // ── Header touch handlers (swipe only) ──────────────────────────
+  // ── Header touch handlers (swipe to change month only) ──────────
   const handleHeaderTouchStart = (e) => {
     touchStartX.current = e.touches[0].clientX;
     touchStartY.current = e.touches[0].clientY;
@@ -253,42 +280,63 @@ export default function AvailabilityCalendar({
     touchOriginTarget.current = null;
   };
 
-  // ── Grid touch handlers (drag-select only) ───────────────────────
-  const handleGridTouchStart = (date, e) => {
-    touchStartX.current = e.touches[0].clientX;
-    touchStartY.current = e.touches[0].clientY;
+  // ── Grid touch handlers (registered as non-passive via useEffect) ──
+  // Using refs for drag state so handlers always read current values
+  // without needing to be recreated on every render.
+  const handleGridTouchStart = (e) => {
+    e.preventDefault();
     touchOriginTarget.current = "grid";
+
+    const touch = e.touches[0];
+    const el = document.elementFromPoint(touch.clientX, touch.clientY);
+    const dateStr = el?.dataset?.date;
+    if (!dateStr) return;
+
+    const [y, mo, d] = dateStr.split("-").map(Number);
+    const date = new Date(y, mo - 1, d);
     if (isBlocked(date) || isPastDate(date)) return;
-    const key = date.toISOString().split("T")[0];
-    setDragMode(selectedDates?.[key] ? "unselect" : "select");
-    setDragStartDate(cloneDate(date));
-    setDragEndDate(cloneDate(date));
+
+    const mode = selectedDates?.[dateStr] ? "unselect" : "select";
+    const cloned = cloneDate(date);
+
+    dragModeRef.current = mode;
+    dragStartDateRef.current = cloned;
+    dragEndDateRef.current = cloned;
+
+    setDragMode(mode);
+    setIsDragging(true);
+    setDragStartDate(cloned);
+    setDragEndDate(cloned);
   };
 
   const handleGridTouchMove = (e) => {
     if (touchOriginTarget.current !== "grid") return;
-    const dx = Math.abs(e.touches[0].clientX - (touchStartX.current ?? 0));
-    const dy = Math.abs(e.touches[0].clientY - (touchStartY.current ?? 0));
-    if (dx > DRAG_MOVE_THRESHOLD || dy > DRAG_MOVE_THRESHOLD) {
-      if (!isDragging) setIsDragging(true);
-    }
-    if (!isDragging) return;
     e.preventDefault();
+
     const touch = e.touches[0];
     const el = document.elementFromPoint(touch.clientX, touch.clientY);
     const dateStr = el?.dataset?.date;
-    if (dateStr) {
-      const [y, mo, d] = dateStr.split("-").map(Number);
-      const hovered = new Date(y, mo - 1, d);
-      if (!isBlocked(hovered) && !isPastDate(hovered)) setDragEndDate(cloneDate(hovered));
+    if (!dateStr) return;
+
+    const [y, mo, d] = dateStr.split("-").map(Number);
+    const hovered = new Date(y, mo - 1, d);
+    if (!isBlocked(hovered) && !isPastDate(hovered)) {
+      const cloned = cloneDate(hovered);
+      dragEndDateRef.current = cloned;
+      setDragEndDate(cloned);
     }
   };
 
-  const handleGridTouchEnd = () => {
+  const handleGridTouchEnd = (e) => {
     if (touchOriginTarget.current !== "grid") return;
-    if (dragStartDate && dragEndDate) {
-      commitSelection(dragStartDate, dragEndDate, dragMode);
+    e.preventDefault();
+
+    // Read from refs so we always have the latest values regardless of
+    // React's async state batching, which caused missed selections on iOS
+    if (dragStartDateRef.current && dragEndDateRef.current) {
+      commitSelection(dragStartDateRef.current, dragEndDateRef.current, dragModeRef.current);
     }
+
     resetDrag();
     touchOriginTarget.current = null;
   };
@@ -327,7 +375,6 @@ export default function AvailabilityCalendar({
     return (
       <div
         data-date={dateKey}
-        onTouchStart={(e) => handleGridTouchStart(date, e)}
         style={{
           display: "flex",
           flexDirection: "column",
@@ -563,6 +610,7 @@ export default function AvailabilityCalendar({
       {/* Calendar grid */}
       {isMobile ? (
         <div
+          ref={gridRef}
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(7, 1fr)",
@@ -571,8 +619,6 @@ export default function AvailabilityCalendar({
             paddingRight: 8,
             paddingBottom: 16,
           }}
-          onTouchMove={handleGridTouchMove}
-          onTouchEnd={handleGridTouchEnd}
         >
           {[...Array(firstDay)].map((_, i) => (
             <div key={`pad-${i}`} />
