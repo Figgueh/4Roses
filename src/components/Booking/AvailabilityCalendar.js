@@ -62,10 +62,11 @@ export default function AvailabilityCalendar({
   const [error, setError] = useState("");
   const cancelRef = useRef(false);
 
-  // Touch / swipe refs
   const touchStartX = useRef(null);
   const touchStartY = useRef(null);
+  const touchOriginTarget = useRef(null);
   const SWIPE_THRESHOLD = 50;
+  const DRAG_MOVE_THRESHOLD = 8;
 
   const { session } = UserAuth();
   const accountId = session?.user?.id ?? null;
@@ -140,15 +141,8 @@ export default function AvailabilityCalendar({
     return map;
   }, [blockedDates]);
 
-  const isBlocked = (date) => {
-    const iso = date.toISOString().split("T")[0];
-    return blockedSources.has(iso);
-  };
-
-  const getSourceForDate = (date) => {
-    const iso = date.toISOString().split("T")[0];
-    return blockedSources.get(iso) || null;
-  };
+  const isBlocked = (date) => blockedSources.has(date.toISOString().split("T")[0]);
+  const getSourceForDate = (date) => blockedSources.get(date.toISOString().split("T")[0]) || null;
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -172,6 +166,52 @@ export default function AvailabilityCalendar({
 
   const cloneDate = (d) => new Date(d.getTime());
 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const isPastDate = (date) => {
+    const d = cloneDate(date);
+    d.setHours(0, 0, 0, 0);
+    return d < today;
+  };
+
+  function validateContinuousDates(dates) {
+    const keys = Object.keys(dates).sort();
+    if (keys.length === 0) return true;
+    for (let i = 1; i < keys.length; i++) {
+      const prev = new Date(keys[i - 1]);
+      const curr = new Date(keys[i]);
+      if ((curr - prev) / 86400000 !== 1) return false;
+    }
+    return true;
+  }
+
+  const commitSelection = (startDate, endDate, mode) => {
+    if (!startDate || !endDate) return;
+    const start = startDate < endDate ? cloneDate(startDate) : cloneDate(endDate);
+    const end = startDate > endDate ? cloneDate(startDate) : cloneDate(endDate);
+    const newSelected = { ...(selectedDates || {}) };
+    for (let d = cloneDate(start); d <= end; d.setDate(d.getDate() + 1)) {
+      if (isPastDate(d) || isBlocked(d)) continue;
+      const key = d.toISOString().split("T")[0];
+      if (mode === "select") newSelected[key] = getPriceForDate(d);
+      if (mode === "unselect") delete newSelected[key];
+    }
+    if (!validateContinuousDates(newSelected) & isContinuousCheck) {
+      setError("Selected dates must be continuous!");
+    } else {
+      onSelectionChange?.(newSelected);
+      setError("");
+    }
+  };
+
+  const resetDrag = () => {
+    setIsDragging(false);
+    setDragStartDate(null);
+    setDragEndDate(null);
+    setDragMode(null);
+  };
+
+  // ── Mouse handlers (desktop — unchanged) ────────────────────────
   const handleMouseDown = (date) => {
     if (isBlocked(date) || isPastDate(date)) return;
     const key = date.toISOString().split("T")[0];
@@ -189,52 +229,49 @@ export default function AvailabilityCalendar({
 
   const handleMouseUp = () => {
     if (!isDragging || !dragStartDate || !dragEndDate) {
-      setIsDragging(false);
-      setDragStartDate(null);
-      setDragEndDate(null);
-      setDragMode(null);
+      resetDrag();
       return;
     }
-
-    const start = dragStartDate < dragEndDate ? cloneDate(dragStartDate) : cloneDate(dragEndDate);
-    const end = dragStartDate > dragEndDate ? cloneDate(dragStartDate) : cloneDate(dragEndDate);
-
-    const newSelected = { ...(selectedDates || {}) };
-
-    for (let d = cloneDate(start); d <= end; d.setDate(d.getDate() + 1)) {
-      if (isPastDate(d)) continue;
-      const key = d.toISOString().split("T")[0];
-      if (isBlocked(d)) continue;
-      if (dragMode === "select") newSelected[key] = getPriceForDate(d);
-      if (dragMode === "unselect") delete newSelected[key];
-    }
-
-    if (!validateContinuousDates(newSelected) & isContinuousCheck) {
-      setError("Selected dates must be continuous!");
-    } else {
-      onSelectionChange?.(newSelected);
-      setError("");
-    }
-
-    setIsDragging(false);
-    setDragStartDate(null);
-    setDragEndDate(null);
-    setDragMode(null);
+    commitSelection(dragStartDate, dragEndDate, dragMode);
+    resetDrag();
   };
 
-  // Touch handlers
-  const handleTouchStart = (date, e) => {
+  // ── Header touch handlers (swipe only) ──────────────────────────
+  const handleHeaderTouchStart = (e) => {
     touchStartX.current = e.touches[0].clientX;
     touchStartY.current = e.touches[0].clientY;
+    touchOriginTarget.current = "header";
+  };
+
+  const handleHeaderTouchEnd = (e) => {
+    if (touchOriginTarget.current !== "header") return;
+    const dx = e.changedTouches[0].clientX - (touchStartX.current ?? 0);
+    const dy = e.changedTouches[0].clientY - (touchStartY.current ?? 0);
+    if (Math.abs(dx) > SWIPE_THRESHOLD && Math.abs(dx) > Math.abs(dy) * 1.5) {
+      setCurrentDate(new Date(year, month + (dx < 0 ? 1 : -1), 1));
+    }
+    touchOriginTarget.current = null;
+  };
+
+  // ── Grid touch handlers (drag-select only) ───────────────────────
+  const handleGridTouchStart = (date, e) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+    touchOriginTarget.current = "grid";
     if (isBlocked(date) || isPastDate(date)) return;
     const key = date.toISOString().split("T")[0];
     setDragMode(selectedDates?.[key] ? "unselect" : "select");
-    setIsDragging(true);
     setDragStartDate(cloneDate(date));
     setDragEndDate(cloneDate(date));
   };
 
-  const handleTouchMove = (e) => {
+  const handleGridTouchMove = (e) => {
+    if (touchOriginTarget.current !== "grid") return;
+    const dx = Math.abs(e.touches[0].clientX - (touchStartX.current ?? 0));
+    const dy = Math.abs(e.touches[0].clientY - (touchStartY.current ?? 0));
+    if (dx > DRAG_MOVE_THRESHOLD || dy > DRAG_MOVE_THRESHOLD) {
+      if (!isDragging) setIsDragging(true);
+    }
     if (!isDragging) return;
     e.preventDefault();
     const touch = e.touches[0];
@@ -247,37 +284,13 @@ export default function AvailabilityCalendar({
     }
   };
 
-  const handleTouchEnd = (e) => {
-    const dx = e.changedTouches[0].clientX - (touchStartX.current ?? 0);
-    const dy = e.changedTouches[0].clientY - (touchStartY.current ?? 0);
-    if (Math.abs(dx) > SWIPE_THRESHOLD && Math.abs(dx) > Math.abs(dy) * 1.5 && !isDragging) {
-      setCurrentDate(new Date(year, month + (dx < 0 ? 1 : -1), 1));
-    } else if (isDragging && dragStartDate && dragEndDate) {
-      handleMouseUp();
+  const handleGridTouchEnd = () => {
+    if (touchOriginTarget.current !== "grid") return;
+    if (dragStartDate && dragEndDate) {
+      commitSelection(dragStartDate, dragEndDate, dragMode);
     }
-    setIsDragging(false);
-    setDragStartDate(null);
-    setDragEndDate(null);
-    setDragMode(null);
-  };
-
-  function validateContinuousDates(dates) {
-    const keys = Object.keys(dates).sort();
-    if (keys.length === 0) return true;
-    for (let i = 1; i < keys.length; i++) {
-      const prev = new Date(keys[i - 1]);
-      const curr = new Date(keys[i]);
-      if ((curr - prev) / 86400000 !== 1) return false;
-    }
-    return true;
-  }
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const isPastDate = (date) => {
-    const d = cloneDate(date);
-    d.setHours(0, 0, 0, 0);
-    return d < today;
+    resetDrag();
+    touchOriginTarget.current = null;
   };
 
   const isInDragRange = (date) => {
@@ -294,7 +307,7 @@ export default function AvailabilityCalendar({
     return null;
   };
 
-  // ── Mobile day cell ─────────────────────────────────────────────
+  // ── Mobile day cell ──────────────────────────────────────────────
   const MobileDayCell = ({ date, dateKey, blockedDay, sourceName, pastDay, dragColor }) => {
     const selected = selectedDates?.[dateKey];
     const price = !blockedDay && !pastDay ? getPriceForDate(date) : null;
@@ -314,10 +327,7 @@ export default function AvailabilityCalendar({
     return (
       <div
         data-date={dateKey}
-        onMouseDown={() => handleMouseDown(date)}
-        onMouseEnter={() => handleMouseEnter(date)}
-        onMouseUp={handleMouseUp}
-        onTouchStart={(e) => handleTouchStart(date, e)}
+        onTouchStart={(e) => handleGridTouchStart(date, e)}
         style={{
           display: "flex",
           flexDirection: "column",
@@ -335,13 +345,11 @@ export default function AvailabilityCalendar({
           cursor: blockedDay || pastDay ? "not-allowed" : "pointer",
           userSelect: "none",
           WebkitUserSelect: "none",
-          touchAction: isDragging ? "none" : "pan-y",
-          transition: "background-color 0.1s ease, transform 0.08s ease",
+          touchAction: "none",
           position: "relative",
           gap: 1,
         }}
       >
-        {/* Day number */}
         <span
           style={{
             fontSize: "0.95rem",
@@ -353,7 +361,6 @@ export default function AvailabilityCalendar({
           {date.getDate()}
         </span>
 
-        {/* Price */}
         {price !== null && (
           <span
             style={{
@@ -370,7 +377,6 @@ export default function AvailabilityCalendar({
           </span>
         )}
 
-        {/* Override dot */}
         {hasOverride && (
           <div
             style={{
@@ -385,7 +391,6 @@ export default function AvailabilityCalendar({
           />
         )}
 
-        {/* Blocked source label */}
         {blockedDay && sourceName && (
           <span
             style={{
@@ -403,71 +408,115 @@ export default function AvailabilityCalendar({
     );
   };
 
+  MobileDayCell.propTypes = {
+    date: (props, propName, componentName) => {
+      const val = props[propName];
+      if (!(val instanceof Date) || isNaN(val.getTime())) {
+        return new Error(
+          `Invalid prop \`${propName}\` supplied to \`${componentName}\`. Expected a valid Date instance.`
+        );
+      }
+      return null;
+    },
+    dateKey: PropTypes.string.isRequired,
+    blockedDay: PropTypes.bool.isRequired,
+    sourceName: PropTypes.string,
+    pastDay: PropTypes.bool.isRequired,
+    dragColor: PropTypes.string,
+  };
+
+  MobileDayCell.defaultProps = {
+    sourceName: null,
+    dragColor: null,
+  };
+
   return (
-    <MKBox maxWidth="xl" mx="auto" p={isMobile ? 1.5 : 3}>
-      <MKTypography variant="h4" textAlign="center" mb={isMobile ? 2 : 3}>
+    <MKBox
+      maxWidth={isMobile ? "100%" : "xl"}
+      mx="auto"
+      p={isMobile ? 0 : 3}
+      sx={
+        isMobile
+          ? {
+              width: "100vw",
+              position: "relative",
+              left: "50%",
+              transform: "translateX(-50%)",
+            }
+          : {}
+      }
+    >
+      <MKTypography
+        variant="h4"
+        textAlign="center"
+        mb={isMobile ? 0 : 3}
+        sx={isMobile ? { pt: 2, pb: 1 } : {}}
+      >
         {t("Availability")}
       </MKTypography>
 
       {error && (
-        <Alert sx={{ mt: 2 }} severity="error" onClose={() => setError("")}>
+        <Alert sx={{ mt: 2, mx: isMobile ? 1 : 0 }} severity="error" onClose={() => setError("")}>
           <AlertTitle>{t("Date selection error")}</AlertTitle>
           {error}
         </Alert>
       )}
 
       {/* Month controls */}
-      <MKBox
-        display="flex"
-        justifyContent="space-between"
-        alignItems="center"
-        mb={isMobile ? 1.5 : 2}
-        sx={
-          isMobile
-            ? {
-                position: "sticky",
-                top: 0,
-                zIndex: 10,
-                backgroundColor: "white",
-                py: 1,
-                px: 0.5,
-                borderBottom: "1px solid #f0f0f0",
-              }
-            : {}
-        }
-      >
-        <MKButton
-          variant="contained"
-          onClick={() => setCurrentDate(new Date(year, month - 1, 1))}
-          sx={isMobile ? { minWidth: 44, minHeight: 44, px: 1.5, fontSize: "1.1rem" } : {}}
+      {isMobile ? (
+        <MKBox
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+          onTouchStart={handleHeaderTouchStart}
+          onTouchEnd={handleHeaderTouchEnd}
+          sx={{
+            position: "sticky",
+            top: 0,
+            zIndex: 10,
+            backgroundColor: "white",
+            py: 1,
+            px: 1.5,
+            borderBottom: "1px solid #f0f0f0",
+            mb: 1,
+          }}
         >
-          {isMobile ? "‹" : `‹ ${t("Previous")}`}
-        </MKButton>
-
-        <MKTypography variant="h6">
-          {currentDate.toLocaleString(i18n.language, { month: "long", year: "numeric" })}
-        </MKTypography>
-
-        <MKButton
-          variant="contained"
-          onClick={() => setCurrentDate(new Date(year, month + 1, 1))}
-          sx={isMobile ? { minWidth: 44, minHeight: 44, px: 1.5, fontSize: "1.1rem" } : {}}
-        >
-          {isMobile ? "›" : `${t("Next")} ›`}
-        </MKButton>
-      </MKBox>
-
-      {/* Swipe hint — mobile only */}
-      {isMobile && (
-        <MKTypography
-          variant="caption"
-          display="block"
-          textAlign="center"
-          mb={1}
-          sx={{ color: "text.secondary" }}
-        >
-          {t("Swipe left or right to change month")}
-        </MKTypography>
+          <MKButton
+            variant="contained"
+            onClick={() => setCurrentDate(new Date(year, month - 1, 1))}
+            sx={{ minWidth: 44, minHeight: 44, px: 1.5, fontSize: "1.2rem" }}
+          >
+            ‹
+          </MKButton>
+          <MKTypography variant="h6" sx={{ userSelect: "none" }}>
+            {currentDate.toLocaleString(i18n.language, { month: "long", year: "numeric" })}
+          </MKTypography>
+          <MKButton
+            variant="contained"
+            onClick={() => setCurrentDate(new Date(year, month + 1, 1))}
+            sx={{ minWidth: 44, minHeight: 44, px: 1.5, fontSize: "1.2rem" }}
+          >
+            ›
+          </MKButton>
+        </MKBox>
+      ) : (
+        <MKBox display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+          <MKButton
+            variant="contained"
+            onClick={() => setCurrentDate(new Date(year, month - 1, 1))}
+          >
+            ‹ {t("Previous")}
+          </MKButton>
+          <MKTypography variant="h6">
+            {currentDate.toLocaleString(i18n.language, { month: "long", year: "numeric" })}
+          </MKTypography>
+          <MKButton
+            variant="contained"
+            onClick={() => setCurrentDate(new Date(year, month + 1, 1))}
+          >
+            {t("Next")} ›
+          </MKButton>
+        </MKBox>
       )}
 
       {/* Day headers */}
@@ -478,6 +527,8 @@ export default function AvailabilityCalendar({
             gridTemplateColumns: "repeat(7, 1fr)",
             gap: 4,
             marginBottom: 4,
+            paddingLeft: 8,
+            paddingRight: 8,
           }}
         >
           {daysOfWeek.map((day) => (
@@ -512,9 +563,16 @@ export default function AvailabilityCalendar({
       {/* Calendar grid */}
       {isMobile ? (
         <div
-          style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4 }}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(7, 1fr)",
+            gap: 4,
+            paddingLeft: 8,
+            paddingRight: 8,
+            paddingBottom: 16,
+          }}
+          onTouchMove={handleGridTouchMove}
+          onTouchEnd={handleGridTouchEnd}
         >
           {[...Array(firstDay)].map((_, i) => (
             <div key={`pad-${i}`} />
@@ -542,7 +600,7 @@ export default function AvailabilityCalendar({
           })}
         </div>
       ) : (
-        <Grid container spacing={1} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
+        <Grid container spacing={1}>
           {[...Array(firstDay)].map((_, i) => (
             <Grid item xs={1.7} key={`pad-${i}`} />
           ))}
@@ -562,15 +620,12 @@ export default function AvailabilityCalendar({
                   onMouseDown={() => handleMouseDown(date)}
                   onMouseEnter={() => handleMouseEnter(date)}
                   onMouseUp={handleMouseUp}
-                  onTouchStart={(e) => handleTouchStart(date, e)}
                   display="flex"
                   alignItems="center"
                   justifyContent="center"
                   flexDirection="column"
                   sx={{
                     userSelect: "none",
-                    WebkitUserSelect: "none",
-                    touchAction: isDragging ? "none" : "pan-y",
                     height: 64,
                     borderRadius: 2,
                     backgroundColor:
@@ -657,4 +712,12 @@ AvailabilityCalendar.propTypes = {
   isContinuousCheck: PropTypes.bool,
   currentDate: PropTypes.instanceOf(Date),
   onMonthChange: PropTypes.func,
+};
+
+AvailabilityCalendar.defaultProps = {
+  selectedDates: null,
+  onSelectionChange: null,
+  isContinuousCheck: false,
+  currentDate: null,
+  onMonthChange: null,
 };
