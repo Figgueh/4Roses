@@ -1,6 +1,7 @@
 import supabase from "../config/supabaseClient.js";
 import dayjs from "dayjs";
-
+import utc from "dayjs/plugin/utc.js";
+dayjs.extend(utc);
 // GET all ICS for calendar
 // /ics
 export const getIcs = async (req, res, next) => {
@@ -24,8 +25,22 @@ export const getIcs = async (req, res, next) => {
 // GET all ICS for calendar
 // /ics
 export const generateCalendar = async (req, res, next) => {
+  const CRLF = "\r\n";
+
+  const fold = (line) => {
+    const chunks = [];
+    while (line.length > 75) {
+      chunks.push(line.substring(0, 75));
+      line = " " + line.substring(75);
+    }
+    chunks.push(line);
+    return chunks.join(CRLF);
+  };
+
+  const buildEvent = (lines) =>
+    ["BEGIN:VEVENT", ...lines, "END:VEVENT"].map(fold).join(CRLF) + CRLF;
+
   try {
-    // Fetch confirmed reservations
     const { data: reservations, error: resError } = await supabase
       .from("reservations")
       .select("id, start_date, end_date, billing_name, status")
@@ -33,58 +48,58 @@ export const generateCalendar = async (req, res, next) => {
 
     if (resError) throw resError;
 
-    // Fetch manually blocked days
     const { data: blockedDays, error: blockError } = await supabase
       .from("blocked_days")
       .select("id, start_date, end_date");
 
     if (blockError) throw blockError;
 
-    // Build iCal content
-    let ical = `BEGIN:VCALENDAR
-VERSION:2.0
-PRODID:-//4Roses//Calendar Sync//EN
-CALSCALE:GREGORIAN
-METHOD:PUBLISH
-`;
+    const dtstamp = dayjs.utc().format("YYYYMMDDTHHmmss") + "Z";
+
+    const lines = [
+      "BEGIN:VCALENDAR",
+      "VERSION:2.0",
+      "PRODID:-//4Roses//Calendar Sync//EN",
+      "CALSCALE:GREGORIAN",
+      "METHOD:PUBLISH",
+    ];
 
     reservations.forEach((r) => {
       const dtStart = dayjs(r.start_date).format("YYYYMMDD");
-      // iCal DTEND for all-day events is exclusive, so add 1 day
       const dtEnd = dayjs(r.end_date).add(1, "day").format("YYYYMMDD");
 
-      ical += `
-BEGIN:VEVENT
-UID:reservation-${r.id}@4roses.fignet.ca
-DTSTAMP:${dayjs().format("YYYYMMDDTHHmmss")}Z
-DTSTART;VALUE=DATE:${dtStart}
-DTEND;VALUE=DATE:${dtEnd}
-SUMMARY:Reservation - ${r.billing_name || "Guest"}
-DESCRIPTION:Blocked (Reservation ID ${r.id})
-END:VEVENT
-`;
+      lines.push(
+        buildEvent([
+          `UID:reservation-${r.id}@4roses.fignet.ca`,
+          `DTSTAMP:${dtstamp}`,
+          `DTSTART;VALUE=DATE:${dtStart}`,
+          `DTEND;VALUE=DATE:${dtEnd}`,
+          `SUMMARY:Reservation - ${r.billing_name || "Guest"}`,
+          `DESCRIPTION:Blocked (Reservation ID ${r.id})`,
+        ])
+      );
     });
 
     blockedDays.forEach((b) => {
       const dtStart = dayjs(b.start_date).format("YYYYMMDD");
-      // blocked days don't require an extra day for cleanup.
       const dtEnd = dayjs(b.end_date).format("YYYYMMDD");
 
-      ical += `
-BEGIN:VEVENT
-UID:blocked-${b.id}@4roses.fignet.ca
-DTSTAMP:${dayjs().format("YYYYMMDDTHHmmss")}Z
-DTSTART;VALUE=DATE:${dtStart}
-DTEND;VALUE=DATE:${dtEnd}
-SUMMARY:Blocked
-DESCRIPTION:Manually blocked dates
-END:VEVENT
-`;
+      lines.push(
+        buildEvent([
+          `UID:blocked-${b.id}@4roses.fignet.ca`,
+          `DTSTAMP:${dtstamp}`,
+          `DTSTART;VALUE=DATE:${dtStart}`,
+          `DTEND;VALUE=DATE:${dtEnd}`,
+          `SUMMARY:Blocked`,
+          `DESCRIPTION:Manually blocked dates`,
+        ])
+      );
     });
 
-    ical += `END:VCALENDAR`;
+    lines.push("END:VCALENDAR");
 
-    // Return ICS file
+    const ical = lines.join(CRLF);
+
     res.setHeader("Content-Type", "text/calendar; charset=utf-8");
     res.setHeader("Content-Disposition", "inline; filename=calendar.ics");
     res.send(ical);

@@ -223,9 +223,16 @@ function DateRangeOverrides() {
   useEffect(() => {
     const fetchAccounts = async () => {
       setLoadingAccounts(true);
-      const { data } = await axios.get(`${process.env.REACT_APP_BACKEND}/users/allUserData`);
-      if (data) setAccounts(data || []);
-      setLoadingAccounts(false);
+      try {
+        const { data } = await axios.get(`${process.env.REACT_APP_BACKEND}/users/allUserData`);
+        console.log(data);
+        setAccounts(Array.isArray(data) ? data : data.users ?? data.accounts ?? [data]);
+      } catch {
+        showToast("Failed to load accounts.", "error");
+        setAccounts([]);
+      } finally {
+        setLoadingAccounts(false);
+      }
     };
     fetchAccounts();
   }, []);
