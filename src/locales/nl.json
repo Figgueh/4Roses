@@ -316,5 +316,6 @@
   "Selected dates must be continuous!": "Geselecteerde datums moeten aaneengesloten zijn!",
   "Click and hold to select continuous dates": "Klik en houd vast om aaneengesloten datums te selecteren",
   "Start date selected": "Startdatum geselecteerd",
-  "Now tap an end date. All dates in between will be selected automatically.": "Selecteer nu een einddatum. Alle datums ertussen worden automatisch geselecteerd."
+  "Now tap an end date. All dates in between will be selected automatically.": "Selecteer nu een einddatum. Alle datums ertussen worden automatisch geselecteerd.",
+  "nights selected": "Geselecteerde nachten"
 }

@@ -433,7 +433,10 @@ export default function AvailabilityCalendar({
     return (
       <div
         data-date={dateKey}
-        onClick={() => handleDateTap(date)}
+        onTouchEnd={(e) => {
+          e.preventDefault();
+          handleDateTap(date);
+        }}
         onMouseEnter={() => firstDate && !blockedDay && !pastDay && setHoverDate(date)}
         onMouseLeave={() => setHoverDate(null)}
         style={{
