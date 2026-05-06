@@ -316,5 +316,6 @@
   "Selected dates must be continuous!": "Ausgewählte Daten müssen zusammenhängend sein!",
   "Click and hold to select continuous dates": "Klicken und halten, um zusammenhängende Daten auszuwählen",
   "Start date selected": "Startdatum ausgewählt",
-  "Now tap an end date. All dates in between will be selected automatically.": "Wählen Sie nun ein Enddatum aus. Alle dazwischenliegenden Daten werden automatisch ausgewählt."
+  "Now tap an end date. All dates in between will be selected automatically.": "Wählen Sie nun ein Enddatum aus. Alle dazwischenliegenden Daten werden automatisch ausgewählt.",
+  "nights selected": "Ausgewählte Nächte"
 }

@@ -316,5 +316,6 @@
   "Selected dates must be continuous!": "Les dates sélectionnées doivent être consécutives !",
   "Click and hold to select continuous dates": "Cliquez et maintenez pour sélectionner des dates consécutives",
   "Start date selected": "Date de début sélectionnée",
-  "Now tap an end date. All dates in between will be selected automatically.": "Sélectionnez maintenant une date de fin. Toutes les dates intermédiaires seront sélectionnées automatiquement."
+  "Now tap an end date. All dates in between will be selected automatically.": "Sélectionnez maintenant une date de fin. Toutes les dates intermédiaires seront sélectionnées automatiquement.",
+  "nights selected": "Nuits sélectionnées"
 }

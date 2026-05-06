@@ -310,5 +310,6 @@
   "Selected dates must be continuous!": "¡Las fechas seleccionadas deben ser consecutivas!",
   "Click and hold to select continuous dates": "Haz clic y mantén pulsado para seleccionar fechas consecutivas",
   "Start date selected": "Fecha de inicio seleccionada",
-  "Now tap an end date. All dates in between will be selected automatically.": "Ahora selecciona una fecha de finalización. Todas las fechas intermedias se seleccionarán automáticamente."
+  "Now tap an end date. All dates in between will be selected automatically.": "Ahora selecciona una fecha de finalización. Todas las fechas intermedias se seleccionarán automáticamente.",
+  "nights selected": "Noches seleccionadas"
 }
