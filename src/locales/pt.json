@@ -150,7 +150,7 @@
   "Upon request": "Mediante pedido",
   "Damage & Incidentals: ": "Danos e incidentes: ",
   "You will be responsible for any damage to the rental property caused by you or your party during your stay.": "Será responsável por quaisquer danos causados à propriedade por si ou pelo seu grupo durante a sua estadia.",
-    "Not permitted": "Não permitido",
+  "Not permitted": "Não permitido",
   "Hide info": "Ocultar informação",
   "Show info": "Mostrar informação",
   "Website link:": "Link do site:",
@@ -257,7 +257,7 @@
   "Pay Remaining Balance": "Pagar saldo restante",
   "Booking ID:": "ID da reserva:",
   "Remaining Amount": "Valor restante",
-    "Province": "Província",
+  "Province": "Província",
   "District": "Distrito",
   "State": "Estado",
   "Municipality": "Município",
@@ -309,8 +309,12 @@
   "Read the terms and conditions for booking and staying at Four Roses villa in Alvor, Portugal.": "Leia os termos e condições para reservar e ficar na villa Four Roses em Alvor, Portugal.",
   "Book Your Villa in Alvor, Portugal | Four Roses": "Reserve a sua villa em Alvor, Portugal | Four Roses",
   "Reserve your villa rental in Alvor, Portugal directly with Four Roses. Check availability, view pricing, and enjoy exclusive discounts when booking direct.": "Reserve a sua villa em Alvor, Portugal diretamente com o Four Roses. Verifique disponibilidade, veja preços e aproveite descontos exclusivos ao reservar diretamente.",
-    "Discover this article from our activity guide in Alvor, Portugal.": "Descubra este artigo do nosso guia de atividades em Alvor, Portugal.",
+  "Discover this article from our activity guide in Alvor, Portugal.": "Descubra este artigo do nosso guia de atividades em Alvor, Portugal.",
   "Discover the best things to do in Alvor, Portugal. Explore top activities, local recommendations, hidden gems, and must visit spots for an unforgettable stay.": "Descubra as melhores coisas para fazer em Alvor, Portugal. Explore as principais atividades, recomendações locais, joias escondidas e locais imperdíveis para uma estadia inesquecível.",
   "activities in Alvor, Portugal | Four Roses": "Atividades em Alvor, Portugal | Four Roses",
-  "Learn more about Four Roses, our rental property, amenities, and how to contact us.": "Saiba mais sobre Four Roses, o nosso alojamento, comodidades e como entrar em contacto connosco."
+  "Learn more about Four Roses, our rental property, amenities, and how to contact us.": "Saiba mais sobre Four Roses, o nosso alojamento, comodidades e como entrar em contacto connosco.",
+  "Selected dates must be continuous!": "As datas selecionadas devem ser contínuas!",
+  "Click and hold to select continuous dates": "Clique e mantenha pressionado para selecionar datas contínuas",
+  "Start date selected": "Data de início selecionada",
+  "Now tap an end date. All dates in between will be selected automatically.": "Agora selecione uma data de término. Todas as datas entre elas serão selecionadas automaticamente."
 }

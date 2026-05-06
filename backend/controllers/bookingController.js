@@ -407,11 +407,11 @@ export const deleteReservation = async (req, res, next) => {
     }
 
     // Prevent deleting non-pending reservations
-    if (reservation.status !== "pending" && reservation.status !== "cancelled") {
-      return res
-        .status(400)
-        .json({ error: "Only pending or cancelled reservations can be deleted" });
-    }
+    // if (reservation.status !== "pending" && reservation.status !== "cancelled") {
+    //   return res
+    //     .status(400)
+    //     .json({ error: "Only pending or cancelled reservations can be deleted" });
+    // }
 
     // Delete the reservation
     const { error: deleteError } = await supabase.from("reservations").delete().eq("id", id);
