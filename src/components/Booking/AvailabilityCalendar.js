@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import { useEffect, useMemo, useState, useRef } from "react";
+import { useEffect, useMemo, useState, useRef, useCallback } from "react";
 import PropTypes from "prop-types";
 import Grid from "@mui/material/Grid";
 import MKBox from "components/MKBox";
@@ -10,6 +10,9 @@ import { Alert, AlertTitle, useMediaQuery } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
 const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+const TODAY = new Date();
+TODAY.setHours(0, 0, 0, 0);
 
 async function fetchICSFromBackend(url) {
   const backendUrl = `${process.env.REACT_APP_BACKEND}/bookings/ics?url=${encodeURIComponent(url)}`;
@@ -53,33 +56,47 @@ export default function AvailabilityCalendar({
 
   const [blockedDates, setBlockedDates] = useState(new Set());
   const [internalDate, setInternalDate] = useState(new Date());
+  const [priceOverrides, setPriceOverrides] = useState([]);
+  const [monthlyPrices, setMonthlyPrices] = useState({});
+  const [error, setError] = useState("");
+
+  // ── Mobile: two-tap selection ────────────────────────────────────
+  const [firstDate, setFirstDate] = useState(null);
+  const [hoverDate, setHoverDate] = useState(null);
+
+  // ── Desktop: drag selection ──────────────────────────────────────
   const [isDragging, setIsDragging] = useState(false);
   const [dragStartDate, setDragStartDate] = useState(null);
   const [dragEndDate, setDragEndDate] = useState(null);
   const [dragMode, setDragMode] = useState(null);
-  const [priceOverrides, setPriceOverrides] = useState([]);
-  const [monthlyPrices, setMonthlyPrices] = useState({});
-  const [error, setError] = useState("");
-  const cancelRef = useRef(false);
-  const gridRef = useRef(null);
+  // Refs so mouse handlers never go stale
+  const isDraggingRef = useRef(false);
+  const dragStartRef = useRef(null);
+  const dragEndRef = useRef(null);
+  const dragModeRef = useRef(null);
+  const selectedDatesRef = useRef(selectedDates);
+  useEffect(() => {
+    selectedDatesRef.current = selectedDates;
+  }, [selectedDates]);
 
-  // Touch refs
+  const cancelRef = useRef(false);
+
+  // Header swipe refs (mobile)
   const touchStartX = useRef(null);
   const touchStartY = useRef(null);
-  const touchOriginTarget = useRef(null);
-  const dragStartDateRef = useRef(null);
-  const dragEndDateRef = useRef(null);
-  const dragModeRef = useRef(null);
   const SWIPE_THRESHOLD = 50;
 
   const { session } = UserAuth();
   const accountId = session?.user?.id ?? null;
 
   const currentDate = controlledDate ?? internalDate;
-  const setCurrentDate = (d) => {
-    if (onMonthChange) onMonthChange(d);
-    else setInternalDate(d);
-  };
+  const setCurrentDate = useCallback(
+    (d) => {
+      if (onMonthChange) onMonthChange(d);
+      else setInternalDate(d);
+    },
+    [onMonthChange]
+  );
 
   useEffect(() => {
     let mounted = true;
@@ -139,7 +156,7 @@ export default function AvailabilityCalendar({
         const obj = JSON.parse(item);
         if (obj && obj.date) map.set(obj.date, obj.source || "");
       } catch (e) {
-        // ignore
+        /* ignore */
       }
     }
     return map;
@@ -148,55 +165,34 @@ export default function AvailabilityCalendar({
   const isBlocked = (date) => blockedSources.has(date.toISOString().split("T")[0]);
   const getSourceForDate = (date) => blockedSources.get(date.toISOString().split("T")[0]) || null;
 
-  // Attach grid touch listeners as non-passive so preventDefault works on iOS
-  useEffect(() => {
-    const el = gridRef.current;
-    if (!el || !isMobile) return;
-
-    const onTouchStart = (e) => handleGridTouchStart(e);
-    const onTouchMove = (e) => handleGridTouchMove(e);
-    const onTouchEnd = (e) => handleGridTouchEnd(e);
-
-    el.addEventListener("touchstart", onTouchStart, { passive: false });
-    el.addEventListener("touchmove", onTouchMove, { passive: false });
-    el.addEventListener("touchend", onTouchEnd, { passive: false });
-
-    return () => {
-      el.removeEventListener("touchstart", onTouchStart);
-      el.removeEventListener("touchmove", onTouchMove);
-      el.removeEventListener("touchend", onTouchEnd);
-    };
-  }, [isMobile, blockedSources]);
-
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
   const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-  const getPriceForDate = (date) => {
-    const iso = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
-      date.getDate()
-    ).padStart(2, "0")}`;
-    const accountOverride = priceOverrides.find(
-      (o) => iso >= o.start_date && iso <= o.end_date && o.account_id === accountId
-    );
-    if (accountOverride) return accountOverride.price_per_night;
-    const globalOverride = priceOverrides.find(
-      (o) => iso >= o.start_date && iso <= o.end_date && o.account_id === null
-    );
-    if (globalOverride) return globalOverride.price_per_night;
-    return monthlyPrices[date.getMonth()] ?? "--";
-  };
-
-  const cloneDate = (d) => new Date(d.getTime());
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const isPastDate = (date) => {
-    const d = cloneDate(date);
+  const isPastDate = useCallback((date) => {
+    const d = new Date(date.getTime());
     d.setHours(0, 0, 0, 0);
-    return d < today;
-  };
+    return d < TODAY;
+  }, []);
+
+  const getPriceForDate = useCallback(
+    (date) => {
+      const iso = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
+        date.getDate()
+      ).padStart(2, "0")}`;
+      const acct = priceOverrides.find(
+        (o) => iso >= o.start_date && iso <= o.end_date && o.account_id === accountId
+      );
+      if (acct) return acct.price_per_night;
+      const global = priceOverrides.find(
+        (o) => iso >= o.start_date && iso <= o.end_date && o.account_id === null
+      );
+      if (global) return global.price_per_night;
+      return monthlyPrices[date.getMonth()] ?? "--";
+    },
+    [priceOverrides, monthlyPrices, accountId]
+  );
 
   function validateContinuousDates(dates) {
     const keys = Object.keys(dates).sort();
@@ -209,136 +205,157 @@ export default function AvailabilityCalendar({
     return true;
   }
 
-  const commitSelection = (startDate, endDate, mode) => {
-    if (!startDate || !endDate) return;
-    const start = startDate < endDate ? cloneDate(startDate) : cloneDate(endDate);
-    const end = startDate > endDate ? cloneDate(startDate) : cloneDate(endDate);
-    const newSelected = { ...(selectedDates || {}) };
-    for (let d = cloneDate(start); d <= end; d.setDate(d.getDate() + 1)) {
-      if (isPastDate(d) || isBlocked(d)) continue;
-      const key = d.toISOString().split("T")[0];
-      if (mode === "select") newSelected[key] = getPriceForDate(d);
-      if (mode === "unselect") delete newSelected[key];
-    }
-    if (!validateContinuousDates(newSelected) & isContinuousCheck) {
-      setError("Selected dates must be continuous!");
-    } else {
-      onSelectionChange?.(newSelected);
-      setError("");
-    }
+  // ── Mobile: two-tap logic ────────────────────────────────────────
+  const handleDateTap = useCallback(
+    (date) => {
+      if (isBlocked(date) || isPastDate(date)) return;
+      const dateKey = date.toISOString().split("T")[0];
+
+      if (!firstDate) {
+        setFirstDate(date);
+        setError("");
+        return;
+      }
+
+      if (firstDate.toISOString().split("T")[0] === dateKey) {
+        setFirstDate(null);
+        setHoverDate(null);
+        return;
+      }
+
+      const start = firstDate < date ? new Date(firstDate.getTime()) : new Date(date.getTime());
+      const end = firstDate > date ? new Date(firstDate.getTime()) : new Date(date.getTime());
+
+      for (let d = new Date(start.getTime()); d <= end; d.setDate(d.getDate() + 1)) {
+        if (isBlocked(d)) {
+          setError(
+            t("Your selection contains unavailable dates. Please choose a different range.")
+          );
+          setFirstDate(null);
+          setHoverDate(null);
+          return;
+        }
+      }
+
+      const newSelected = {};
+      for (let d = new Date(start.getTime()); d <= end; d.setDate(d.getDate() + 1)) {
+        if (isPastDate(d)) continue;
+        const key = d.toISOString().split("T")[0];
+        newSelected[key] = getPriceForDate(d);
+      }
+
+      if (!validateContinuousDates(newSelected) && isContinuousCheck) {
+        setError(t("Selected dates must be continuous!"));
+      } else {
+        onSelectionChange?.(newSelected);
+        setError("");
+      }
+
+      setFirstDate(null);
+      setHoverDate(null);
+    },
+    [
+      firstDate,
+      isPastDate,
+      getPriceForDate,
+      isContinuousCheck,
+      onSelectionChange,
+      t,
+      blockedSources,
+    ]
+  );
+
+  const handleClearSelection = () => {
+    onSelectionChange?.({});
+    setFirstDate(null);
+    setHoverDate(null);
+    setError("");
   };
 
-  const resetDrag = () => {
+  // ── Mobile: preview range ────────────────────────────────────────
+  const isInPreviewRange = useCallback(
+    (date) => {
+      if (!firstDate || !hoverDate) return false;
+      const start = firstDate < hoverDate ? firstDate : hoverDate;
+      const end = firstDate > hoverDate ? firstDate : hoverDate;
+      return date >= start && date <= end;
+    },
+    [firstDate, hoverDate]
+  );
+
+  const previewContainsBlocked = useMemo(() => {
+    if (!firstDate || !hoverDate) return false;
+    const start = firstDate < hoverDate ? firstDate : hoverDate;
+    const end = firstDate > hoverDate ? firstDate : hoverDate;
+    for (let d = new Date(start.getTime()); d <= end; d.setDate(d.getDate() + 1)) {
+      if (isBlocked(d)) return true;
+    }
+    return false;
+  }, [firstDate, hoverDate, blockedSources]);
+
+  // ── Desktop: drag logic ──────────────────────────────────────────
+  const commitDragSelection = useCallback(
+    (startDate, endDate, mode) => {
+      if (!startDate || !endDate) return;
+      const start =
+        startDate < endDate ? new Date(startDate.getTime()) : new Date(endDate.getTime());
+      const end = startDate > endDate ? new Date(startDate.getTime()) : new Date(endDate.getTime());
+      const newSelected = { ...(selectedDatesRef.current || {}) };
+      for (let d = new Date(start.getTime()); d <= end; d.setDate(d.getDate() + 1)) {
+        if (isPastDate(d) || isBlocked(d)) continue;
+        const key = d.toISOString().split("T")[0];
+        if (mode === "select") newSelected[key] = getPriceForDate(d);
+        if (mode === "unselect") delete newSelected[key];
+      }
+      if (!validateContinuousDates(newSelected) && isContinuousCheck) {
+        setError(t("Selected dates must be continuous!"));
+      } else {
+        onSelectionChange?.(newSelected);
+        setError("");
+      }
+    },
+    [isPastDate, getPriceForDate, isContinuousCheck, onSelectionChange, t, blockedSources]
+  );
+
+  const resetDrag = useCallback(() => {
     setIsDragging(false);
     setDragStartDate(null);
     setDragEndDate(null);
     setDragMode(null);
-    dragStartDateRef.current = null;
-    dragEndDateRef.current = null;
+    isDraggingRef.current = false;
+    dragStartRef.current = null;
+    dragEndRef.current = null;
     dragModeRef.current = null;
-  };
+  }, []);
 
-  // ── Mouse handlers (desktop — unchanged) ────────────────────────
   const handleMouseDown = (date) => {
     if (isBlocked(date) || isPastDate(date)) return;
     const key = date.toISOString().split("T")[0];
-    setDragMode(selectedDates && selectedDates[key] ? "unselect" : "select");
-    setIsDragging(true);
-    setDragStartDate(cloneDate(date));
-    setDragEndDate(cloneDate(date));
-  };
-
-  const handleMouseEnter = (date) => {
-    if (isDragging && !isBlocked(date) && !isPastDate(date)) {
-      setDragEndDate(cloneDate(date));
-    }
-  };
-
-  const handleMouseUp = () => {
-    if (!isDragging || !dragStartDate || !dragEndDate) {
-      resetDrag();
-      return;
-    }
-    commitSelection(dragStartDate, dragEndDate, dragMode);
-    resetDrag();
-  };
-
-  // ── Header touch handlers (swipe to change month only) ──────────
-  const handleHeaderTouchStart = (e) => {
-    touchStartX.current = e.touches[0].clientX;
-    touchStartY.current = e.touches[0].clientY;
-    touchOriginTarget.current = "header";
-  };
-
-  const handleHeaderTouchEnd = (e) => {
-    if (touchOriginTarget.current !== "header") return;
-    const dx = e.changedTouches[0].clientX - (touchStartX.current ?? 0);
-    const dy = e.changedTouches[0].clientY - (touchStartY.current ?? 0);
-    if (Math.abs(dx) > SWIPE_THRESHOLD && Math.abs(dx) > Math.abs(dy) * 1.5) {
-      setCurrentDate(new Date(year, month + (dx < 0 ? 1 : -1), 1));
-    }
-    touchOriginTarget.current = null;
-  };
-
-  // ── Grid touch handlers (registered as non-passive via useEffect) ──
-  // Using refs for drag state so handlers always read current values
-  // without needing to be recreated on every render.
-  const handleGridTouchStart = (e) => {
-    e.preventDefault();
-    touchOriginTarget.current = "grid";
-
-    const touch = e.touches[0];
-    const el = document.elementFromPoint(touch.clientX, touch.clientY);
-    const dateStr = el?.dataset?.date;
-    if (!dateStr) return;
-
-    const [y, mo, d] = dateStr.split("-").map(Number);
-    const date = new Date(y, mo - 1, d);
-    if (isBlocked(date) || isPastDate(date)) return;
-
-    const mode = selectedDates?.[dateStr] ? "unselect" : "select";
-    const cloned = cloneDate(date);
-
+    const mode = selectedDatesRef.current?.[key] ? "unselect" : "select";
+    const cloned = new Date(date.getTime());
+    isDraggingRef.current = true;
     dragModeRef.current = mode;
-    dragStartDateRef.current = cloned;
-    dragEndDateRef.current = cloned;
-
-    setDragMode(mode);
+    dragStartRef.current = cloned;
+    dragEndRef.current = cloned;
     setIsDragging(true);
+    setDragMode(mode);
     setDragStartDate(cloned);
     setDragEndDate(cloned);
   };
 
-  const handleGridTouchMove = (e) => {
-    if (touchOriginTarget.current !== "grid") return;
-    e.preventDefault();
-
-    const touch = e.touches[0];
-    const el = document.elementFromPoint(touch.clientX, touch.clientY);
-    const dateStr = el?.dataset?.date;
-    if (!dateStr) return;
-
-    const [y, mo, d] = dateStr.split("-").map(Number);
-    const hovered = new Date(y, mo - 1, d);
-    if (!isBlocked(hovered) && !isPastDate(hovered)) {
-      const cloned = cloneDate(hovered);
-      dragEndDateRef.current = cloned;
-      setDragEndDate(cloned);
-    }
+  const handleMouseEnter = (date) => {
+    if (!isDraggingRef.current || isBlocked(date) || isPastDate(date)) return;
+    const cloned = new Date(date.getTime());
+    dragEndRef.current = cloned;
+    setDragEndDate(cloned);
   };
 
-  const handleGridTouchEnd = (e) => {
-    if (touchOriginTarget.current !== "grid") return;
-    e.preventDefault();
-
-    // Read from refs so we always have the latest values regardless of
-    // React's async state batching, which caused missed selections on iOS
-    if (dragStartDateRef.current && dragEndDateRef.current) {
-      commitSelection(dragStartDateRef.current, dragEndDateRef.current, dragModeRef.current);
+  const handleMouseUp = () => {
+    if (!isDraggingRef.current) return;
+    if (dragStartRef.current && dragEndRef.current) {
+      commitDragSelection(dragStartRef.current, dragEndRef.current, dragModeRef.current);
     }
-
     resetDrag();
-    touchOriginTarget.current = null;
   };
 
   const isInDragRange = (date) => {
@@ -348,16 +365,59 @@ export default function AvailabilityCalendar({
     return date >= start && date <= end;
   };
 
-  const getDragBackgroundColor = (date, selected) => {
+  const getDragBg = (date, selected) => {
     if (!isInDragRange(date)) return null;
     if (dragMode === "select" && !selected) return "#d9fbe2";
     if (dragMode === "unselect" && selected) return "#f8caca";
     return null;
   };
 
+  // ── Mobile cell appearance ───────────────────────────────────────
+  const getMobileCellState = (date) => {
+    const dateKey = date.toISOString().split("T")[0];
+    const blocked = isBlocked(date);
+    const past = isPastDate(date);
+    const selected = !!(selectedDates && selectedDates[dateKey]);
+    const isFirst = !!(firstDate && firstDate.toISOString().split("T")[0] === dateKey);
+    const inPreview = !blocked && !past && isInPreviewRange(date);
+    const invalid = inPreview && previewContainsBlocked;
+    return { dateKey, blocked, past, selected, isFirst, inPreview, invalid };
+  };
+
+  const getMobileBg = ({ blocked, past, selected, isFirst, inPreview, invalid }) => {
+    if (blocked || past) return "#efefef";
+    if (isFirst) return "#4caf7d";
+    if (inPreview) return invalid ? "#fde8e8" : "#d9fbe2";
+    if (selected) return "#81e59a";
+    return "#fff";
+  };
+
+  const getMobileBorder = ({ blocked, past, selected, isFirst, inPreview, invalid }) => {
+    if (isFirst) return "2px solid #2e7d52";
+    if (inPreview && !invalid) return "1px solid #81e59a";
+    if (inPreview && invalid) return "1px solid #f5b7b1";
+    if (selected) return "2px solid #3dba60";
+    if (blocked || past) return "1px solid #ddd";
+    return "1px solid #e8e8e8";
+  };
+
+  // ── Header touch (swipe month — mobile only) ─────────────────────
+  const handleHeaderTouchStart = (e) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+  };
+
+  const handleHeaderTouchEnd = (e) => {
+    const dx = e.changedTouches[0].clientX - (touchStartX.current ?? 0);
+    const dy = e.changedTouches[0].clientY - (touchStartY.current ?? 0);
+    if (Math.abs(dx) > SWIPE_THRESHOLD && Math.abs(dx) > Math.abs(dy) * 1.5) {
+      setCurrentDate(new Date(year, month + (dx < 0 ? 1 : -1), 1));
+    }
+  };
+
   // ── Mobile day cell ──────────────────────────────────────────────
-  const MobileDayCell = ({ date, dateKey, blockedDay, sourceName, pastDay, dragColor }) => {
-    const selected = selectedDates?.[dateKey];
+  const MobileDayCell = ({ date, dateKey, blockedDay, sourceName, pastDay }) => {
+    const state = getMobileCellState(date);
     const price = !blockedDay && !pastDay ? getPriceForDate(date) : null;
     const iso = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
       date.getDate()
@@ -370,11 +430,12 @@ export default function AvailabilityCalendar({
         return o.price_per_night !== (monthlyPrices[date.getMonth()] ?? "--");
       });
 
-    const bg = blockedDay || pastDay ? "#efefef" : dragColor || (selected ? "#81e59a" : "#fff");
-
     return (
       <div
         data-date={dateKey}
+        onClick={() => handleDateTap(date)}
+        onMouseEnter={() => firstDate && !blockedDay && !pastDay && setHoverDate(date)}
+        onMouseLeave={() => setHoverDate(null)}
         style={{
           display: "flex",
           flexDirection: "column",
@@ -382,26 +443,29 @@ export default function AvailabilityCalendar({
           justifyContent: "center",
           height: 52,
           borderRadius: 10,
-          backgroundColor: bg,
-          border:
-            selected && !blockedDay && !pastDay
-              ? "2px solid #3dba60"
-              : blockedDay || pastDay
-              ? "1px solid #ddd"
-              : "1px solid #e8e8e8",
+          backgroundColor: getMobileBg(state),
+          border: getMobileBorder(state),
           cursor: blockedDay || pastDay ? "not-allowed" : "pointer",
           userSelect: "none",
           WebkitUserSelect: "none",
-          touchAction: "none",
+          touchAction: "manipulation",
           position: "relative",
           gap: 1,
+          transition: "background-color 0.1s ease, border-color 0.1s ease",
         }}
       >
         <span
           style={{
             fontSize: "0.95rem",
-            fontWeight: selected && !blockedDay && !pastDay ? 700 : 500,
-            color: blockedDay || pastDay ? "#bbb" : selected ? "#1a6e35" : "#222",
+            fontWeight: state.isFirst || state.selected ? 700 : 500,
+            color:
+              blockedDay || pastDay
+                ? "#bbb"
+                : state.isFirst
+                ? "#fff"
+                : state.selected
+                ? "#1a6e35"
+                : "#222",
             lineHeight: 1,
           }}
         >
@@ -412,7 +476,7 @@ export default function AvailabilityCalendar({
           <span
             style={{
               fontSize: "0.58rem",
-              color: selected ? "#1a6e35" : "#666",
+              color: state.isFirst ? "#e8f5ee" : state.selected ? "#1a6e35" : "#666",
               lineHeight: 1,
               letterSpacing: "-0.01em",
             }}
@@ -433,7 +497,7 @@ export default function AvailabilityCalendar({
               width: 4,
               height: 4,
               borderRadius: "50%",
-              background: "#8b4513",
+              background: state.isFirst ? "#fff" : "#8b4513",
             }}
           />
         )}
@@ -469,13 +533,10 @@ export default function AvailabilityCalendar({
     blockedDay: PropTypes.bool.isRequired,
     sourceName: PropTypes.string,
     pastDay: PropTypes.bool.isRequired,
-    dragColor: PropTypes.string,
   };
+  MobileDayCell.defaultProps = { sourceName: null };
 
-  MobileDayCell.defaultProps = {
-    sourceName: null,
-    dragColor: null,
-  };
+  const selectedCount = selectedDates ? Object.keys(selectedDates).length : 0;
 
   return (
     <MKBox
@@ -484,12 +545,7 @@ export default function AvailabilityCalendar({
       p={isMobile ? 0 : 3}
       sx={
         isMobile
-          ? {
-              width: "100vw",
-              position: "relative",
-              left: "50%",
-              transform: "translateX(-50%)",
-            }
+          ? { width: "100vw", position: "relative", left: "50%", transform: "translateX(-50%)" }
           : {}
       }
     >
@@ -502,8 +558,24 @@ export default function AvailabilityCalendar({
         {t("Availability")}
       </MKTypography>
 
+      {/* Mobile-only status banners */}
+      {isMobile && firstDate && (
+        <Alert
+          severity="info"
+          sx={{ mx: 1, mb: 1 }}
+          onClose={() => {
+            setFirstDate(null);
+            setHoverDate(null);
+          }}
+        >
+          {t("Start date selected")}: <strong>{firstDate.toLocaleDateString(i18n.language)}</strong>
+          . <br></br>{" "}
+          {t("Now tap an end date. All dates in between will be selected automatically.")}
+        </Alert>
+      )}
+
       {error && (
-        <Alert sx={{ mt: 2, mx: isMobile ? 1 : 0 }} severity="error" onClose={() => setError("")}>
+        <Alert sx={{ mt: 1, mx: isMobile ? 1 : 0 }} severity="error" onClose={() => setError("")}>
           <AlertTitle>{t("Date selection error")}</AlertTitle>
           {error}
         </Alert>
@@ -566,6 +638,49 @@ export default function AvailabilityCalendar({
         </MKBox>
       )}
 
+      {/* Mobile-only: selected nights summary + clear */}
+      {isMobile && selectedCount > 0 && !firstDate && (
+        <MKBox
+          display="flex"
+          alignItems="center"
+          justifyContent="space-between"
+          sx={{
+            mx: 1,
+            mb: 1,
+            px: 1.5,
+            py: 0.75,
+            background: "#f0faf3",
+            border: "1px solid #a8dbb9",
+            borderRadius: 2,
+          }}
+        >
+          <MKTypography variant="caption" sx={{ color: "#1a6b3c" }}>
+            {selectedCount} {t(selectedCount === 1 ? "night selected" : "nights selected")}
+          </MKTypography>
+          <MKButton
+            size="small"
+            variant="text"
+            onClick={handleClearSelection}
+            sx={{ color: "#c0392b", fontSize: "11px", minWidth: 0, p: 0.5 }}
+          >
+            {t("Clear")}
+          </MKButton>
+        </MKBox>
+      )}
+
+      {/* Desktop drag hint */}
+      {!isMobile && (
+        <MKTypography
+          variant="caption"
+          display="block"
+          textAlign="center"
+          mb={1}
+          sx={{ color: "text.secondary", fontStyle: "italic" }}
+        >
+          {t("Click and hold to select continuous dates")}
+        </MKTypography>
+      )}
+
       {/* Day headers */}
       {isMobile ? (
         <div
@@ -609,8 +724,8 @@ export default function AvailabilityCalendar({
 
       {/* Calendar grid */}
       {isMobile ? (
+        // ── Mobile: tap-to-select ──────────────────────────────────
         <div
-          ref={gridRef}
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(7, 1fr)",
@@ -623,15 +738,12 @@ export default function AvailabilityCalendar({
           {[...Array(firstDay)].map((_, i) => (
             <div key={`pad-${i}`} />
           ))}
-
           {[...Array(daysInMonth)].map((_, i) => {
             const date = new Date(year, month, i + 1);
             const dateKey = date.toISOString().split("T")[0];
             const blockedDay = isBlocked(date);
             const sourceName = getSourceForDate(date);
             const pastDay = isPastDate(date);
-            const dragColor = getDragBackgroundColor(date, selectedDates?.[dateKey]);
-
             return (
               <MobileDayCell
                 key={dateKey}
@@ -640,24 +752,24 @@ export default function AvailabilityCalendar({
                 blockedDay={blockedDay}
                 sourceName={sourceName}
                 pastDay={pastDay}
-                dragColor={dragColor}
               />
             );
           })}
         </div>
       ) : (
-        <Grid container spacing={1}>
+        // ── Desktop: original drag-to-select ──────────────────────
+        <Grid container spacing={1} onMouseLeave={handleMouseUp}>
           {[...Array(firstDay)].map((_, i) => (
             <Grid item xs={1.7} key={`pad-${i}`} />
           ))}
-
           {[...Array(daysInMonth)].map((_, i) => {
             const date = new Date(year, month, i + 1);
             const dateKey = date.toISOString().split("T")[0];
             const blockedDay = isBlocked(date);
             const sourceName = getSourceForDate(date);
             const pastDay = isPastDate(date);
-            const dragColor = getDragBackgroundColor(date, selectedDates && selectedDates[dateKey]);
+            const selected = !!(selectedDates && selectedDates[dateKey]);
+            const dragBg = getDragBg(date, selected);
 
             return (
               <Grid item xs={1.7} key={i}>
@@ -677,16 +789,16 @@ export default function AvailabilityCalendar({
                     backgroundColor:
                       blockedDay || pastDay
                         ? "grey.200"
-                        : dragColor
-                        ? dragColor
-                        : selectedDates && selectedDates[dateKey]
+                        : dragBg
+                        ? dragBg
+                        : selected
                         ? "#81e59a"
                         : "white",
                     color: blockedDay || pastDay ? "text.disabled" : "text.primary",
                     border: blockedDay || pastDay ? "1px solid #ccc" : "1px solid #e0e0e0",
                     cursor: blockedDay || pastDay ? "not-allowed" : "pointer",
                     "&:hover": {
-                      backgroundColor: blockedDay || dragColor || pastDay ? undefined : "#b6f0c0",
+                      backgroundColor: blockedDay || pastDay || dragBg ? undefined : "#b6f0c0",
                     },
                   }}
                 >
@@ -711,8 +823,7 @@ export default function AvailabilityCalendar({
                       const hasOverride = priceOverrides.some((o) => {
                         if (!(iso >= o.start_date && iso <= o.end_date)) return false;
                         if (o.account_id !== null && o.account_id !== accountId) return false;
-                        const basePrice = monthlyPrices[date.getMonth()] ?? "--";
-                        return o.price_per_night !== basePrice;
+                        return o.price_per_night !== (monthlyPrices[date.getMonth()] ?? "--");
                       });
                       return hasOverride ? (
                         <div
@@ -748,10 +859,7 @@ export default function AvailabilityCalendar({
 
 AvailabilityCalendar.propTypes = {
   icsUrls: PropTypes.arrayOf(
-    PropTypes.shape({
-      url: PropTypes.string.isRequired,
-      name: PropTypes.string.isRequired,
-    })
+    PropTypes.shape({ url: PropTypes.string.isRequired, name: PropTypes.string.isRequired })
   ).isRequired,
   selectedDates: PropTypes.objectOf(PropTypes.number),
   onSelectionChange: PropTypes.func,

@@ -204,7 +204,13 @@ export default function ReservationManager() {
       keys.push("confirm");
     if (r.status === "paid") keys.push("deposit");
     if (r.status === "completed") keys.push("invoice");
-    if (r.status === "pending" || r.status === "cancelled") keys.push("delete");
+    if (
+      r.status === "pending" ||
+      r.status === "cancelled" ||
+      r.status === "confirmed" ||
+      r.status === "completed"
+    )
+      keys.push("delete");
     return keys;
   };
 
@@ -704,7 +710,10 @@ export default function ReservationManager() {
                       )}
 
                       {/* Delete */}
-                      {(r.status === "pending" || r.status === "cancelled") && (
+                      {(r.status === "pending" ||
+                        r.status === "cancelled" ||
+                        r.status === "confirmed" ||
+                        r.status === "completed") && (
                         <Tooltip title="Delete reservation">
                           <IconButton
                             size="small"
@@ -734,6 +743,7 @@ export default function ReservationManager() {
                         ) &&
                         r.status !== "paid" &&
                         r.status !== "completed" &&
+                        r.status !== "confirmed" &&
                         r.status !== "pending" &&
                         r.status !== "cancelled" && (
                           <Typography
