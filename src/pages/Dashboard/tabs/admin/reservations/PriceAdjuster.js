@@ -225,7 +225,6 @@ function DateRangeOverrides() {
       setLoadingAccounts(true);
       try {
         const { data } = await axios.get(`${process.env.REACT_APP_BACKEND}/users/allUserData`);
-        console.log(data);
         setAccounts(Array.isArray(data) ? data : data.users ?? data.accounts ?? [data]);
       } catch {
         showToast("Failed to load accounts.", "error");
