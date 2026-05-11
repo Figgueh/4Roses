@@ -732,7 +732,7 @@ function ArticleGenerator() {
 
         {/* Article preview */}
         {article?.title && (
-          <div style={{ maxWidth: 640, margin: "40px auto 0" }}>
+          <div style={{ margin: "40px auto 0" }}>
             {console.log(unslugify(section), article)}
             <ActivityLayout
               title={unslugify(section)}
