@@ -6,6 +6,8 @@ import MKTypography from "components/MKTypography";
 import MKButton from "components/MKButton";
 import { useTranslation } from "react-i18next";
 import axios from "axios";
+import LoadingScreen from "components/Loading/LoadingScreen";
+import { HashLink } from "react-router-hash-link";
 
 export default function BookingSuccess() {
   const { state } = useLocation();
@@ -51,20 +53,91 @@ export default function BookingSuccess() {
   const handleBackToHome = () => navigate("/");
 
   if (loading) {
-    return (
-      <MKBox minHeight="100vh" display="flex" justifyContent="center" alignItems="center">
-        <MKTypography>{t("Loading booking details")}...</MKTypography>
-      </MKBox>
-    );
+    return <LoadingScreen message={t("Loading booking details")} />;
   }
 
   if (error) {
     return (
-      <MKBox minHeight="100vh" display="flex" justifyContent="center" alignItems="center">
-        <MKTypography color="error">{error}</MKTypography>
-        <MKButton onClick={handleBackToHome} sx={{ mt: 2 }}>
-          {t("Back to Home")}
-        </MKButton>
+      <MKBox
+        minHeight="100vh"
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        p={3}
+        sx={{ background: "linear-gradient(160deg, #fdf8f3 0%, #f5ede0 100%)" }}
+      >
+        <MKBox
+          width="100%"
+          maxWidth="520px"
+          p={{ xs: 3, sm: 5 }}
+          borderRadius="2xl"
+          bgColor="white"
+          shadow="lg"
+          sx={{ textAlign: "center" }}
+        >
+          {/* Icon */}
+          <MKBox
+            sx={{
+              width: 72,
+              height: 72,
+              borderRadius: "50%",
+              background: "#fff8f0",
+              border: "2px solid #e8c4a8",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              mx: "auto",
+              mb: 3,
+              fontSize: "2rem",
+            }}
+          >
+            ⚠️
+          </MKBox>
+
+          <MKTypography
+            variant="h4"
+            sx={{
+              fontFamily: "'Cormorant Garamond', serif",
+              fontWeight: 600,
+              color: "#1e1612",
+              mb: 1,
+            }}
+          >
+            {t("We couldn't load your booking")}
+          </MKTypography>
+
+          <MKTypography variant="body2" sx={{ color: "#9e8a80", mb: 3, lineHeight: 1.7 }}>
+            {t(
+              "There was a problem retrieving your booking details. Your card was not charged. Please contact us if the issue persists."
+            )}
+          </MKTypography>
+
+          <MKButton
+            fullWidth
+            onClick={handleBackToHome}
+            sx={{
+              background: "#8b4513",
+              color: "#fff",
+              fontFamily: "'Cormorant Garamond', serif",
+              fontSize: "1rem",
+              letterSpacing: "0.04em",
+              py: 1.5,
+              borderRadius: 2,
+              "&:hover": { background: "#7a3c10" },
+            }}
+          >
+            {t("Back to Home")}
+          </MKButton>
+
+          <MKTypography
+            component={HashLink}
+            to={`/AboutUs/#contactUs`}
+            variant="caption"
+            sx={{ color: "#b0978a", mt: 2, display: "block", cursor: "pointer" }}
+          >
+            {t("Need help? Contact us and we'll sort it out.")}
+          </MKTypography>
+        </MKBox>
       </MKBox>
     );
   }

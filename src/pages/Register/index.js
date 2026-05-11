@@ -25,6 +25,7 @@ import { UserAuth } from "connection/auth/authContext";
 
 import { useTranslation } from "react-i18next";
 import { Alert, AlertTitle } from "@mui/material";
+import LoadingScreen from "components/Loading/LoadingScreen";
 
 function Register() {
   const navigate = useNavigate();
@@ -94,7 +95,7 @@ function Register() {
   }, [session, navigate]);
 
   if (authLoading) {
-    return <div className="text-center text-gray-500">Loading...</div>;
+    return <LoadingScreen />;
   }
 
   return (

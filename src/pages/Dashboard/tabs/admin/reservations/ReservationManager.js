@@ -25,6 +25,7 @@ import {
   CheckCircleOutlined,
   ArrowRightAltOutlined,
 } from "@mui/icons-material";
+import PropTypes from "prop-types";
 
 const serif = "'Cormorant Garamond', serif";
 const brown = "#8b4513";
@@ -64,7 +65,7 @@ const DATA_COLS = [
 
 const ACTIONS_WIDTH = 250;
 
-export default function ReservationManager() {
+export default function ReservationManager({ reservationId }) {
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState({});
@@ -89,6 +90,10 @@ export default function ReservationManager() {
     };
     fetchReservations();
   }, []);
+
+  useEffect(() => {
+    if (reservationId) setFilterId(reservationId);
+  }, [reservationId]);
 
   const handleStatusChange = (id, newStatus) => {
     setReservations((prev) => prev.map((r) => (r.id === id ? { ...r, status: newStatus } : r)));
@@ -768,3 +773,7 @@ export default function ReservationManager() {
     </MKBox>
   );
 }
+
+ReservationManager.propTypes = {
+  reservationId: PropTypes.integer,
+};

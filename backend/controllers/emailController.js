@@ -1170,7 +1170,9 @@ export const sendBookingInitializedEmail = async (req, res) => {
               <table class="detail-table" cellpadding="0" cellspacing="0" border="0">
                 <tr>
                   <td class="td-label">Reservation ID</td>
-                  <td class="td-value">${reservation.id}</td>
+                  <td class="td-value">
+                  <a href="${process.env.FRONTEND_URL}/dashboard?reservation=${reservation.id}">
+                  ${reservation.id}</a></td>
                 </tr>
                 <tr>
                   <td class="td-label">Status</td>
@@ -1706,7 +1708,9 @@ export const sendBookingPaidEmail = async (req, res) => {
               <table class="detail-table" cellpadding="0" cellspacing="0" border="0">
                 <tr>
                   <td class="td-label">Reservation ID</td>
-                  <td class="td-value">${reservation.id}</td>
+                  <td class="td-value">
+                  <a href="${process.env.FRONTEND_URL}/dashboard?reservation=${reservation.id}">
+                  ${reservation.id}</a></td>
                 </tr>
                 <tr>
                   <td class="td-label">Status</td>
@@ -2376,6 +2380,9 @@ export const sendBookingConfirmEmail = async (req, res) => {
           <!-- ─── HEADER ─── -->
           <tr>
             <td class="header">
+            <div> <a href="${process.env.FRONTEND_URL}"><img src="${
+      process.env.FRONTEND_URL
+    }/images/4RosesHeader.png" alt="Four Roses" class="logo-img" /> </a> </div>
               <div class="header-badge">✓ ${tr.Payment_received}</div>
               <div class="header-title">${tr.title} ${
       parseFloat(reservation.amount_paid) >= parseFloat(reservation.total_price)
@@ -2984,6 +2991,7 @@ export const sendSecurityDepositSettledEmail = async (req, res) => {
           <!-- ─── HEADER ─── -->
           <tr>
             <td class="header">
+            <div> <a href="${process.env.FRONTEND_URL}"><img src="${process.env.FRONTEND_URL}/images/4RosesHeader.png" alt="Four Roses" class="logo-img" /> </a> </div>
               <div class="header-badge">🔒 ${tr.deposit}</div>
               <div class="header-title">${tr.returned}</div>
               <div class="header-sub">${tr.wrapped}.</div>

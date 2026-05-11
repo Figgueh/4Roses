@@ -317,6 +317,12 @@
   "Click and hold to select continuous dates": "Click and hold to select continuous dates",
   "Start date selected": "Start date selected",
   "Now tap an end date. All dates in between will be selected automatically.": "Now tap an end date. All dates in between will be selected automatically.",
-  
-  "nights selected": "nights selected"
+  "nights selected": "nights selected",
+  "Clear": "Clear",
+  "We couldn't load your booking": "We couldn't load your booking",
+  "There was a problem retrieving your booking details. Your card was not charged. Please contact us if the issue persists.": "There was a problem retrieving your booking details. Your card was not charged. Please contact us if the issue persists.",
+  "Need help? Contact us and we'll sort it out.": "Need help? Contact us and we'll sort it out.",
+  "Your email": "Your email",
+  "Who should I send the response to": "Who should I send the response to"
+
 }

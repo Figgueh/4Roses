@@ -317,5 +317,11 @@
   "Click and hold to select continuous dates": "Clique e mantenha pressionado para selecionar datas contínuas",
   "Start date selected": "Data de início selecionada",
   "Now tap an end date. All dates in between will be selected automatically.": "Agora selecione uma data de término. Todas as datas entre elas serão selecionadas automaticamente.",
-  "nights selected": "Noites selecionadas"
+  "nights selected": "Noites selecionadas",
+  "Clear": "Limpar",
+  "We couldn't load your booking": "Não conseguimos carregar a sua reserva",
+  "There was a problem retrieving your booking details. Your card was not charged. Please contact us if the issue persists.": "Ocorreu um problema ao recuperar os detalhes da sua reserva. O seu cartão não foi cobrado. Entre em contacto connosco se o problema persistir.",
+  "Need help? Contact us and we'll sort it out.": "Precisa de ajuda? Entre em contacto connosco e resolveremos o problema.",
+  "Your email": "O seu e-mail",
+  "Who should I send the response to": "Para quem devo enviar a resposta?"
 }

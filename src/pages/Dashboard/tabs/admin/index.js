@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import PropTypes from "prop-types";
 import Box from "@mui/material/Box";
 import Collapse from "@mui/material/Collapse";
 import Typography from "@mui/material/Typography";
@@ -96,7 +97,7 @@ const TOOL_LABELS = {
   articles: "Article Generator",
 };
 
-function renderTool(activeTool) {
+function renderTool(activeTool, id) {
   switch (activeTool) {
     case "interior":
       return <PhotoUploader album="interior" />;
@@ -113,7 +114,7 @@ function renderTool(activeTool) {
     case "about":
       return <AboutEditor />;
     case "reservation manager":
-      return <ReservationManager />;
+      return <ReservationManager reservationId={id} />;
     case "date blocker":
       return <DateBlocker />;
     case "price manager":
@@ -123,7 +124,7 @@ function renderTool(activeTool) {
   }
 }
 
-function AdminDash() {
+function AdminDash({ id }) {
   const [activeTool, setActiveTool] = useState("interior");
   const [openSections, setOpenSections] = useState({
     media: true,
@@ -134,6 +135,12 @@ function AdminDash() {
   const toggleSection = (key) => setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
 
   const activeSection = NAV.find((s) => s.items.some((i) => i.key === activeTool));
+
+  useEffect(() => {
+    if (id) {
+      setActiveTool("reservation manager");
+    }
+  }, [id]);
 
   return (
     <Box sx={{ display: "flex", minHeight: "100vh", background: brownFaint }}>
@@ -319,11 +326,15 @@ function AdminDash() {
             overflowY: "auto",
           }}
         >
-          {renderTool(activeTool)}
+          {renderTool(activeTool, id)}
         </Box>
       </Box>
     </Box>
   );
 }
+
+AdminDash.propTypes = {
+  id: PropTypes.integer,
+};
 
 export default AdminDash;

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserAuth } from "connection/auth/authContext";
+import { useSearchParams } from "react-router-dom";
 
 // @mui material components
 import Container from "@mui/material/Container";
@@ -29,6 +30,9 @@ function Dashboard() {
   const { session, signOut } = UserAuth();
   const [activeTab, setActiveTab] = useState(0);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [searchParams] = useSearchParams();
+  const highlightReservationId = searchParams.get("reservation");
+
   const { t } = useTranslation();
 
   const handleTabChange = (event, newValue) => setActiveTab(newValue);
@@ -48,6 +52,13 @@ function Dashboard() {
       fetchData();
     }
   }, [session]);
+
+  // If a reservation param exists, activate the reservations tab on mount
+  useEffect(() => {
+    if (highlightReservationId) {
+      setActiveTab(2);
+    }
+  }, [highlightReservationId]);
 
   return (
     <BaseLayout title={t("Account dashboard")}>
@@ -120,7 +131,7 @@ function Dashboard() {
         <MKBox mt={2} ml={-5} mr={-5}>
           {activeTab === 0 && <ProfileTab />}
           {activeTab === 1 && <BookingsTab />}
-          {activeTab === 2 && isAdmin && <AdminDash />}
+          {activeTab === 2 && isAdmin && <AdminDash id={highlightReservationId} />}
         </MKBox>
       </MKBox>
     </BaseLayout>
