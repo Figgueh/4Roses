@@ -54,7 +54,7 @@ export const getAllUsersInfo = async (req, res, next) => {
         const { data: userInfo } = await supabase.auth.admin.getUserById(user.id);
         const email = userInfo.user.email || "N/A";
 
-        return res.json({ ...user, first_name, last_name, email });
+        return { ...user, first_name, last_name, email };
       })
     );
 

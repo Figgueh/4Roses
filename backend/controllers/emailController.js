@@ -2172,6 +2172,7 @@ export const sendBookingConfirmEmail = async (req, res) => {
       padding: 6px 18px;
       border-radius: 100px;
       margin-bottom: 20px;
+      margin-top: 10px;
     }
 
     .header-title {
@@ -2770,6 +2771,7 @@ export const sendSecurityDepositSettledEmail = async (req, res) => {
       padding: 6px 18px;
       border-radius: 100px;
       margin-bottom: 20px;
+      margin-top: 10px;
     }
 
     .header-title {
