@@ -195,7 +195,7 @@ function Contact() {
                         <MKInput
                           variant="standard"
                           label={t("Your email")}
-                          placeholder={t("Who should I send my response to")}
+                          placeholder={t("Who should I send the response to")}
                           InputLabelProps={{ shrink: true }}
                           value={formData.email}
                           onChange={(e) =>

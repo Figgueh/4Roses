@@ -317,5 +317,11 @@
   "Click and hold to select continuous dates": "Klik en houd vast om aaneengesloten datums te selecteren",
   "Start date selected": "Startdatum geselecteerd",
   "Now tap an end date. All dates in between will be selected automatically.": "Selecteer nu een einddatum. Alle datums ertussen worden automatisch geselecteerd.",
-  "nights selected": "Geselecteerde nachten"
+  "nights selected": "Geselecteerde nachten",
+  "Clear": "Wissen",
+  "We couldn't load your booking": "We konden je boeking niet laden",
+  "There was a problem retrieving your booking details. Your card was not charged. Please contact us if the issue persists.": "Er is een probleem opgetreden bij het ophalen van je boekingsgegevens. Je kaart is niet belast. Neem contact met ons op als het probleem aanhoudt.",
+  "Need help? Contact us and we'll sort it out.": "Hulp nodig? Neem contact met ons op en we lossen het op.",
+  "Your email": "Uw e-mailadres",
+  "Who should I send the response to": "Naar wie moet ik het antwoord sturen?"
 }

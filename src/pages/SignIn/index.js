@@ -16,6 +16,7 @@ import { UserAuth } from "connection/auth/authContext";
 import { useTranslation } from "react-i18next";
 import axios from "axios";
 import i18n from "i18n";
+import LoadingScreen from "components/Loading/LoadingScreen";
 
 function SignInBasic() {
   const navigate = useNavigate();
@@ -81,7 +82,7 @@ function SignInBasic() {
   const handleSetRememberMe = () => setRememberMe(!rememberMe);
 
   if (authLoading) {
-    return <div className="text-center text-gray-500">Loading...</div>;
+    return <LoadingScreen />;
   }
 
   return (

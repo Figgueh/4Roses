@@ -3,13 +3,12 @@ import PropTypes from "prop-types";
 
 import { UserAuth } from "connection/auth/authContext";
 import { Navigate } from "react-router-dom";
+import LoadingScreen from "components/Loading/LoadingScreen";
 
 const PrivateRoute = ({ children }) => {
   const { session, authLoading } = UserAuth();
 
-  if (authLoading) {
-    return <p className="text-center text-gray-500">Loading...</p>;
-  }
+  if (authLoading) return <LoadingScreen />;
 
   return session ? (
     children
