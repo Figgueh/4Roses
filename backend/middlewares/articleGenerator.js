@@ -1,6 +1,8 @@
-export const generateArticle = async (prompt, sse) => {
+export const generateArticle = async (prompt, sse, model) => {
   let response;
   const apiKey = process.env.OPENROUTER_KEY;
+
+  const resolvedModel = model || "tngtech/deepseek-r1t2-chimera:free";
 
   try {
     response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
@@ -11,7 +13,7 @@ export const generateArticle = async (prompt, sse) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "tngtech/deepseek-r1t2-chimera:free",
+        model: resolvedModel,
         messages: [
           {
             role: "system",
@@ -31,8 +33,7 @@ export const generateArticle = async (prompt, sse) => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.log(errorText);
-      if (response.status == 429)
+      if (response.status === 429)
         throw new Error(`OpenRouter rate limit reached. Try again tomorrow`);
       throw new Error(`OpenRouter request failed (${response.status}): ${errorText}`);
     }
@@ -45,15 +46,64 @@ export const generateArticle = async (prompt, sse) => {
     return;
   }
 
-  sse.send("preProcessing", "OpenRouter request accepted.");
+  sse.send("preProcessing", `OpenRouter accepted. Model: ${resolvedModel}`);
 
   const reader = response.body.getReader();
   const decoder = new TextDecoder("utf-8");
+
+  let partial = ""; // incomplete SSE line accumulator
+  let total = ""; // full raw model output so far
+  let ready = false; // true once we've found the opening { of the JSON payload
   let sentMeta = false;
-  // eslint-disable-next-line no-unused-vars
-  let total = "";
-  let buffer = "";
-  let firstMessage = true;
+
+  // ── Brace-depth section parser state ──
+  // After metadata is sent, we scan the "article" array char-by-char.
+  // sectionBuf accumulates characters for the current section object.
+  // depth tracks how many { we're inside (0 = between sections).
+  let sectionBuf = "";
+  let depth = 0;
+  let inString = false;
+  let escape = false;
+
+  /**
+   * Feed new characters into the depth-tracking parser.
+   * Emits a section SSE event whenever a top-level { ... } is completed.
+   */
+  function feedSectionChars(chars) {
+    for (const ch of chars) {
+      // Track string boundaries so braces inside strings don't count
+      if (escape) {
+        escape = false;
+      } else if (ch === "\\") {
+        escape = true;
+      } else if (ch === '"') {
+        inString = !inString;
+      }
+
+      if (!inString) {
+        if (ch === "{") {
+          depth++;
+        } else if (ch === "}") {
+          depth--;
+        }
+      }
+
+      if (depth > 0) {
+        sectionBuf += ch;
+      } else if (depth === 0 && sectionBuf.length > 0) {
+        // Completed a top-level object
+        sectionBuf += ch; // include the closing }
+        try {
+          const sectionObj = JSON.parse(sectionBuf);
+          console.log("SECTION:", sectionObj.title);
+          sse.send("section", sectionObj);
+        } catch (e) {
+          console.error("Failed to parse section:", e.message, sectionBuf.slice(0, 100));
+        }
+        sectionBuf = "";
+      }
+    }
+  }
 
   // eslint-disable-next-line no-constant-condition
   while (true) {
@@ -64,87 +114,78 @@ export const generateArticle = async (prompt, sse) => {
 
     const chunk = decoder.decode(value, { stream: true });
 
-    chunk.split("\n").forEach((line) => {
-      if (line.startsWith("data:")) {
-        const json = line.slice(5);
-        let partial = "";
-        try {
-          // parse the response from OpenRouter
-          const parsed = JSON.parse(partial + json);
-          const delta = parsed.choices?.[0]?.delta?.content;
-          partial = ""; // clear buffer
+    for (const line of chunk.split("\n")) {
+      if (!line.startsWith("data:")) continue;
 
-          if (delta) {
-            buffer += delta;
-            total += delta;
-            // console.log(delta);
+      const json = line.slice(5).trim();
 
-            // All valid response starts with ```json
-            if (firstMessage) {
-              if (!delta.startsWith("```")) {
-                throw new Error("Response from OpenRouter wasn't sent in a proper format");
-              }
-              firstMessage = false;
-            }
-
-            // Look for metadata if not sent yet
-            if (!sentMeta && /\barticle\b/.test(buffer)) {
-              var lines = buffer
-                .split("\n")
-                .map((line) => line.trim())
-                .filter((line) => line.length); // Removes any lines that are empty
-              lines.shift(); // removes "```json"
-              lines.pop(); // removes "article:"
-              lines.push("}"); // adds closing json tag
-              var metaStr = lines.join("\n");
-              metaStr = metaStr.replace(/,\s*}$/, "}"); // removes comma before the closing brace
-
-              console.log("META:", metaStr);
-
-              try {
-                const parsedMeta = JSON.parse(metaStr);
-                console.log(parsedMeta);
-                sse.send("metadata", parsedMeta);
-                sentMeta = true;
-              } catch (err) {
-                // still incomplete JSON, wait for more chunks
-              }
-
-              //Clear the buffer sent
-              buffer = "";
-            }
-
-            // --- 2. Send article sections individually ---
-            if (sentMeta) {
-              // look for complete section objects
-              const sectionRegex = /{[\s\S]*?}(?=|])/g;
-              let match;
-              while ((match = sectionRegex.exec(buffer)) !== null) {
-                try {
-                  const sectionObj = JSON.parse(match[0]);
-                  sse.send("section", sectionObj);
-                } catch (err) {
-                  console.error("Failed to parse section:", err);
-                }
-              }
-
-              // keep only trailing incomplete part in buffer
-              const lastBracket = buffer.lastIndexOf("}");
-              if (lastBracket !== -1) {
-                buffer = buffer.slice(lastBracket + 1);
-              }
-            }
-          }
-        } catch (err) {
-          if (json === "[DONE]") {
-            sse.send("done", "[DONE]");
-            sse.close();
-            return;
-          }
-          console.log("adding: ", json, " \nto: ", partial);
-          partial += json;
-        }
+      if (json === "[DONE]") {
+        sse.send("done", "[DONE]");
+        sse.close();
+        return;
       }
-    });
+
+      // Accumulate partial SSE JSON across split lines
+      partial += json;
+      let parsed;
+      try {
+        parsed = JSON.parse(partial);
+        partial = "";
+      } catch {
+        continue;
+      }
+
+      const delta = parsed.choices?.[0]?.delta?.content;
+      if (!delta) continue;
+
+      total += delta;
+
+      // ── Step 1: Find the opening { of the JSON payload ──
+      if (!ready) {
+        const fenceIdx = total.indexOf("```");
+        const braceIdx = total.indexOf("{");
+
+        let jsonStart = -1;
+        if (fenceIdx !== -1 && (braceIdx === -1 || fenceIdx < braceIdx)) {
+          const braceAfterFence = total.indexOf("{", fenceIdx);
+          if (braceAfterFence !== -1) jsonStart = braceAfterFence;
+        } else if (braceIdx !== -1) {
+          jsonStart = braceIdx;
+        }
+
+        if (jsonStart === -1) continue;
+
+        // We found the start — everything from here feeds the meta parser
+        total = total.slice(jsonStart);
+        ready = true;
+      }
+
+      // ── Step 2: Send metadata as soon as we have it ──
+      if (!sentMeta) {
+        const articleKeyIdx = total.indexOf('"article"');
+        if (articleKeyIdx !== -1) {
+          let metaStr = total.slice(0, articleKeyIdx).trimEnd().replace(/,\s*$/, "") + "}";
+          try {
+            const parsedMeta = JSON.parse(metaStr);
+            console.log("META:", parsedMeta);
+            sse.send("metadata", parsedMeta);
+            sentMeta = true;
+
+            // Feed everything after "article": [ into the section parser
+            const afterKey = total.slice(articleKeyIdx + '"article"'.length);
+            const arrayStart = afterKey.indexOf("[");
+            if (arrayStart !== -1) {
+              feedSectionChars(afterKey.slice(arrayStart + 1));
+            }
+          } catch {
+            // incomplete meta — wait for more
+          }
+        }
+        continue;
+      }
+
+      // ── Step 3: Feed new delta directly into section parser ──
+      feedSectionChars(delta);
+    }
   }
 };

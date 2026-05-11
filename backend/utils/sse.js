@@ -3,6 +3,7 @@ export class SSEConnection {
     this.res = res;
     this.controller = new AbortController();
     this.signal = this.controller.signal;
+    this.closed = false;
 
     this.init();
 
@@ -27,6 +28,7 @@ export class SSEConnection {
   }
 
   send(event, data) {
+    if (this.closed) return;
     this.res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
   }
 
@@ -39,6 +41,9 @@ export class SSEConnection {
   }
 
   close() {
+    if (this.closed) return;
+
+    this.closed = true;
     this.res.end();
   }
 }
