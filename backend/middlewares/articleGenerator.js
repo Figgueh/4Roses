@@ -1,6 +1,8 @@
-export const generateArticle = async (prompt, sse) => {
+export const generateArticle = async (prompt, sse, model) => {
   let response;
   const apiKey = process.env.OPENROUTER_KEY;
+
+  const resolvedModel = model || "tngtech/deepseek-r1t2-chimera:free";
 
   try {
     response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
@@ -11,7 +13,7 @@ export const generateArticle = async (prompt, sse) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "tngtech/deepseek-r1t2-chimera:free",
+        model: resolvedModel,
         messages: [
           {
             role: "system",
@@ -45,17 +47,14 @@ export const generateArticle = async (prompt, sse) => {
     return;
   }
 
-  sse.send("preProcessing", "OpenRouter request accepted.");
+  sse.send("preProcessing", `OpenRouter accepted. Model: ${resolvedModel}`);
 
   const reader = response.body.getReader();
   const decoder = new TextDecoder("utf-8");
-  let sentMeta = false;
-  // eslint-disable-next-line no-unused-vars
-  let total = "";
-  let buffer = "";
-  let firstMessage = true;
+  let partial = ""; // accumulates incomplete SSE JSON chunks
+  let total = ""; // full raw model output
 
-  // eslint-disable-next-line no-constant-condition
+  // Collect the entire stream first
   while (true) {
     if (sse.isAborted()) return;
 
@@ -64,87 +63,89 @@ export const generateArticle = async (prompt, sse) => {
 
     const chunk = decoder.decode(value, { stream: true });
 
-    chunk.split("\n").forEach((line) => {
-      if (line.startsWith("data:")) {
-        const json = line.slice(5);
-        let partial = "";
-        try {
-          // parse the response from OpenRouter
-          const parsed = JSON.parse(partial + json);
-          const delta = parsed.choices?.[0]?.delta?.content;
-          partial = ""; // clear buffer
+    for (const line of chunk.split("\n")) {
+      if (!line.startsWith("data:")) continue;
 
-          if (delta) {
-            buffer += delta;
-            total += delta;
-            // console.log(delta);
+      const json = line.slice(5).trim();
+      if (json === "[DONE]") break;
 
-            // All valid response starts with ```json
-            if (firstMessage) {
-              if (!delta.startsWith("```")) {
-                throw new Error("Response from OpenRouter wasn't sent in a proper format");
-              }
-              firstMessage = false;
-            }
-
-            // Look for metadata if not sent yet
-            if (!sentMeta && /\barticle\b/.test(buffer)) {
-              var lines = buffer
-                .split("\n")
-                .map((line) => line.trim())
-                .filter((line) => line.length); // Removes any lines that are empty
-              lines.shift(); // removes "```json"
-              lines.pop(); // removes "article:"
-              lines.push("}"); // adds closing json tag
-              var metaStr = lines.join("\n");
-              metaStr = metaStr.replace(/,\s*}$/, "}"); // removes comma before the closing brace
-
-              console.log("META:", metaStr);
-
-              try {
-                const parsedMeta = JSON.parse(metaStr);
-                console.log(parsedMeta);
-                sse.send("metadata", parsedMeta);
-                sentMeta = true;
-              } catch (err) {
-                // still incomplete JSON, wait for more chunks
-              }
-
-              //Clear the buffer sent
-              buffer = "";
-            }
-
-            // --- 2. Send article sections individually ---
-            if (sentMeta) {
-              // look for complete section objects
-              const sectionRegex = /{[\s\S]*?}(?=|])/g;
-              let match;
-              while ((match = sectionRegex.exec(buffer)) !== null) {
-                try {
-                  const sectionObj = JSON.parse(match[0]);
-                  sse.send("section", sectionObj);
-                } catch (err) {
-                  console.error("Failed to parse section:", err);
-                }
-              }
-
-              // keep only trailing incomplete part in buffer
-              const lastBracket = buffer.lastIndexOf("}");
-              if (lastBracket !== -1) {
-                buffer = buffer.slice(lastBracket + 1);
-              }
-            }
-          }
-        } catch (err) {
-          if (json === "[DONE]") {
-            sse.send("done", "[DONE]");
-            sse.close();
-            return;
-          }
-          console.log("adding: ", json, " \nto: ", partial);
-          partial += json;
-        }
+      partial += json;
+      let parsed;
+      try {
+        parsed = JSON.parse(partial);
+        partial = "";
+      } catch {
+        continue;
       }
-    });
+
+      const delta = parsed.choices?.[0]?.delta?.content;
+      if (delta) total += delta;
+    }
   }
+
+  console.log("Full response received, length:", total.length);
+  console.log("First 200 chars:", total.slice(0, 200));
+
+  // --- Find the start of the JSON payload ---
+  // Handle both plain JSON and ```json ... ``` wrapped responses
+  let jsonStr = null;
+
+  const fenceIdx = total.indexOf("```");
+  const braceIdx = total.indexOf("{");
+
+  if (fenceIdx !== -1 && (braceIdx === -1 || fenceIdx < braceIdx)) {
+    // Code-fenced: find the { after the fence
+    const braceAfterFence = total.indexOf("{", fenceIdx);
+    const closingFence = total.lastIndexOf("```");
+    if (braceAfterFence !== -1) {
+      const end = closingFence > braceAfterFence ? closingFence : total.length;
+      jsonStr = total.slice(braceAfterFence, end).trim();
+    }
+  } else if (braceIdx !== -1) {
+    // Plain JSON: find the last closing brace
+    const lastBrace = total.lastIndexOf("}");
+    if (lastBrace !== -1) {
+      jsonStr = total.slice(braceIdx, lastBrace + 1).trim();
+    }
+  }
+
+  if (!jsonStr) {
+    console.error("Could not find JSON in response:", total);
+    sse.send("error", { message: "Model response did not contain valid JSON." });
+    sse.close();
+    return;
+  }
+
+  // --- Parse the full JSON ---
+  let parsed;
+  try {
+    parsed = JSON.parse(jsonStr);
+  } catch (e) {
+    console.error("JSON parse failed:", e.message);
+    console.error("jsonStr:", jsonStr.slice(0, 500));
+    sse.send("error", { message: "Failed to parse model response.", error: e.message });
+    sse.close();
+    return;
+  }
+
+  // --- Send metadata ---
+  const { article, ...meta } = parsed;
+  console.log("META:", meta);
+  sse.send("metadata", meta);
+
+  // --- Send sections ---
+  if (!Array.isArray(article) || article.length === 0) {
+    console.error("No article sections found in response:", parsed);
+    sse.send("error", { message: "Model returned no article sections." });
+    sse.close();
+    return;
+  }
+
+  for (const section of article) {
+    console.log("SECTION:", section.title);
+    sse.send("section", section);
+  }
+
+  sse.send("done", "[DONE]");
+  sse.close();
 };

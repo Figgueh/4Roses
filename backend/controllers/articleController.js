@@ -334,6 +334,7 @@ export const generateArticleFromUrls = async (req, res, next) => {
   try {
     const sse = new SSEConnection(res);
     const { urls } = req.query;
+    const model = req.query.model;
     const parsedUrls = JSON.parse(urls);
 
     console.log(parsedUrls);
@@ -353,11 +354,8 @@ export const generateArticleFromUrls = async (req, res, next) => {
 
     console.log(prompt);
 
-    const article = await generateArticle(prompt, sse);
+    const article = await generateArticle(prompt, sse, model);
     if (sse.signal.aborted) return;
-
-    sse.send("done", article);
-    sse.close();
   } catch (err) {
     next(err);
   }
