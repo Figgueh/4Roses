@@ -22,7 +22,6 @@ RUN ls -alh /usr/bin/google-chrome-stable && \
 
 # Copy package.json and package-lock.json
 COPY package*.json ./
-COPY .env.staging .env.staging
 
 # Install app dependencies including Puppeteer
 RUN npm install
