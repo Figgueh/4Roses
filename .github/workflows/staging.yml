@@ -1,0 +1,49 @@
+name: Build and Push Staging
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push backend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile.staging
+          push: true
+          tags: ghcr.io/figgueh/4roses-backend:staging
+
+      - name: Build and push frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ghcr.io/figgueh/4roses-frontend:staging
+          build-args: |
+            REACT_APP_ADMIN_EMAIL=${{ secrets.REACT_APP_ADMIN_EMAIL }}
+            REACT_APP_BACKEND=${{ secrets.REACT_APP_BACKEND }}
+            REACT_APP_FRONTEND=${{ secrets.REACT_APP_FRONTEND }}
+            REACT_APP_IMGIX=${{ secrets.REACT_APP_IMGIX }}
+            REACT_APP_RENTAL_IBAN=${{ secrets.REACT_APP_RENTAL_IBAN }}
+            REACT_APP_STRIPE_PUBLIC_KEY=${{ secrets.REACT_APP_STRIPE_PUBLIC_KEY }}
+            REACT_APP_SUPABASE_URL=${{ secrets.REACT_APP_SUPABASE_URL }}
+            REACT_APP_SUPABASE_PUBLISHABLE_DEFAULT_KEY=${{ secrets.REACT_APP_SUPABASE_PUBLISHABLE_DEFAULT_KEY }}
+            REACT_APP_SUPABASE_IMAGE=${{ secrets.REACT_APP_SUPABASE_IMAGE }}
